@@ -1,0 +1,2 @@
+# MaNGOSUI
+MaNGOS Universal Installer
