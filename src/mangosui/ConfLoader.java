@@ -132,19 +132,19 @@ public class ConfLoader {
     }
 
     public void getGitURLServer(String version) {
-        GitURLServer = prop.getProperty("MaNGOS." + version);
+        GitURLServer = prop.getProperty("GitURLServer." + version);
     }
     
     public void getGitBranchServer(String version) {
-        GitBranchServer = prop.getProperty("MaNGOS." + version);
+        GitBranchServer = prop.getProperty("GitBranchServer." + version);
     }
 
     public void getGitURLDatabase(String version) {
-        GitURLDatabase = prop.getProperty("MaNGOS." + version);
+        GitURLDatabase = prop.getProperty("GitURLDatabase." + version);
     }
 
     public void getGitBranchDatabase(String version) {
-        GitBranchDatabase = prop.getProperty("MaNGOS." + version);
+        GitBranchDatabase = prop.getProperty("GitBranchDatabase." + version);
     }
     /**
      * @return the GitURLServer
@@ -181,9 +181,7 @@ public class ConfLoader {
         return GitFolderServer;
     }
 
-    /**
-     * @param GitFolderServer the GitFolderServer to set
-     */
+
     public void setGitFolderServer(String FolderServer) {
         this.GitFolderServer = FolderServer;
     }
@@ -224,7 +222,7 @@ public class ConfLoader {
     }
 
     /**
-     * @param GitFolderDatabase the GitFolderDatabase to set
+     * @param FolderDatabase the FolderDatabase to set
      */
     public void setGitFolderDatabase(String FolderDatabase) {
         this.GitFolderDatabase = FolderDatabase;
@@ -238,7 +236,7 @@ public class ConfLoader {
     }
 
     /**
-     * @param PathToMySQL the PathToMySQL to set
+     * @param WinPathMySQL the WinPathMySQL to set
      */
     public void setPathToMySQL(String WinPathMySQL) {
         this.PathToMySQL = WinPathMySQL;

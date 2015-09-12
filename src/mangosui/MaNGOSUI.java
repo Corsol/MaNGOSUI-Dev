@@ -35,7 +35,6 @@ public class MaNGOSUI {
                 return;
             }
 
-            System.out.println("Checking system tools (Git, MySQL, Cmake)... ");
             CommandManager cmdManager = new CommandManager();
             cmdManager.setDebugLevel(confLoader.getDebugLevel());
             if (cmdManager.getCURR_OS() > 0) {
@@ -65,7 +64,7 @@ public class MaNGOSUI {
                 System.out.print("Version ? [0-4, default:0] ");
                 input = System.console().readLine();
                 confLoader.getGitURLServer(input);
-                confLoader.getGitURLServer(input);
+                confLoader.getGitURLDatabase(input);
                 confLoader.getGitBranchServer(input);
                 confLoader.getGitBranchDatabase(input);
                 /**
@@ -73,7 +72,8 @@ public class MaNGOSUI {
                  */
                 System.out.print("\nDo you want to download source from Git repositories? [y/n, default:n] ");
                 input = System.console().readLine();
-                if (!input.isEmpty() && input.contains("y")) {
+                if ("y".equalsIgnoreCase(input)) {
+                    System.out.println("Checking Git installation... ");
                     if (cmdManager.getCURR_OS() == cmdManager.WINDOWS && !cmdManager.isPSScriptEnabled()) {
                         System.out.println("WARNING: PowerShell script execution is not ebabled. To enable it run PS (x86) as Administrator and use \"Set-ExecutionPolicy Unrestricted\" command.");
                     }
@@ -91,7 +91,7 @@ public class MaNGOSUI {
                         System.out.println("Server port: " + confLoader.getProxyPort());
                         System.out.print("\nDo you want to use a proxy server with this parameter? [y/n, default:n] ");
                         input = System.console().readLine();
-                        if (!input.isEmpty() && input.contains("n")) {
+                        if (!"y".equalsIgnoreCase(input)) {
                             confLoader.setProxyPort("");
                             confLoader.setProxyServer("");
                         }
@@ -102,7 +102,7 @@ public class MaNGOSUI {
                         System.out.println("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchServer());
                         System.out.print("\nDo you want to change theese parameters? [y/n, default:n] ");
                         input = System.console().readLine();
-                        if (!input.isEmpty() && input.contains("y")) {
+                        if ("y".equalsIgnoreCase(input)) {
                             confLoader.setGitURLServer(readNewParam("URL", confLoader.getGitURLServer()));
                             confLoader.setGitFolderServer(readNewParam("DESTINATION FOLDER", confLoader.getGitFolderServer()));
                             confLoader.setGitBranchServer(readNewParam("REPOSITORY BRANCH", confLoader.getGitBranchServer()));
@@ -115,12 +115,12 @@ public class MaNGOSUI {
                         serverFolder = confLoader.getGitFolderServer().isEmpty() ? "server" : confLoader.getGitFolderServer();
                         if (cmdManager.checkFolder(serverFolder)) {
                             optGitSrvWipe = true;
+                            // Check server version for update
+                            if (!cmdManager.isRepoUpToDate(serverFolder)) {
+                                optGitSrvUpdate = true;
+                            }
                         } else {
                             optGitSrvInstall = true;
-                        }
-                        // Check server version for update
-                        if (!cmdManager.isRepoUpToDate(serverFolder)) {
-                            optGitSrvUpdate = true;
                         }
                         // Ask what to do (first clone, wipe and clone, checkout and update) for server
                         System.out.println("\n*** Server download option avaiable:");
@@ -172,7 +172,7 @@ public class MaNGOSUI {
                         System.out.println("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchDatabase());
                         System.out.print("\nDo you want to change theese parameters? [y/n, default:n] ");
                         input = System.console().readLine();
-                        if (!input.isEmpty() && input.contains("y")) {
+                        if ("y".equalsIgnoreCase(input)) {
                             confLoader.setGitURLDatabase(readNewParam("URL", confLoader.getGitURLDatabase()));
                             confLoader.setGitFolderDatabase(readNewParam("DESTINATION FOLDER", confLoader.getGitFolderDatabase()));
                             confLoader.setGitBranchDatabase(readNewParam("REPOSITORY BRANCH", confLoader.getGitBranchDatabase()));
@@ -185,12 +185,12 @@ public class MaNGOSUI {
                         databaseFolder = confLoader.getGitFolderDatabase().isEmpty() ? "database" : confLoader.getGitFolderDatabase();
                         if (cmdManager.checkFolder(databaseFolder)) {
                             optGitDBWipe = true;
+                            // Check database version for update
+                            if (!cmdManager.isRepoUpToDate(databaseFolder)) {
+                                optGitDBUpdate = true;
+                            }
                         } else {
                             optGitDBInstall = true;
-                        }
-                        // Check database version for update
-                        if (!cmdManager.isRepoUpToDate(databaseFolder)) {
-                            optGitDBUpdate = true;
                         }
                         // Ask what to do (first clone, wipe and clone, checkout and update) for database
                         System.out.println("\n*** Database download option avaiable:");
@@ -249,7 +249,8 @@ public class MaNGOSUI {
                  */
                 System.out.print("\nDo you want to install databases? [y/n, default:n] ");
                 input = System.console().readLine();
-                if (!input.isEmpty() && input.contains("y")) {
+                if ("y".equalsIgnoreCase(input)) {
+                    System.out.println("Checking MySQL installation... ");
                     String mysqlToolPath = "";
                     if (!cmdManager.checkMySQL(null)) {
                         System.out.println("INFO: MySQL is not locally installed... checking for mysql.exe tool.");
@@ -276,7 +277,7 @@ public class MaNGOSUI {
                         System.out.println("DB PASS    : " + confLoader.getDatabaseUserPass());
                         System.out.print("\nDo you want to change theese parameters? [y/n, default:n] ");
                         input = System.console().readLine();
-                        if (!input.isEmpty() && input.contains("y")) {
+                        if ("y".equalsIgnoreCase(input)) {
                             confLoader.setDatabaseServer(readNewParam("SERVER", confLoader.getDatabaseServer()));
                             confLoader.setDatabasePort(readNewParam("PORT", confLoader.getDatabasePort()));
                             confLoader.setDatabaseAdmin(readNewParam("ADMIN USER", confLoader.getDatabaseAdmin()));
@@ -298,7 +299,7 @@ public class MaNGOSUI {
                         System.out.println("UPD RELEASE : " + confLoader.getWorldUpdRel());
                         System.out.print("\nDo you want to change theese parameters? [y/n, default:n] ");
                         input = System.console().readLine();
-                        if (!input.isEmpty() && input.contains("y")) {
+                        if ("y".equalsIgnoreCase(input)) {
                             confLoader.setWorldDBName(readNewParam("WORLD DB", confLoader.getWorldDBName()));
                             confLoader.setCharDBName(readNewParam("CHAR DB", confLoader.getCharDBName()));
                             confLoader.setRealmDBName(readNewParam("REALM DB", confLoader.getRealmDBName()));
@@ -331,14 +332,14 @@ public class MaNGOSUI {
                         if (optGitDBInstall || optGitDBWipe) {
                             System.out.print("\nIs your first DB installation: [y/n, default:n] ");
                             input = System.console().readLine();
-                            if (input.equalsIgnoreCase("y")) {
+                            if ("y".equalsIgnoreCase(input)) {
                                 System.out.println("Installing new database...");
                                 cmdManager.createDB(confLoader, null);
                             }
 
                             System.out.print("\nDo you want to wipe (if already installed) and install Realm database? [y/n, default:n] ");
                             input = System.console().readLine();
-                            if (input.equalsIgnoreCase("y")) {
+                            if ("y".equalsIgnoreCase(input)) {
                                 // Installing Realm database
                                 String setupPath = databaseFolder + File.separator
                                         + confLoader.getRealmFolder() + File.separator
@@ -366,7 +367,7 @@ public class MaNGOSUI {
 
                             System.out.print("\nDo you want to wipe (if already installed) and install Character database? [y/n, default:n] ");
                             input = System.console().readLine();
-                            if (input.equalsIgnoreCase("y")) {
+                            if ("y".equalsIgnoreCase(input)) {
                                 // Installing Realm database
                                 String setupPath = databaseFolder + File.separator
                                         + confLoader.getCharFolder() + File.separator
@@ -394,7 +395,7 @@ public class MaNGOSUI {
 
                             System.out.print("\nDo you want to wipe (if already installed) and install World database? [y/n, default:n] ");
                             input = System.console().readLine();
-                            if (input.equalsIgnoreCase("y")) {
+                            if ("y".equalsIgnoreCase(input)) {
                                 // Installing Realm database
                                 String setupPath = databaseFolder + File.separator
                                         + confLoader.getWorldFolder() + File.separator
@@ -441,7 +442,8 @@ public class MaNGOSUI {
                  */
                 System.out.print("\nDo you want to build and install serve sources? [y/n, default:n] ");
                 input = System.console().readLine();
-                if (!input.isEmpty() && input.contains("y")) {
+                if ("y".equalsIgnoreCase(input)) {
+                    System.out.println("Checking Cmake installation... ");
                     if (!cmdManager.checkCMAKE(null)) {
                         System.out.println("INFO: CMAKE is not installed into PATH/shell environment... checking for cmake.exe installation folder.");
                         //.setEnabled(false);
@@ -449,10 +451,10 @@ public class MaNGOSUI {
                         String cmake64Path = confLoader.getWin64PathCMake();
                         if (cmdManager.checkCMAKE(cmake32Path, null)) {
                             cmakeOk = true;
-                            System.out.println("INFO: Founded CMAKE commands for x86 system.");
+                            System.out.println("INFO: Founded CMAKE commands on x86 system.");
                         } else if (cmdManager.checkCMAKE(cmake64Path, null)) {
                             cmakeOk = true;
-                            System.out.println("INFO: Founded CMAKE commands for x64 system.");
+                            System.out.println("INFO: Founded CMAKE commands on x64 system.");
                         } else {
                             System.out.println("ERROR: CMAKE commands not found on system. Check CMAKE installation!.");
                         }
@@ -463,11 +465,11 @@ public class MaNGOSUI {
                     }
                     if (cmakeOk) {
                         if (cmdManager.checkMySQLLib("", null).isEmpty() || cmdManager.checkMySQLInclude("", null).isEmpty()) {
-                            System.out.println("ERROR: MySQL library for CMAKE was not found on system. Do you want to use portable version? \n"
-                                    + "WARNING: Portable MySQL library is for 5.6 version. Use this for other MySQL version can be insecure. [y/n, default:n] ");
-                            System.out.print("\nDo you want to build source code? [y/n, default:n] ");
-                            input =  System.console().readLine();
-                            if (input.equalsIgnoreCase("y")) {
+                            System.out.println("ERROR: MySQL library for CMAKE was not found on system. Do you want to use portable version?");
+                            System.out.println("WARNING: Portable MySQL library is for 5.6 version. Use this for other MySQL version can be insecure. [y/n, default:n] ");
+                            System.out.print("Do you want to install MySQL portable library? [y/n, default:n] ");
+                            input = System.console().readLine();
+                            if ("y".equalsIgnoreCase(input)) {
                                 cmakeOk = cmdManager.installMySQLPortable(null);
                                 if (!cmakeOk) {
                                     System.out.println("ERROR: MySQL library for CMAKE not installed. Try again running as Administrator!");
@@ -478,11 +480,11 @@ public class MaNGOSUI {
                         }
 
                         if (cmdManager.checkOpenSSLLib("", null).isEmpty() || cmdManager.checkOpenSSLInclude("", null).isEmpty()) {
-                            System.out.println("ERROR: OpenSSL library for CMAKE was not found on system. Do you want to use portable version? \n"
-                                    + "WARNING: Portable OpenSSL library is for 1.0.2d 32bit version. Use this version can be insecure. [y/n, default:n] ");
-                            System.out.print("\nDo you want to build source code? [y/n, default:n] ");
-                            input =  System.console().readLine();
-                            if (input.equalsIgnoreCase("y")) {
+                            System.out.println("ERROR: OpenSSL library for CMAKE was not found on system. Do you want to use portable version?");
+                            System.out.println("WARNING: Portable OpenSSL library is for 1.0.2d 32bit version. Use this version can be insecure. [y/n, default:n] ");
+                            System.out.print("Do you want to istall OpenSSL portable library? [y/n, default:n] ");
+                            input = System.console().readLine();
+                            if ("y".equalsIgnoreCase(input)) {
                                 cmakeOk = cmdManager.installOpenSSLPortable(null);
                                 if (!cmakeOk) {
                                     System.out.println("ERROR: OpenSSL library for CMAKE not installed. Try again running as Administrator!");
@@ -496,14 +498,14 @@ public class MaNGOSUI {
                     if (cmakeOk) {
                         System.out.print("\nDo you want to build source code? [y/n, default:n] ");
                         input = System.console().readLine();
-                        if (input.equalsIgnoreCase("y")) {
+                        if ("y".equalsIgnoreCase(input)) {
                             System.out.println("Configuring CMake option for compile.");
                             serverFolder = confLoader.getGitFolderServer().isEmpty() ? "server" : confLoader.getGitFolderServer();
                             cmdManager.cmakeConfig(serverFolder, confLoader.getCMakeBuildFolder(), confLoader.getCmakeOptions(), null);
                         }
                         System.out.print("\nDo you want to compile and install built source? [y/n, default:n] ");
-                        input =  System.console().readLine();
-                        if (input.equalsIgnoreCase("y")) {
+                        input = System.console().readLine();
+                        if ("y".equalsIgnoreCase(input)) {
                             cmdManager.cmakeInstall(confLoader.getCMakeBuildFolder(), confLoader.getCMakeRunFolder(), null);
                         }
                     } else {
