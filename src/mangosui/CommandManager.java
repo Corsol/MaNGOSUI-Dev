@@ -241,26 +241,33 @@ public class CommandManager {
             }
             File destDir = new File(basePath);
             if (!destDir.exists()) {
-                destDir.mkdirs();
-            }
-            try (ZipInputStream zipIn = new ZipInputStream(new FileInputStream("mysql_portable.zip"))) {
-                ZipEntry entry = zipIn.getNextEntry();
-                // iterates over entries in the zip file
-                while (entry != null) {
-                    String filePath = basePath + File.separator + entry.getName();
-                    if (!entry.isDirectory()) {
-                        // if the entry is a file, extracts it
-                        extractFile(zipIn, filePath);
-                    } else {
-                        // if the entry is a directory, make the directory
-                        File dir = new File(filePath);
-                        dir.mkdir();
-                    }
-                    zipIn.closeEntry();
-                    entry = zipIn.getNextEntry();
+                boolean ret = destDir.mkdirs();
+                if (!ret) {
+                    System.out.println("Unable to create portable directory: " + basePath);
+                    return false;
                 }
             }
+            ZipInputStream zipIn = new ZipInputStream(new FileInputStream("mysql_portable.zip"));
+            ZipEntry entry = zipIn.getNextEntry();
+            // iterates over entries in the zip file
+            while (entry != null) {
+                String filePath = basePath + File.separator + entry.getName();
+                if (!entry.isDirectory()) {
+                    // if the entry is a file, extracts it
+                    extractFile(zipIn, filePath);
+                } else {
+                    // if the entry is a directory, make the directory
+                    File dir = new File(filePath);
+                    dir.mkdirs();
+                }
+                zipIn.closeEntry();
+                entry = zipIn.getNextEntry();
+            }
+            ret_val = true;
         } catch (IOException ex) {
+            Logger.getLogger(CommandManager.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex.getLocalizedMessage());
+            ex.printStackTrace();
             return false;
         }
         return ret_val;
@@ -290,26 +297,33 @@ public class CommandManager {
             }
             File destDir = new File(basePath);
             if (!destDir.exists()) {
-                destDir.mkdirs();
-            }
-            try (ZipInputStream zipIn = new ZipInputStream(new FileInputStream("openssl_portable.zip"))) {
-                ZipEntry entry = zipIn.getNextEntry();
-                // iterates over entries in the zip file
-                while (entry != null) {
-                    String filePath = basePath + File.separator + entry.getName();
-                    if (!entry.isDirectory()) {
-                        // if the entry is a file, extracts it
-                        extractFile(zipIn, filePath);
-                    } else {
-                        // if the entry is a directory, make the directory
-                        File dir = new File(filePath);
-                        dir.mkdir();
-                    }
-                    zipIn.closeEntry();
-                    entry = zipIn.getNextEntry();
+                boolean ret = destDir.mkdirs();
+                if (!ret) {
+                    System.out.println("Unable to create portable directory: " + basePath);
+                    return false;
                 }
             }
+            ZipInputStream zipIn = new ZipInputStream(new FileInputStream("openssl_portable.zip"));
+            ZipEntry entry = zipIn.getNextEntry();
+            // iterates over entries in the zip file
+            while (entry != null) {
+                String filePath = basePath + File.separator + entry.getName();
+                if (!entry.isDirectory()) {
+                    // if the entry is a file, extracts it
+                    extractFile(zipIn, filePath);
+                } else {
+                    // if the entry is a directory, make the directory
+                    File dir = new File(filePath);
+                    dir.mkdirs();
+                }
+                zipIn.closeEntry();
+                entry = zipIn.getNextEntry();
+            }
+            ret_val = true;
         } catch (IOException ex) {
+            Logger.getLogger(CommandManager.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex.getLocalizedMessage());
+            ex.printStackTrace();
             return false;
         }
         return ret_val;
@@ -378,6 +392,9 @@ public class CommandManager {
     public boolean cmakeConfig(String serverFolder, String buildFolder, HashMap<String, String> options, Object console) {
         boolean ret_val = false;
         try {
+            if (checkFolder(buildFolder)){
+                deleteFolder(buildFolder);
+            }
             switch (CURR_OS) {
                 case 1: // Windows
                     ret_val = winCmd.cmakeConfig(serverFolder, buildFolder, options, console);
@@ -424,6 +441,8 @@ public class CommandManager {
             File file = new File(path);
             return file.exists() && file.isDirectory();
         } catch (Exception ex) {
+            Logger.getLogger(CommandManager.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex.getLocalizedMessage());
             return false;
         }
     }
@@ -438,6 +457,8 @@ public class CommandManager {
             }
             return file.delete();
         } catch (Exception ex) {
+            Logger.getLogger(CommandManager.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex.getLocalizedMessage());
             return false;
         }
     }

@@ -6,8 +6,12 @@
 package mangosui;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -57,6 +61,8 @@ public class ConfLoader {
     private HashMap<String, String> cmakeOptions;
     private String CMakeBuildFolder = "";
     private String CMakeRunFolder = "";
+    private String OPENSSL_LIBRARIES = "";
+    private String OPENSSL_INCLUDE_DIR = "";
 
     private String debugLevel = "";
     private String PathToMySQL = "";
@@ -118,6 +124,8 @@ public class ConfLoader {
             cmakeOptions = prop.getPropertyArray("cmake");
             CMakeBuildFolder = prop.getProperty("CMakeBuildFolder", "");
             CMakeRunFolder = prop.getProperty("cmake.CMAKE_INSTALL_PREFIX", "");
+            OPENSSL_LIBRARIES = prop.getProperty("cmake.OPENSSL_LIBRARIES", "");
+            OPENSSL_INCLUDE_DIR = prop.getProperty("cmake.OPENSSL_INCLUDE_DIR", "");
 
             debugLevel = prop.getProperty("debugLevel", "");
             PathToMySQL = prop.getProperty("PathToMySQL", "");
@@ -134,7 +142,7 @@ public class ConfLoader {
     public void getGitURLServer(String version) {
         GitURLServer = prop.getProperty("GitURLServer." + version);
     }
-    
+
     public void getGitBranchServer(String version) {
         GitBranchServer = prop.getProperty("GitBranchServer." + version);
     }
@@ -146,6 +154,7 @@ public class ConfLoader {
     public void getGitBranchDatabase(String version) {
         GitBranchDatabase = prop.getProperty("GitBranchDatabase." + version);
     }
+
     /**
      * @return the GitURLServer
      */
@@ -180,7 +189,6 @@ public class ConfLoader {
     public String getGitFolderServer() {
         return GitFolderServer;
     }
-
 
     public void setGitFolderServer(String FolderServer) {
         this.GitFolderServer = FolderServer;
@@ -534,6 +542,37 @@ public class ConfLoader {
 
     public void setCMakeRunFolder(String CMakeRunFolder) {
         this.CMakeRunFolder = CMakeRunFolder;
+    }
+
+    /**
+     * @return the OPENSSL_LIBRARIES
+     */
+    public String getOPENSSL_LIBRARIES() {
+        return OPENSSL_LIBRARIES;
+    }
+
+    /**
+     * @param OPENSSL_LIBRARIES the OPENSSL_LIBRARIES to set
+     */
+    public void setOPENSSL_LIBRARIES(String OPENSSL_LIBRARIES) {
+        //prop.setProperty("cmake.OPENSSL_LIBRARIES", OPENSSL_LIBRARIES);
+        this.cmakeOptions.put("cmake.OPENSSL_LIBRARIES", OPENSSL_LIBRARIES);
+        this.OPENSSL_LIBRARIES = OPENSSL_LIBRARIES;
+    }
+
+    /**
+     * @return the OPENSSL_INCLUDE_DIR
+     */
+    public String getOPENSSL_INCLUDE_DIR() {
+        return OPENSSL_INCLUDE_DIR;
+    }
+
+    /**
+     * @param OPENSSL_INCLUDE_DIR the OPENSSL_INCLUDE_DIR to set
+     */
+    public void setOPENSSL_INCLUDE_DIR(String OPENSSL_INCLUDE_DIR) {
+        this.cmakeOptions.put("cmake.OPENSSL_INCLUDE_DIR", OPENSSL_INCLUDE_DIR);
+        this.OPENSSL_INCLUDE_DIR = OPENSSL_INCLUDE_DIR;
     }
 
 }

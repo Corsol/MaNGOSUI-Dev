@@ -158,6 +158,14 @@ public class WindowsCommands extends Command {
                         }
                     }
                 }
+                openSSLSearches = new ArrayList<String>();
+                openSSLSearches.add("C:" + File.separator + "OpenSSL-Win32" + File.separator + includePath);
+                openSSLSearches.add("C:" + File.separator + "OpenSSL-Win64" + File.separator + includePath);
+                for (String path : openSSLSearches) {
+                    if (super.checkFolder(path)) {
+                        return path;
+                    }
+                }
             } else {
                 if (super.checkFolder(pathToOpenSSL)) {
                     return pathToOpenSSL;
@@ -193,6 +201,14 @@ public class WindowsCommands extends Command {
                         if (super.checkFolder(path)) {
                             return path;
                         }
+                    }
+                }
+                openSSLSearches = new ArrayList<String>();
+                openSSLSearches.add("C:" + File.separator + "OpenSSL-Win32" + File.separator + includePath);
+                openSSLSearches.add("C:" + File.separator + "OpenSSL-Win64" + File.separator + includePath);
+                for (String path : openSSLSearches) {
+                    if (super.checkFolder(path)) {
+                        return path;
                     }
                 }
             } else {

@@ -446,7 +446,6 @@ public class MaNGOSUI {
                     System.out.println("Checking Cmake installation... ");
                     if (!cmdManager.checkCMAKE(null)) {
                         System.out.println("INFO: CMAKE is not installed into PATH/shell environment... checking for cmake.exe installation folder.");
-                        //.setEnabled(false);
                         String cmake32Path = confLoader.getWin32PathCMake();
                         String cmake64Path = confLoader.getWin64PathCMake();
                         if (cmdManager.checkCMAKE(cmake32Path, null)) {
@@ -479,31 +478,34 @@ public class MaNGOSUI {
                             }
                         }
 
-                        if (cmdManager.checkOpenSSLLib("", null).isEmpty() || cmdManager.checkOpenSSLInclude("", null).isEmpty()) {
+                        /*if (cmdManager.checkOpenSSLLib("", null).isEmpty() || cmdManager.checkOpenSSLInclude("", null).isEmpty()) {
                             System.out.println("ERROR: OpenSSL library for CMAKE was not found on system. Do you want to use portable version?");
                             System.out.println("WARNING: Portable OpenSSL library is for 1.0.2d 32bit version. Use this version can be insecure. [y/n, default:n] ");
                             System.out.print("Do you want to istall OpenSSL portable library? [y/n, default:n] ");
                             input = System.console().readLine();
                             if ("y".equalsIgnoreCase(input)) {
                                 cmakeOk = cmdManager.installOpenSSLPortable(null);
-                                if (!cmakeOk) {
+                                if (cmakeOk){
+                                    confLoader.setOPENSSL_LIBRARIES(cmdManager.checkOpenSSLLib("", null));
+                                    confLoader.setOPENSSL_INCLUDE_DIR(cmdManager.checkOpenSSLInclude("", null));
+                                } else {
                                     System.out.println("ERROR: OpenSSL library for CMAKE not installed. Try again running as Administrator!");
                                 }
                             } else {
                                 cmakeOk = false;
                             }
-                        }
+                        }*/
                     }
 
                     if (cmakeOk) {
-                        System.out.print("\nDo you want to build source code? [y/n, default:n] ");
+                        System.out.print("\nDo you want to build source code (into folder '"+confLoader.getCMakeBuildFolder()+"')? [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
                             System.out.println("Configuring CMake option for compile.");
                             serverFolder = confLoader.getGitFolderServer().isEmpty() ? "server" : confLoader.getGitFolderServer();
                             cmdManager.cmakeConfig(serverFolder, confLoader.getCMakeBuildFolder(), confLoader.getCmakeOptions(), null);
                         }
-                        System.out.print("\nDo you want to compile and install built source? [y/n, default:n] ");
+                        System.out.print("\nDo you want to compile and install built source (into folder '"+confLoader.getCMakeRunFolder()+"')? [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
                             cmdManager.cmakeInstall(confLoader.getCMakeBuildFolder(), confLoader.getCMakeRunFolder(), null);
