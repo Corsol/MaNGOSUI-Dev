@@ -74,7 +74,10 @@ public class CommandManager {
                     ret_val = winCmd.gitOperation(command, console, true);
                     break;
                 case 2: // Unix
-                    ret_val = unixCmd.executeShell(command, console, sb, true);
+                    ArrayList<String> commands = new ArrayList<String>();
+                    commands.add("git");
+                    commands.add("--version");
+                    ret_val = unixCmd.gitOperation(commands, console, true);
                     break;
                 case 3: // MAC OS
                     break;
@@ -90,7 +93,10 @@ public class CommandManager {
 
     public boolean checkCMAKE(Object console) {
         StringBuilder sb = new StringBuilder();
-        String command = "cmake --help";
+        //String command = "cmake --help";
+        ArrayList<String> command = new ArrayList<String>();
+        command.add("cmake");
+        command.add("--help");
         // Set toBuffer param to true to avoid console text
         return runOSCommand(command, console, sb, true);
     }
@@ -108,7 +114,10 @@ public class CommandManager {
 
     public boolean checkMySQL(Object console) {
         StringBuilder sb = new StringBuilder();
-        String command = "mysql.exe --help";
+        //String command = "mysql --help";
+        ArrayList<String> command = new ArrayList<String>();
+        command.add("mysql");
+        command.add("--help");
         // Set toBuffer param to true to avoid console text
         boolean ret = runOSCommand(command, console, sb, true);
         if (ret) {
@@ -119,7 +128,7 @@ public class CommandManager {
 
     public boolean checkMySQL(String pathToMySQL, Object console) {
         StringBuilder sb = new StringBuilder();
-        String command = pathToMySQL + File.separator + "mysql.exe --help";
+        String command = "." + File.separator + pathToMySQL + File.separator + "mysql.exe --help";
         // Set toBuffer param to true to avoid console text
         boolean ret = runOSCommand(command, console, sb, true);
         if (ret) {
@@ -392,7 +401,7 @@ public class CommandManager {
     public boolean cmakeConfig(String serverFolder, String buildFolder, HashMap<String, String> options, Object console) {
         boolean ret_val = false;
         try {
-            if (checkFolder(buildFolder)){
+            if (checkFolder(buildFolder)) {
                 deleteFolder(buildFolder);
             }
             switch (CURR_OS) {

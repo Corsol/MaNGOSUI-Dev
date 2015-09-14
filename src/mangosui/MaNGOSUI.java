@@ -465,7 +465,7 @@ public class MaNGOSUI {
                     if (cmakeOk) {
                         if (cmdManager.checkMySQLLib("", null).isEmpty() || cmdManager.checkMySQLInclude("", null).isEmpty()) {
                             System.out.println("ERROR: MySQL library for CMAKE was not found on system. Do you want to use portable version?");
-                            System.out.println("WARNING: Portable MySQL library is for 5.6 version. Use this for other MySQL version can be insecure. [y/n, default:n] ");
+                            System.out.println("WARNING: Portable MySQL library is for 5.6 version. Use this for other MySQL version can be insecure.");
                             System.out.print("Do you want to install MySQL portable library? [y/n, default:n] ");
                             input = System.console().readLine();
                             if ("y".equalsIgnoreCase(input)) {
@@ -498,7 +498,8 @@ public class MaNGOSUI {
                     }
 
                     if (cmakeOk) {
-                        System.out.print("\nDo you want to build source code (into folder '"+confLoader.getCMakeBuildFolder()+"')? [y/n, default:n] ");
+                        System.out.print("\nDo you want to build source code (into folder '"+confLoader.getCMakeBuildFolder()+"')?\n"
+                                + "WARNING: this operation may overwrite already built project! [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
                             System.out.println("Configuring CMake option for compile.");

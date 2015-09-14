@@ -154,6 +154,17 @@ public class UnixCommand extends Command {
         }
     }
 
+    boolean gitOperation(ArrayList<String> gitCommand, Object console, boolean toBuffer) throws InterruptedException, IOException { //String url, String folder, String branch, String proxyServer, String proxyPort, String winPath){
+        StringBuilder sb = new StringBuilder();
+        /*if (console != null) {
+         ConsoleManager.getInstance().updateGUIConsole(console, gitCommand, ConsoleManager.getInstance().TEXT_ORANGE);
+         } else if (!toBuffer) {
+         System.out.println(gitCommand);
+         }*/
+        //String command = "& \"" + gitPath + "\\shell.ps1\" \n " + gitCommand;
+        return executeShell(gitCommand, console, sb, toBuffer);
+    }
+
     @Override
     boolean isRepoUpToDate(String pathToRepo) throws InterruptedException, IOException {
         StringBuilder sb = new StringBuilder();
@@ -171,10 +182,14 @@ public class UnixCommand extends Command {
         }
         //ArrayList<String> command = new ArrayList<>();
 
-        String command = "cd " + buildFolder + " & cmake.exe -Wno-dev";
+        
+        ArrayList<String> command = new ArrayList<String>();
+        command.add("bash");
+        command.add("-c");
+        String commands = "cd " + buildFolder + " ; cmake -Wno-dev";
         for (String optKey : options.keySet()) {
             if (!options.get(optKey).isEmpty()) {
-                command += " -D" + optKey.substring(optKey.indexOf(".") + 1) + "=" + options.get(optKey);
+                commands += " -D" + optKey.substring(optKey.indexOf(".") + 1) + "=" + options.get(optKey);
             }
         }
         if (buildFolder.indexOf(File.separator) > 0) {
@@ -185,7 +200,8 @@ public class UnixCommand extends Command {
         } else {
             serverFolder = ".." + File.separator + serverFolder;
         }
-        command += " " + serverFolder;
+        commands += " " + serverFolder;
+        command.add(commands);
         //command.add(cmd);
         return executeShell(command, console, sb, false);
     }
@@ -199,7 +215,12 @@ public class UnixCommand extends Command {
         }
         //ArrayList<String> command = new ArrayList<>();
 
-        String command = "cd " + buildFolder + " & make install";
+        //String command = "cd " + buildFolder + " & make install";
+        //"bash", "-c", "ls ; pwd"
+        ArrayList<String> command = new ArrayList<String>();
+        command.add("bash");
+        command.add("-c");
+        command.add("cd " + buildFolder + " ; make install");
 
         //command.add(cmd);
         return executeShell(command, console, sb, false);
