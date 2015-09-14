@@ -23,6 +23,11 @@ public class ProcessExec extends javax.swing.SwingWorker {
     Process p;
     JTextPane jtp;
 
+    /**
+     *
+     * @param process
+     * @param jtp
+     */
     public ProcessExec(Process process, Object jtp) {
         p = process;
         this.jtp = (JTextPane)jtp;
@@ -44,6 +49,11 @@ public class ProcessExec extends javax.swing.SwingWorker {
 
     //This will happen on the UI Thread.
 
+    /**
+     *
+     * @param lines
+     */
+    
     protected void process(List lines) {
         for (String o : lines.getItems()) {
             //ConsoleManager.getInstance().updateGUIConsole(jtp, o, ConsoleManager.getInstance().TEXT_BLACK);

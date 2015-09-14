@@ -30,6 +30,11 @@ import java.util.Set;
 public class PropertiesEx extends Properties{
     private static final long serialVersionUID = 1L;
 
+    /**
+     *
+     * @param fis
+     * @throws IOException
+     */
     public synchronized void load(FileInputStream fis) throws IOException {
         Scanner in = new Scanner(fis);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -63,6 +68,11 @@ public class PropertiesEx extends Properties{
         load( new InputStreamReader( is ) );
     }
 
+    /**
+     *
+     * @param keyPart
+     * @return
+     */
     public synchronized HashMap<String, String> getPropertyArray(String keyPart){
         HashMap<String, String> props = new HashMap<>();
         Set<String> propList = this.stringPropertyNames();

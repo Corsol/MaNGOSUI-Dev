@@ -20,9 +20,22 @@ public class WindowsCommands extends Command {
     private String gitPath = "";
     private String cmakePath = "";
 
+    /**
+     *
+     */
     public WindowsCommands() {
     }
 
+    /**
+     *
+     * @param command
+     * @param guiConsole
+     * @param rawConsole
+     * @param toBuffer
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public boolean executeCmd(String command, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer) throws IOException, InterruptedException {
 //        command += " > NUL 2>&1";
         if (super.getDebugLevel() > 0) {
@@ -33,6 +46,16 @@ public class WindowsCommands extends Command {
         return execute(new String[]{"cmd.exe", "/c", command}, guiConsole, rawConsole, toBuffer);
     }
 
+    /**
+     *
+     * @param commands
+     * @param guiConsole
+     * @param rawConsole
+     * @param toBuffer
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public boolean executeCmd(ArrayList<String> commands, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer) throws IOException, InterruptedException {
         ArrayList<String> command = new ArrayList<String>();
         command.add("cmd.exe");
@@ -50,6 +73,16 @@ public class WindowsCommands extends Command {
         return execute(command.toArray(new String[command.size()]), guiConsole, rawConsole, toBuffer);
     }
 
+    /**
+     *
+     * @param command
+     * @param guiConsole
+     * @param rawConsole
+     * @param toBuffer
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public boolean executePS(String command, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer) throws IOException, InterruptedException {
         if (super.getDebugLevel() > 0) {
             System.out.println("\nDEBUG - command:" + command + "\n");
@@ -59,6 +92,12 @@ public class WindowsCommands extends Command {
         return execute(new String[]{"powershell.exe", command}, guiConsole, rawConsole, toBuffer);
     }
 
+    /**
+     *
+     * @param pathToMySQL
+     * @param console
+     * @return
+     */
     @Override
     public String checkMySQLInclude(String pathToMySQL, Object console) {
         try {
@@ -96,6 +135,12 @@ public class WindowsCommands extends Command {
         }
     }
 
+    /**
+     *
+     * @param pathToMySQL
+     * @param console
+     * @return
+     */
     @Override
     public String checkMySQLLib(String pathToMySQL, Object console) {
         try {
@@ -134,7 +179,14 @@ public class WindowsCommands extends Command {
     }
 
     // "reg query " + '"'+ location + "\" /v \"" + key + "\"")
-    @Override
+
+    /**
+     *
+     * @param pathToOpenSSL
+     * @param console
+     * @return
+     */
+        @Override
     public String checkOpenSSLInclude(String pathToOpenSSL, Object console) {
         try {
             String includePath =  "include" + File.separator + "openssl";
@@ -179,6 +231,12 @@ public class WindowsCommands extends Command {
         }
     }
 
+    /**
+     *
+     * @param pathToOpenSSL
+     * @param console
+     * @return
+     */
     @Override
     public String checkOpenSSLLib(String pathToOpenSSL, Object console) {
         try {
@@ -225,6 +283,10 @@ public class WindowsCommands extends Command {
 
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean checkPSScript() {
         try {
             StringBuilder sb = new StringBuilder();
@@ -236,6 +298,16 @@ public class WindowsCommands extends Command {
         }
     }
 
+    /**
+     *
+     * @param serverFolder
+     * @param buildFolder
+     * @param options
+     * @param console
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     @Override
     public boolean cmakeConfig(String serverFolder, String buildFolder, HashMap<String, String> options, Object console) throws IOException, InterruptedException {
         StringBuilder sb = new StringBuilder();
@@ -264,6 +336,15 @@ public class WindowsCommands extends Command {
         return executeCmd(command, console, sb, false);
     }
 
+    /**
+     *
+     * @param buildFolder
+     * @param runFolder
+     * @param console
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     @Override
     public boolean cmakeInstall(String buildFolder, String runFolder, Object console) throws IOException, InterruptedException {
         StringBuilder sb = new StringBuilder();
@@ -301,18 +382,34 @@ public class WindowsCommands extends Command {
         return executePS(command, console, sb, toBuffer);
     }
 
+    /**
+     *
+     * @return
+     */
     public String getGitPath() {
         return gitPath;
     }
 
+    /**
+     *
+     * @param gitPath
+     */
     public void setGitPath(String gitPath) {
         this.gitPath = gitPath;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getCmakePath() {
         return cmakePath;
     }
 
+    /**
+     *
+     * @param cmakePath
+     */
     public void setCmakePath(String cmakePath) {
         this.cmakePath = cmakePath;
     }

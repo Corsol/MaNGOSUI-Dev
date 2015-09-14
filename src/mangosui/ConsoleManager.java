@@ -20,16 +20,46 @@ public class ConsoleManager {
     
     private static ConsoleManager instance = null;
     
+    /**
+     *
+     */
     public int TEXT_NO_COLOR = 0;
+
+    /**
+     *
+     */
     public int TEXT_RED = 1;
+
+    /**
+     *
+     */
     public int TEXT_GREEN = 2;
+
+    /**
+     *
+     */
     public int TEXT_ORANGE = 3;
+
+    /**
+     *
+     */
     public int TEXT_BLACK = 4;
+
+    /**
+     *
+     */
     public int TEXT_BLUE = 5;
     
+    /**
+     *
+     */
     public ConsoleManager() {
     }
     
+    /**
+     *
+     * @return
+     */
     public static ConsoleManager getInstance() {
         if (instance == null) {
             instance = new ConsoleManager();
@@ -37,10 +67,21 @@ public class ConsoleManager {
         return instance;
     }
     
+    /**
+     *
+     * @param console
+     * @param text
+     */
     public void updateGUIConsole(Object console, String text) {
         updateGUIConsole(console, text, TEXT_NO_COLOR);
     }
     
+    /**
+     *
+     * @param console
+     * @param text
+     * @param textColor
+     */
     public void updateGUIConsole(Object console, String text, int textColor) {
         try {
             StyledDocument doc = ((JTextPane) console).getStyledDocument();

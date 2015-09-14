@@ -22,6 +22,9 @@ public abstract class Command {
 
     private int debugLevel = 0; // 0: None, 1: console, 2: full
 
+    /**
+     *
+     */
     public Command() {
     }
 
@@ -38,6 +41,16 @@ public abstract class Command {
     abstract String checkMySQLInclude(String pathToMySQL, Object console);
     abstract String checkMySQLLib(String pathToMySQL, Object console);
 
+    /**
+     *
+     * @param commands
+     * @param guiConsole
+     * @param rawConsole
+     * @param toBuffer
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     protected boolean execute(String[] commands, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer) throws IOException, InterruptedException {
         ProcessBuilder builder = new ProcessBuilder(commands);
         builder.redirectErrorStream(true);
@@ -88,6 +101,11 @@ public abstract class Command {
         }
     }
 
+    /**
+     *
+     * @param path
+     * @return
+     */
     public boolean checkFolder(String path) {
         try {
             File file = new File(path);
@@ -97,10 +115,18 @@ public abstract class Command {
         }
     }
     
+    /**
+     *
+     * @return
+     */
     public int getDebugLevel() {
         return debugLevel;
     }
 
+    /**
+     *
+     * @param debugLevel
+     */
     public void setDebugLevel(int debugLevel) {
         this.debugLevel = debugLevel;
     }

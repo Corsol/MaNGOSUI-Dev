@@ -74,6 +74,9 @@ public class ConfLoader {
 
     private PropertiesEx prop;
 
+    /**
+     *
+     */
     public ConfLoader() {
         try {
             //BufferedReader metadataReader = new BufferedReader(new InputStreamReader(new FileInputStream("config.properties")));
@@ -139,18 +142,34 @@ public class ConfLoader {
         }
     }
 
+    /**
+     *
+     * @param version
+     */
     public void getGitURLServer(String version) {
         GitURLServer = prop.getProperty("GitURLServer." + version);
     }
 
+    /**
+     *
+     * @param version
+     */
     public void getGitBranchServer(String version) {
         GitBranchServer = prop.getProperty("GitBranchServer." + version);
     }
 
+    /**
+     *
+     * @param version
+     */
     public void getGitURLDatabase(String version) {
         GitURLDatabase = prop.getProperty("GitURLDatabase." + version);
     }
 
+    /**
+     *
+     * @param version
+     */
     public void getGitBranchDatabase(String version) {
         GitBranchDatabase = prop.getProperty("GitBranchDatabase." + version);
     }
@@ -190,6 +209,10 @@ public class ConfLoader {
         return GitFolderServer;
     }
 
+    /**
+     *
+     * @param FolderServer
+     */
     public void setGitFolderServer(String FolderServer) {
         this.GitFolderServer = FolderServer;
     }
@@ -271,222 +294,442 @@ public class ConfLoader {
         return confLoaded;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getGitURLEluna() {
         return GitURLEluna;
     }
 
+    /**
+     *
+     * @param GitURLEluna
+     */
     public void setGitURLEluna(String GitURLEluna) {
         this.GitURLEluna = GitURLEluna;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getGitBranchEluna() {
         return GitBranchEluna;
     }
 
+    /**
+     *
+     * @param GitBranchEluna
+     */
     public void setGitBranchEluna(String GitBranchEluna) {
         this.GitBranchEluna = GitBranchEluna;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getGitFolderEluna() {
         return GitFolderEluna;
     }
 
+    /**
+     *
+     * @param GitFolderEluna
+     */
     public void setGitFolderEluna(String GitFolderEluna) {
         this.GitFolderEluna = GitFolderEluna;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getProxyServer() {
         return ProxyServer;
     }
 
+    /**
+     *
+     * @param ProxyServer
+     */
     public void setProxyServer(String ProxyServer) {
         this.ProxyServer = ProxyServer;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getProxyPort() {
         return ProxyPort;
     }
 
+    /**
+     *
+     * @param ProxyPort
+     */
     public void setProxyPort(String ProxyPort) {
         this.ProxyPort = ProxyPort;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getDatabaseServer() {
         return DatabaseServer;
     }
 
+    /**
+     *
+     * @param DatabaseServer
+     */
     public void setDatabaseServer(String DatabaseServer) {
         this.DatabaseServer = DatabaseServer;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getDatabasePort() {
         return DatabasePort;
     }
 
+    /**
+     *
+     * @param DatabasePort
+     */
     public void setDatabasePort(String DatabasePort) {
         this.DatabasePort = DatabasePort;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getDatabaseAdmin() {
         return DatabaseAdmin;
     }
 
+    /**
+     *
+     * @param DatabaseAdmin
+     */
     public void setDatabaseAdmin(String DatabaseAdmin) {
         this.DatabaseAdmin = DatabaseAdmin;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getDatabaseAdminPass() {
         return DatabaseAdminPass;
     }
 
+    /**
+     *
+     * @param DatabaseAdminPass
+     */
     public void setDatabaseAdminPass(String DatabaseAdminPass) {
         this.DatabaseAdminPass = DatabaseAdminPass;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getDatabaseUser() {
         return DatabaseUser;
     }
 
+    /**
+     *
+     * @param DatabaseUser
+     */
     public void setDatabaseUser(String DatabaseUser) {
         this.DatabaseUser = DatabaseUser;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getDatabaseUserPass() {
         return DatabaseUserPass;
     }
 
+    /**
+     *
+     * @param DatabaseUserPass
+     */
     public void setDatabaseUserPass(String DatabaseUserPass) {
         this.DatabaseUserPass = DatabaseUserPass;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getWorldDBName() {
         return WorldDBName;
     }
 
+    /**
+     *
+     * @param WorldDBName
+     */
     public void setWorldDBName(String WorldDBName) {
         this.WorldDBName = WorldDBName;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getCharDBName() {
         return CharDBName;
     }
 
+    /**
+     *
+     * @param CharDBName
+     */
     public void setCharDBName(String CharDBName) {
         this.CharDBName = CharDBName;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getRealmDBName() {
         return RealmDBName;
     }
 
+    /**
+     *
+     * @param RealmDBName
+     */
     public void setRealmDBName(String RealmDBName) {
         this.RealmDBName = RealmDBName;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getWorldFolder() {
         return WorldFolder;
     }
 
+    /**
+     *
+     * @param WorldFolder
+     */
     public void setWorldFolder(String WorldFolder) {
         this.WorldFolder = WorldFolder;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getCharFolder() {
         return CharFolder;
     }
 
+    /**
+     *
+     * @param CharFolder
+     */
     public void setCharFolder(String CharFolder) {
         this.CharFolder = CharFolder;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getRealmFolder() {
         return RealmFolder;
     }
 
+    /**
+     *
+     * @param RealmFolder
+     */
     public void setRealmFolder(String RealmFolder) {
         this.RealmFolder = RealmFolder;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getDatabaseSetupFolder() {
         return DatabaseSetupFolder;
     }
 
+    /**
+     *
+     * @param DatabaseSetupFolder
+     */
     public void setDatabaseSetupFolder(String DatabaseSetupFolder) {
         this.DatabaseSetupFolder = DatabaseSetupFolder;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getUpdateFolder() {
         return DatabaseUpdateFolder;
     }
 
+    /**
+     *
+     * @param UpdateFolder
+     */
     public void setUpdateFolder(String UpdateFolder) {
         this.DatabaseUpdateFolder = UpdateFolder;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getWorldUpdRel() {
         return WorldUpdRel;
     }
 
+    /**
+     *
+     * @param WorldUpdRel
+     */
     public void setWorldUpdRel(String WorldUpdRel) {
         this.WorldUpdRel = WorldUpdRel;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getCharUpdRel() {
         return CharUpdRel;
     }
 
+    /**
+     *
+     * @param CharUpdRel
+     */
     public void setCharUpdRel(String CharUpdRel) {
         this.CharUpdRel = CharUpdRel;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getRealmUpdRel() {
         return RealmUpdRel;
     }
 
+    /**
+     *
+     * @param RealmUpdRel
+     */
     public void setRealmUpdRel(String RealmUpdRel) {
         this.RealmUpdRel = RealmUpdRel;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getWorldFullDB() {
         return WorldFullDB;
     }
 
+    /**
+     *
+     * @param WorldFullDB
+     */
     public void setWorldFullDB(String WorldFullDB) {
         this.WorldFullDB = WorldFullDB;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getDatabaseUpdateFolder() {
         return DatabaseUpdateFolder;
     }
 
+    /**
+     *
+     * @param DatabaseUpdateFolder
+     */
     public void setDatabaseUpdateFolder(String DatabaseUpdateFolder) {
         this.DatabaseUpdateFolder = DatabaseUpdateFolder;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getWorldLoadDBName() {
         return WorldLoadDBName;
     }
 
+    /**
+     *
+     * @param WorldLoadDBName
+     */
     public void setWorldLoadDBName(String WorldLoadDBName) {
         this.WorldLoadDBName = WorldLoadDBName;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getCharLoadDBName() {
         return CharLoadDBName;
     }
 
+    /**
+     *
+     * @param CharLoadDBName
+     */
     public void setCharLoadDBName(String CharLoadDBName) {
         this.CharLoadDBName = CharLoadDBName;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getRealmLoadDBName() {
         return RealmLoadDBName;
     }
 
+    /**
+     *
+     * @param RealmLoadDBName
+     */
     public void setRealmLoadDBName(String RealmLoadDBName) {
         this.RealmLoadDBName = RealmLoadDBName;
     }
 
+    /**
+     *
+     * @return
+     */
     public int getDebugLevel() {
         try {
             return Integer.parseInt(debugLevel);
@@ -495,6 +738,10 @@ public class ConfLoader {
         }
     }
 
+    /**
+     *
+     * @param debugLevel
+     */
     public void setDebugLevel(int debugLevel) {
         try {
             this.debugLevel = String.valueOf(debugLevel);
@@ -504,42 +751,82 @@ public class ConfLoader {
 
     }
 
+    /**
+     *
+     * @return
+     */
     public String getWin32PathCMake() {
         return Win32PathCMake;
     }
 
+    /**
+     *
+     * @param Win32PathCMake
+     */
     public void setWin32PathCMake(String Win32PathCMake) {
         this.Win32PathCMake = Win32PathCMake;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getWin64PathCMake() {
         return Win64PathCMake;
     }
 
+    /**
+     *
+     * @param Win64PathCMake
+     */
     public void setWin64PathCMake(String Win64PathCMake) {
         this.Win64PathCMake = Win64PathCMake;
     }
 
+    /**
+     *
+     * @return
+     */
     public HashMap<String, String> getCmakeOptions() {
         return cmakeOptions;
     }
 
+    /**
+     *
+     * @param cmakeOptions
+     */
     public void setCmakeOptions(HashMap<String, String> cmakeOptions) {
         this.cmakeOptions = cmakeOptions;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getCMakeBuildFolder() {
         return CMakeBuildFolder;
     }
 
+    /**
+     *
+     * @param CMakeBuildFolder
+     */
     public void setCMakeBuildFolder(String CMakeBuildFolder) {
         this.CMakeBuildFolder = CMakeBuildFolder;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getCMakeRunFolder() {
         return CMakeRunFolder;
     }
 
+    /**
+     *
+     * @param CMakeRunFolder
+     */
     public void setCMakeRunFolder(String CMakeRunFolder) {
         this.CMakeRunFolder = CMakeRunFolder;
     }

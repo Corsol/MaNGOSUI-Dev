@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.Object;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,8 +28,20 @@ public class CommandManager {
     private static final String OS_NAME = "os.name";
     private static final String OS_VERSION = "os.version";
     private static final String OS_ARCH = "os.arch";
+
+    /**
+     *
+     */
     public final int WINDOWS = 1;
+
+    /**
+     *
+     */
     public final int UNIX = 2;
+
+    /**
+     *
+     */
     public final int MACOS = 3;
     private WindowsCommands winCmd;
     private UnixCommand unixCmd;
@@ -45,6 +58,9 @@ public class CommandManager {
     //private String OpenSSLPath = "";
     //private String MySQLWinPath = "";
 
+    /**
+     *
+     */
     public CommandManager() {
         osName = System.getProperty(OS_NAME);
         osVersion = System.getProperty(OS_VERSION);
@@ -63,6 +79,11 @@ public class CommandManager {
         }
     }
 
+    /**
+     *
+     * @param console
+     * @return
+     */
     public boolean checkGit(Object console) {
         StringBuilder sb = new StringBuilder();
         String command = "git --version";
@@ -74,10 +95,8 @@ public class CommandManager {
                     ret_val = winCmd.gitOperation(command, console, true);
                     break;
                 case 2: // Unix
-                    ArrayList<String> commands = new ArrayList<String>();
-                    commands.add("git");
-                    commands.add("--version");
-                    ret_val = unixCmd.gitOperation(commands, console, true);
+                    // Set toBuffer param to true to avoid console text
+                    ret_val = unixCmd.gitOperation(new ArrayList(Arrays.asList(command.split(" "))), console, true);
                     break;
                 case 3: // MAC OS
                     break;
@@ -91,16 +110,43 @@ public class CommandManager {
         return ret_val;
     }
 
+    /**
+     *
+     * @param console
+     * @return
+     */
     public boolean checkCMAKE(Object console) {
         StringBuilder sb = new StringBuilder();
-        //String command = "cmake --help";
-        ArrayList<String> command = new ArrayList<String>();
-        command.add("cmake");
-        command.add("--help");
+        String command = "cmake --help";
         // Set toBuffer param to true to avoid console text
-        return runOSCommand(command, console, sb, true);
+        //return runOSCommand(command, console, sb, true);
+        boolean ret_val = false;
+        try {
+            switch (CURR_OS) {
+                case 1: // Windows
+                    ret_val = runOSCommand(command, console, sb, true);
+                    break;
+                case 2: // Unix
+                    ret_val = runOSCommand(new ArrayList(Arrays.asList(command.split(" "))), console, sb, true);
+                    break;
+                case 3: // MAC OS
+                    break;
+                default:
+                    ret_val = false;
+                    break;
+            }
+        } catch (Exception ex) {
+            return false;
+        }
+        return ret_val;
     }
 
+    /**
+     *
+     * @param pathToCMake
+     * @param console
+     * @return
+     */
     public boolean checkCMAKE(String pathToCMake, Object console) {
         StringBuilder sb = new StringBuilder();
         String command = "\"" + pathToCMake + File.separator + "cmake.exe\" --help";
@@ -112,20 +158,46 @@ public class CommandManager {
         return ret;
     }
 
+    /**
+     *
+     * @param console
+     * @return
+     */
     public boolean checkMySQL(Object console) {
         StringBuilder sb = new StringBuilder();
-        //String command = "mysql --help";
-        ArrayList<String> command = new ArrayList<String>();
-        command.add("mysql");
-        command.add("--help");
+        String command = "mysql --help";
         // Set toBuffer param to true to avoid console text
-        boolean ret = runOSCommand(command, console, sb, true);
-        if (ret) {
+        //boolean ret = runOSCommand(command, console, sb, true);
+        boolean ret_val = false;
+        try {
+            switch (CURR_OS) {
+                case 1: // Windows
+                    ret_val = runOSCommand(command, console, sb, true);
+                    break;
+                case 2: // Unix
+                    ret_val = runOSCommand(new ArrayList(Arrays.asList(command.split(" "))), console, sb, true);
+                    break;
+                case 3: // MAC OS
+                    break;
+                default:
+                    ret_val = false;
+                    break;
+            }
+        } catch (Exception ex) {
+            return false;
+        }
+        if (ret_val) {
             MySQLInstalled = true;
         }
-        return ret;
+        return ret_val;
     }
 
+    /**
+     *
+     * @param pathToMySQL
+     * @param console
+     * @return
+     */
     public boolean checkMySQL(String pathToMySQL, Object console) {
         StringBuilder sb = new StringBuilder();
         String command = "." + File.separator + pathToMySQL + File.separator + "mysql.exe --help";
@@ -138,6 +210,12 @@ public class CommandManager {
         return ret;
     }
 
+    /**
+     *
+     * @param pathToMySQL
+     * @param console
+     * @return
+     */
     public String checkMySQLLib(String pathToMySQL, Object console) {
         String ret_val = "";
         try {
@@ -160,6 +238,12 @@ public class CommandManager {
         return ret_val;
     }
 
+    /**
+     *
+     * @param pathToMySQL
+     * @param console
+     * @return
+     */
     public String checkMySQLInclude(String pathToMySQL, Object console) {
         String ret_val = "";
         try {
@@ -182,6 +266,12 @@ public class CommandManager {
         return ret_val;
     }
 
+    /**
+     *
+     * @param pathToOpenSSL
+     * @param console
+     * @return
+     */
     public String checkOpenSSLLib(String pathToOpenSSL, Object console) {
         String ret_val = "";
         try {
@@ -204,6 +294,12 @@ public class CommandManager {
         return ret_val;
     }
 
+    /**
+     *
+     * @param pathToOpenSSL
+     * @param console
+     * @return
+     */
     public String checkOpenSSLInclude(String pathToOpenSSL, Object console) {
         String ret_val = "";
         try {
@@ -226,6 +322,11 @@ public class CommandManager {
         return ret_val;
     }
 
+    /**
+     *
+     * @param console
+     * @return
+     */
     public boolean installMySQLPortable(Object console) {
         String basePath;
         boolean ret_val = false;
@@ -282,6 +383,11 @@ public class CommandManager {
         return ret_val;
     }
 
+    /**
+     *
+     * @param console
+     * @return
+     */
     public boolean installOpenSSLPortable(Object console) {
         String basePath;
         boolean ret_val = false;
@@ -358,6 +464,12 @@ public class CommandManager {
      return ret;
      }*/
 
+    /**
+     *
+     * @param config
+     * @param console
+     * @return
+     */
     public boolean createDB(ConfLoader config, Object console) {
         StringBuilder sb = new StringBuilder();
         //String command = MySQLPath + "mysql.exe -q -s -h "+server+" --port="+port+" --user="+usrAdmin+" --password="+usrAdminPwd+" < World"+File.separator+"Setup"+File.separator+"mangosdCreateDB.sql";
@@ -373,6 +485,14 @@ public class CommandManager {
         return runOSCommand(command, console, sb, false);
     }
 
+    /**
+     *
+     * @param config
+     * @param Database
+     * @param setupFolder
+     * @param console
+     * @return
+     */
     public boolean loadDB(ConfLoader config, String Database, String setupFolder, Object console) {
         StringBuilder sb = new StringBuilder();
         //String command = "";
@@ -381,6 +501,14 @@ public class CommandManager {
         return runOSCommand(command, console, sb, false);
     }
 
+    /**
+     *
+     * @param config
+     * @param Database
+     * @param updateFolder
+     * @param console
+     * @return
+     */
     public boolean loadDBUpdate(ConfLoader config, String Database, String updateFolder, Object console) {
         StringBuilder sb = new StringBuilder();
         String command;
@@ -398,6 +526,14 @@ public class CommandManager {
         return retOS;
     }
 
+    /**
+     *
+     * @param serverFolder
+     * @param buildFolder
+     * @param options
+     * @param console
+     * @return
+     */
     public boolean cmakeConfig(String serverFolder, String buildFolder, HashMap<String, String> options, Object console) {
         boolean ret_val = false;
         try {
@@ -423,6 +559,13 @@ public class CommandManager {
         return ret_val;
     }
 
+    /**
+     *
+     * @param buildFolder
+     * @param runFolder
+     * @param console
+     * @return
+     */
     public boolean cmakeInstall(String buildFolder, String runFolder, Object console) {
         boolean ret_val = false;
         try {
@@ -445,6 +588,11 @@ public class CommandManager {
         return ret_val;
     }
 
+    /**
+     *
+     * @param path
+     * @return
+     */
     public boolean checkFolder(String path) {
         try {
             File file = new File(path);
@@ -456,6 +604,11 @@ public class CommandManager {
         }
     }
 
+    /**
+     *
+     * @param path
+     * @return
+     */
     public boolean deleteFolder(String path) {
         try {
             File file = new File(path);
@@ -472,6 +625,11 @@ public class CommandManager {
         }
     }
 
+    /**
+     *
+     * @param pathToRepo
+     * @return
+     */
     public boolean isRepoUpToDate(String pathToRepo) {
         boolean ret_val = false;
         try {
@@ -494,10 +652,28 @@ public class CommandManager {
         return ret_val;
     }
 
+    /**
+     *
+     * @param url
+     * @param folder
+     * @param branch
+     * @param console
+     * @return
+     */
     public boolean gitDownload(String url, String folder, String branch, Object console) {
         return gitDownload(url, folder, branch, "", "", console);
     }
 
+    /**
+     *
+     * @param url
+     * @param folder
+     * @param branch
+     * @param proxyServer
+     * @param proxyPort
+     * @param console
+     * @return
+     */
     public boolean gitDownload(String url, String folder, String branch, String proxyServer, String proxyPort, Object console) {
         StringBuilder sb = new StringBuilder();
         String command = "git clone --recursive";
@@ -519,7 +695,7 @@ public class CommandManager {
                     ret_val = winCmd.gitOperation(command, console, false);
                     break;
                 case 2: // Unix
-                    ret_val = unixCmd.executeShell(command, console, sb, false);
+                    ret_val = unixCmd.gitOperation(new ArrayList(Arrays.asList(command.split(" "))), console, false);
                     break;
                 case 3: // MAC OS
                     break;
@@ -534,12 +710,21 @@ public class CommandManager {
 
     }
 
+    /**
+     *
+     * @param console
+     * @return
+     */
     public boolean gitCheckout(Object console) {
         StringBuilder sb = new StringBuilder();
         String command = "git pull";
         return runOSCommand(command, console, sb, false);
     }
 
+    /**
+     *
+     * @param gitPath
+     */
     public void setWinGitPath(String gitPath) {
         switch (CURR_OS) {
             case 1: // Windows
@@ -554,6 +739,10 @@ public class CommandManager {
         }
     }
 
+    /**
+     *
+     * @param cmakePath
+     */
     public void setWinCmakePath(String cmakePath) {
         switch (CURR_OS) {
             case 1: // Windows
@@ -660,6 +849,10 @@ public class CommandManager {
         return PSScriptEnabled;
     }
 
+    /**
+     *
+     * @return
+     */
     public int getDebugLevel() {
         int ret_val = 0;
         try {
@@ -683,6 +876,10 @@ public class CommandManager {
         return ret_val;
     }
 
+    /**
+     *
+     * @param debugLevel
+     */
     public void setDebugLevel(int debugLevel) {
         try {
             switch (CURR_OS) {

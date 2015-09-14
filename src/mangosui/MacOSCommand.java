@@ -14,6 +14,9 @@ import javax.swing.JTextPane;
  */
 public abstract class MacOSCommand extends Command{
 
+    /**
+     *
+     */
     public MacOSCommand() {
     }
 

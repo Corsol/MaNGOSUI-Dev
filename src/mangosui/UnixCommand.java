@@ -17,9 +17,23 @@ import java.util.HashMap;
 public class UnixCommand extends Command {
 //public class UnixCommand {
 
+    /**
+     *
+     */
+    
     public UnixCommand() {
     }
 
+    /**
+     *
+     * @param command
+     * @param guiConsole
+     * @param rawConsole
+     * @param toBuffer
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public boolean executeShell(String command, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer) throws IOException, InterruptedException {
         if (super.getDebugLevel() > 0) {
             System.out.println("\nDEBUG - command:" + command + "\n");
@@ -29,6 +43,16 @@ public class UnixCommand extends Command {
         return execute(new String[]{command}, guiConsole, rawConsole, toBuffer);
     }
 
+    /**
+     *
+     * @param commands
+     * @param guiConsole
+     * @param rawConsole
+     * @param toBuffer
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public boolean executeShell(ArrayList<String> commands, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer) throws IOException, InterruptedException {
         ArrayList<String> command = new ArrayList<String>();
         command.addAll(commands);
@@ -44,6 +68,12 @@ public class UnixCommand extends Command {
         return execute(command.toArray(new String[command.size()]), guiConsole, rawConsole, toBuffer);
     }
 
+    /**
+     *
+     * @param pathToMySQL
+     * @param console
+     * @return
+     */
     @Override
     public String checkMySQLInclude(String pathToMySQL, Object console) {
         try {
@@ -73,6 +103,12 @@ public class UnixCommand extends Command {
         }
     }
 
+    /**
+     *
+     * @param pathToMySQL
+     * @param console
+     * @return
+     */
     @Override
     public String checkMySQLLib(String pathToMySQL, Object console) {
         try {
@@ -100,6 +136,12 @@ public class UnixCommand extends Command {
         }
     }
 
+    /**
+     *
+     * @param pathToOpenSSL
+     * @param console
+     * @return
+     */
     @Override
     public String checkOpenSSLInclude(String pathToOpenSSL, Object console) {
         try {
@@ -128,6 +170,12 @@ public class UnixCommand extends Command {
         }
     }
 
+    /**
+     *
+     * @param pathToOpenSSL
+     * @param console
+     * @return
+     */
     @Override
     public String checkOpenSSLLib(String pathToOpenSSL, Object console) {
         try {
@@ -173,6 +221,16 @@ public class UnixCommand extends Command {
         return sb.toString().contains("Your branch is up-to-date");
     }
 
+    /**
+     *
+     * @param serverFolder
+     * @param buildFolder
+     * @param options
+     * @param console
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     @Override
     public boolean cmakeConfig(String serverFolder, String buildFolder, HashMap<String, String> options, Object console) throws IOException, InterruptedException {
         StringBuilder sb = new StringBuilder();
@@ -206,6 +264,15 @@ public class UnixCommand extends Command {
         return executeShell(command, console, sb, false);
     }
 
+    /**
+     *
+     * @param buildFolder
+     * @param runFolder
+     * @param console
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     @Override
     public boolean cmakeInstall(String buildFolder, String runFolder, Object console) throws IOException, InterruptedException {
         StringBuilder sb = new StringBuilder();
