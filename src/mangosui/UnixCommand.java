@@ -20,7 +20,6 @@ public class UnixCommand extends Command {
     /**
      *
      */
-    
     public UnixCommand() {
     }
 
@@ -204,11 +203,16 @@ public class UnixCommand extends Command {
 
     boolean gitOperation(ArrayList<String> gitCommand, Object console, boolean toBuffer) throws InterruptedException, IOException { //String url, String folder, String branch, String proxyServer, String proxyPort, String winPath){
         StringBuilder sb = new StringBuilder();
-        /*if (console != null) {
-         ConsoleManager.getInstance().updateGUIConsole(console, gitCommand, ConsoleManager.getInstance().TEXT_ORANGE);
-         } else if (!toBuffer) {
-         System.out.println(gitCommand);
-         }*/
+        if (console != null) {
+            //ConsoleManager.getInstance().updateGUIConsole(console, gitCommand, ConsoleManager.getInstance().TEXT_ORANGE);
+        } else if (!toBuffer) {
+            //System.out.println(gitCommand);
+            for (String cmd : gitCommand) {
+                System.out.print(" '" + cmd + "'");
+            }
+            System.out.println("");
+
+        }
         //String command = "& \"" + gitPath + "\\shell.ps1\" \n " + gitCommand;
         return executeShell(gitCommand, console, sb, toBuffer);
     }
@@ -240,7 +244,6 @@ public class UnixCommand extends Command {
         }
         //ArrayList<String> command = new ArrayList<>();
 
-        
         ArrayList<String> command = new ArrayList<String>();
         command.add("bash");
         command.add("-c");

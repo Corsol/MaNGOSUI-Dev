@@ -63,6 +63,9 @@ public class MaNGOSUI {
                 System.out.println("4 - MaNGOS Four");
                 System.out.print("Version ? [0-4, default:0] ");
                 input = System.console().readLine();
+                if (input.isEmpty()) {
+                    input = "0";
+                }
                 confLoader.getGitURLServer(input);
                 confLoader.getGitURLDatabase(input);
                 confLoader.getGitBranchServer(input);
@@ -479,26 +482,26 @@ public class MaNGOSUI {
                         }
 
                         /*if (cmdManager.checkOpenSSLLib("", null).isEmpty() || cmdManager.checkOpenSSLInclude("", null).isEmpty()) {
-                            System.out.println("ERROR: OpenSSL library for CMAKE was not found on system. Do you want to use portable version?");
-                            System.out.println("WARNING: Portable OpenSSL library is for 1.0.2d 32bit version. Use this version can be insecure. [y/n, default:n] ");
-                            System.out.print("Do you want to istall OpenSSL portable library? [y/n, default:n] ");
-                            input = System.console().readLine();
-                            if ("y".equalsIgnoreCase(input)) {
-                                cmakeOk = cmdManager.installOpenSSLPortable(null);
-                                if (cmakeOk){
-                                    confLoader.setOPENSSL_LIBRARIES(cmdManager.checkOpenSSLLib("", null));
-                                    confLoader.setOPENSSL_INCLUDE_DIR(cmdManager.checkOpenSSLInclude("", null));
-                                } else {
-                                    System.out.println("ERROR: OpenSSL library for CMAKE not installed. Try again running as Administrator!");
-                                }
-                            } else {
-                                cmakeOk = false;
-                            }
-                        }*/
+                         System.out.println("ERROR: OpenSSL library for CMAKE was not found on system. Do you want to use portable version?");
+                         System.out.println("WARNING: Portable OpenSSL library is for 1.0.2d 32bit version. Use this version can be insecure. [y/n, default:n] ");
+                         System.out.print("Do you want to istall OpenSSL portable library? [y/n, default:n] ");
+                         input = System.console().readLine();
+                         if ("y".equalsIgnoreCase(input)) {
+                         cmakeOk = cmdManager.installOpenSSLPortable(null);
+                         if (cmakeOk){
+                         confLoader.setOPENSSL_LIBRARIES(cmdManager.checkOpenSSLLib("", null));
+                         confLoader.setOPENSSL_INCLUDE_DIR(cmdManager.checkOpenSSLInclude("", null));
+                         } else {
+                         System.out.println("ERROR: OpenSSL library for CMAKE not installed. Try again running as Administrator!");
+                         }
+                         } else {
+                         cmakeOk = false;
+                         }
+                         }*/
                     }
 
                     if (cmakeOk) {
-                        System.out.print("\nDo you want to build source code (into folder '"+confLoader.getCMakeBuildFolder()+"')?\n"
+                        System.out.print("\nDo you want to build source code (into folder '" + confLoader.getCMakeBuildFolder() + "')?\n"
                                 + "WARNING: this operation may overwrite already built project! [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
@@ -506,7 +509,7 @@ public class MaNGOSUI {
                             serverFolder = confLoader.getGitFolderServer().isEmpty() ? "server" : confLoader.getGitFolderServer();
                             cmdManager.cmakeConfig(serverFolder, confLoader.getCMakeBuildFolder(), confLoader.getCmakeOptions(), null);
                         }
-                        System.out.print("\nDo you want to compile and install built source (into folder '"+confLoader.getCMakeRunFolder()+"')? [y/n, default:n] ");
+                        System.out.print("\nDo you want to compile and install built source (into folder '" + confLoader.getCMakeRunFolder() + "')? [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
                             cmdManager.cmakeInstall(confLoader.getCMakeBuildFolder(), confLoader.getCMakeRunFolder(), null);
