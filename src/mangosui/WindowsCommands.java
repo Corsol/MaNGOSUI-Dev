@@ -98,7 +98,7 @@ public class WindowsCommands extends Command {
      * @param console
      * @return
      */
-    @Override
+    //@Override
     public String checkMySQLInclude(String pathToMySQL, Object console) {
         try {
             if (pathToMySQL == null || pathToMySQL.isEmpty()) {
@@ -141,7 +141,7 @@ public class WindowsCommands extends Command {
      * @param console
      * @return
      */
-    @Override
+    //@Override
     public String checkMySQLLib(String pathToMySQL, Object console) {
         try {
             if (pathToMySQL == null || pathToMySQL.isEmpty()) {
@@ -179,17 +179,16 @@ public class WindowsCommands extends Command {
     }
 
     // "reg query " + '"'+ location + "\" /v \"" + key + "\"")
-
     /**
      *
      * @param pathToOpenSSL
      * @param console
      * @return
      */
-        @Override
+    //@Override
     public String checkOpenSSLInclude(String pathToOpenSSL, Object console) {
         try {
-            String includePath =  "include" + File.separator + "openssl";
+            String includePath = "include" + File.separator + "openssl";
             if (pathToOpenSSL == null || pathToOpenSSL.isEmpty()) {
                 StringBuilder sb;
                 ArrayList<String> openSSLSearches = new ArrayList<String>();
@@ -204,7 +203,7 @@ public class WindowsCommands extends Command {
                     } catch (IOException | InterruptedException ex) {
                     }
                     if (!sb.toString().isEmpty() && sb.indexOf("REG_SZ") > 0) {
-                        String path = sb.substring(sb.indexOf("REG_SZ")+6).trim() + includePath;
+                        String path = sb.substring(sb.indexOf("REG_SZ") + 6).trim() + includePath;
                         if (super.checkFolder(path)) {
                             return path;
                         }
@@ -237,10 +236,10 @@ public class WindowsCommands extends Command {
      * @param console
      * @return
      */
-    @Override
+    //@Override
     public String checkOpenSSLLib(String pathToOpenSSL, Object console) {
         try {
-            String includePath =  "lib";
+            String includePath = "lib";
             if (pathToOpenSSL == null || pathToOpenSSL.isEmpty()) {
                 StringBuilder sb;
                 ArrayList<String> openSSLSearches = new ArrayList<String>();
@@ -255,7 +254,7 @@ public class WindowsCommands extends Command {
                     } catch (IOException | InterruptedException ex) {
                     }
                     if (!sb.toString().isEmpty() && sb.indexOf("REG_SZ") > 0) {
-                        String path = sb.substring(sb.indexOf("REG_SZ")+6).trim() + includePath;
+                        String path = sb.substring(sb.indexOf("REG_SZ") + 6).trim() + includePath;
                         if (super.checkFolder(path)) {
                             return path;
                         }
@@ -308,7 +307,7 @@ public class WindowsCommands extends Command {
      * @throws IOException
      * @throws InterruptedException
      */
-    @Override
+    //@Override
     public boolean cmakeConfig(String serverFolder, String buildFolder, HashMap<String, String> options, Object console) throws IOException, InterruptedException {
         StringBuilder sb = new StringBuilder();
         File file = new File(buildFolder);
@@ -345,22 +344,32 @@ public class WindowsCommands extends Command {
      * @throws IOException
      * @throws InterruptedException
      */
-    @Override
+    //@Override
     public boolean cmakeInstall(String buildFolder, String runFolder, Object console) throws IOException, InterruptedException {
         StringBuilder sb = new StringBuilder();
+        runFolder= runFolder.replace("\"", "");
         File file = new File(runFolder);
         if (!file.exists()) {
             file.mkdirs();
         }
         //ArrayList<String> command = new ArrayList<>();
 
-        String command = "cd " + buildFolder + " & \"" + cmakePath + "cmake.exe\" --build . --target INSTALL";
+        String command = "cd " + buildFolder + " & \"" + cmakePath + "cmake.exe\" --build .";
 
         //command.add(cmd);
-        return executeCmd(command, console, sb, false);
+        boolean ret = executeCmd(command, console, sb, false);
+        String txtCopy = "Coping built file to install destination";
+        if (console != null) {
+            
+        }
+        System.out.println(txtCopy);
+        if (ret) {
+            super.copyFolder(new File(buildFolder + File.separator + "bin" + File.separator + "Debug"), file);
+        }
+        return ret;
     }
 
-    @Override
+    //@Override
     boolean isRepoUpToDate(String pathToRepo) throws InterruptedException, IOException {
         StringBuilder sb = new StringBuilder();
         String command = "cd " + pathToRepo + "\n"

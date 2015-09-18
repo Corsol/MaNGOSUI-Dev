@@ -39,7 +39,7 @@ public class UnixCommand extends Command {
             if (guiConsole != null) {
             }
         }
-        return execute(new String[]{command}, guiConsole, rawConsole, toBuffer);
+        return execute(new String[]{"bash", "-c", command}, guiConsole, rawConsole, toBuffer);
     }
 
     /**
@@ -73,7 +73,7 @@ public class UnixCommand extends Command {
      * @param console
      * @return
      */
-    @Override
+    //@Override
     public String checkMySQLInclude(String pathToMySQL, Object console) {
         try {
             if (pathToMySQL == null || pathToMySQL.isEmpty()) {
@@ -108,7 +108,7 @@ public class UnixCommand extends Command {
      * @param console
      * @return
      */
-    @Override
+    //@Override
     public String checkMySQLLib(String pathToMySQL, Object console) {
         try {
             if (pathToMySQL == null || pathToMySQL.isEmpty()) {
@@ -141,7 +141,7 @@ public class UnixCommand extends Command {
      * @param console
      * @return
      */
-    @Override
+    //@Override
     public String checkOpenSSLInclude(String pathToOpenSSL, Object console) {
         try {
             if (pathToOpenSSL == null || pathToOpenSSL.isEmpty()) {
@@ -175,7 +175,7 @@ public class UnixCommand extends Command {
      * @param console
      * @return
      */
-    @Override
+    //@Override
     public String checkOpenSSLLib(String pathToOpenSSL, Object console) {
         try {
             if (pathToOpenSSL == null || pathToOpenSSL.isEmpty()) {
@@ -201,23 +201,18 @@ public class UnixCommand extends Command {
         }
     }
 
-    boolean gitOperation(ArrayList<String> gitCommand, Object console, boolean toBuffer) throws InterruptedException, IOException { //String url, String folder, String branch, String proxyServer, String proxyPort, String winPath){
+    boolean gitOperation(String gitCommand, Object console, boolean toBuffer) throws InterruptedException, IOException { //String url, String folder, String branch, String proxyServer, String proxyPort, String winPath){
         StringBuilder sb = new StringBuilder();
         if (console != null) {
             //ConsoleManager.getInstance().updateGUIConsole(console, gitCommand, ConsoleManager.getInstance().TEXT_ORANGE);
         } else if (!toBuffer) {
-            //System.out.println(gitCommand);
-            for (String cmd : gitCommand) {
-                System.out.print(" '" + cmd + "'");
-            }
-            System.out.println("");
-
+            System.out.println(gitCommand);
         }
         //String command = "& \"" + gitPath + "\\shell.ps1\" \n " + gitCommand;
         return executeShell(gitCommand, console, sb, toBuffer);
     }
 
-    @Override
+    //@Override
     boolean isRepoUpToDate(String pathToRepo) throws InterruptedException, IOException {
         StringBuilder sb = new StringBuilder();
         String command = "git status";
@@ -235,7 +230,7 @@ public class UnixCommand extends Command {
      * @throws IOException
      * @throws InterruptedException
      */
-    @Override
+    //@Override
     public boolean cmakeConfig(String serverFolder, String buildFolder, HashMap<String, String> options, Object console) throws IOException, InterruptedException {
         StringBuilder sb = new StringBuilder();
         File file = new File(buildFolder);
@@ -276,7 +271,7 @@ public class UnixCommand extends Command {
      * @throws IOException
      * @throws InterruptedException
      */
-    @Override
+    //@Override
     public boolean cmakeInstall(String buildFolder, String runFolder, Object console) throws IOException, InterruptedException {
         StringBuilder sb = new StringBuilder();
         File file = new File(runFolder);
@@ -285,12 +280,7 @@ public class UnixCommand extends Command {
         }
         //ArrayList<String> command = new ArrayList<>();
 
-        //String command = "cd " + buildFolder + " & make install";
-        //"bash", "-c", "ls ; pwd"
-        ArrayList<String> command = new ArrayList<String>();
-        command.add("bash");
-        command.add("-c");
-        command.add("cd " + buildFolder + " ; make install");
+        String command = "cd " + buildFolder + " ; make install";
 
         //command.add(cmd);
         return executeShell(command, console, sb, false);

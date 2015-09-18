@@ -6,12 +6,7 @@
 package mangosui;
 
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -51,9 +46,9 @@ public class ConfLoader {
     private String WorldFullDB = "";
     private String DatabaseSetupFolder = "";
     private String DatabaseUpdateFolder = "";
-    private String WorldUpdRel = "";
-    private String CharUpdRel = "";
-    private String RealmUpdRel = "";
+    private HashMap<String, String> WorldUpdRel;
+    private HashMap<String, String> CharUpdRel;
+    private HashMap<String, String> RealmUpdRel;
     private String WorldLoadDBName = "";
     private String CharLoadDBName = "";
     private String RealmLoadDBName = "";
@@ -79,22 +74,18 @@ public class ConfLoader {
      */
     public ConfLoader() {
         try {
-            //BufferedReader metadataReader = new BufferedReader(new InputStreamReader(new FileInputStream("config.properties")));
             prop = new PropertiesEx();
-            //ClassLoader loader = Thread.currentThread().getContextClassLoader();
-            //InputStream stream = new FileInputStream("config.properties");
             prop.load(new FileInputStream("config.properties"));
-            //prop.load(new StringReader(IOUtils.getStringFromReader(metadataReader).replace("\\", "/")));
 
             MaNGOSVersions = prop.getPropertyArray("MaNGOS");
-            //GitURLServer = prop.getProperty("GitURLServer", "");
-            //GitBranchServer = prop.getProperty("GitBranchServer", "");
+            GitURLServer = prop.getProperty("GitURLServer.0", "");
+            GitBranchServer = prop.getProperty("GitBranchServer.0", "");
             GitFolderServer = prop.getProperty("GitFolderServer", "");
-            //GitURLDatabase = prop.getProperty("GitURLDatabase", "");
-            //GitBranchDatabase = prop.getProperty("GitBranchDatabase", "");
+            GitURLDatabase = prop.getProperty("GitURLDatabase.0", "");
+            GitBranchDatabase = prop.getProperty("GitBranchDatabase.0", "");
             GitFolderDatabase = prop.getProperty("GitFolderDatabase", "");
-            GitURLEluna = prop.getProperty("GitURLEluna", "");
-            GitBranchEluna = prop.getProperty("GitBranchEluna", "");
+            GitURLEluna = prop.getProperty("GitURLEluna.0", "");
+            GitBranchEluna = prop.getProperty("GitBranchEluna.0", "");
             GitFolderEluna = prop.getProperty("GitFolderEluna", "");
 
             ProxyServer = prop.getProperty("ProxyServer", "");
@@ -117,9 +108,9 @@ public class ConfLoader {
             WorldFullDB = prop.getProperty("WorldFullDB", "");
             DatabaseSetupFolder = prop.getProperty("DatabaseSetupFolder", "");
             DatabaseUpdateFolder = prop.getProperty("DatabaseUpdateFolder", "");
-            WorldUpdRel = prop.getProperty("WorldUpdRel", "");
-            CharUpdRel = prop.getProperty("CharUpdRel", "");
-            RealmUpdRel = prop.getProperty("RealmUpdRel", "");
+            WorldUpdRel = prop.getPropertyArray("WorldUpdRel");
+            CharUpdRel = prop.getPropertyArray("CharUpdRel");
+            RealmUpdRel = prop.getPropertyArray("RealmUpdRel");
             WorldLoadDBName = prop.getProperty("WorldLoadDBName", "");
             CharLoadDBName = prop.getProperty("CharLoadDBName", "");
             RealmLoadDBName = prop.getProperty("RealmLoadDBName", "");
@@ -172,6 +163,14 @@ public class ConfLoader {
      */
     public void getGitBranchDatabase(String version) {
         GitBranchDatabase = prop.getProperty("GitBranchDatabase." + version);
+    }
+
+    public void getGitURLEluna(String version) {
+        GitURLEluna = prop.getProperty("GitURLEluna." + version);
+    }
+
+    public void getGitBranchEluna(String version) {
+        GitBranchEluna = prop.getProperty("GitBranchEluna." + version);
     }
 
     /**
@@ -602,7 +601,7 @@ public class ConfLoader {
      *
      * @return
      */
-    public String getWorldUpdRel() {
+    public HashMap<String, String> getWorldUpdRel() {
         return WorldUpdRel;
     }
 
@@ -610,7 +609,7 @@ public class ConfLoader {
      *
      * @param WorldUpdRel
      */
-    public void setWorldUpdRel(String WorldUpdRel) {
+    public void setWorldUpdRel(HashMap<String, String> WorldUpdRel) {
         this.WorldUpdRel = WorldUpdRel;
     }
 
@@ -618,7 +617,7 @@ public class ConfLoader {
      *
      * @return
      */
-    public String getCharUpdRel() {
+    public HashMap<String, String> getCharUpdRel() {
         return CharUpdRel;
     }
 
@@ -626,7 +625,7 @@ public class ConfLoader {
      *
      * @param CharUpdRel
      */
-    public void setCharUpdRel(String CharUpdRel) {
+    public void setCharUpdRel(HashMap<String, String> CharUpdRel) {
         this.CharUpdRel = CharUpdRel;
     }
 
@@ -634,7 +633,7 @@ public class ConfLoader {
      *
      * @return
      */
-    public String getRealmUpdRel() {
+    public HashMap<String, String> getRealmUpdRel() {
         return RealmUpdRel;
     }
 
@@ -642,7 +641,7 @@ public class ConfLoader {
      *
      * @param RealmUpdRel
      */
-    public void setRealmUpdRel(String RealmUpdRel) {
+    public void setRealmUpdRel(HashMap<String, String> RealmUpdRel) {
         this.RealmUpdRel = RealmUpdRel;
     }
 

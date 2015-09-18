@@ -96,7 +96,7 @@ public class CommandManager {
                     break;
                 case 2: // Unix
                     // Set toBuffer param to true to avoid console text
-                    ret_val = unixCmd.gitOperation(new ArrayList(Arrays.asList(command.split(" "))), console, true);
+                    ret_val = unixCmd.gitOperation(command, console, true);
                     break;
                 case 3: // MAC OS
                     break;
@@ -119,26 +119,7 @@ public class CommandManager {
         StringBuilder sb = new StringBuilder();
         String command = "cmake --help";
         // Set toBuffer param to true to avoid console text
-        //return runOSCommand(command, console, sb, true);
-        boolean ret_val = false;
-        try {
-            switch (CURR_OS) {
-                case 1: // Windows
-                    ret_val = runOSCommand(command, console, sb, true);
-                    break;
-                case 2: // Unix
-                    ret_val = runOSCommand(new ArrayList(Arrays.asList(command.split(" "))), console, sb, true);
-                    break;
-                case 3: // MAC OS
-                    break;
-                default:
-                    ret_val = false;
-                    break;
-            }
-        } catch (Exception ex) {
-            return false;
-        }
-        return ret_val;
+        return runOSCommand(command, console, sb, true);
     }
 
     /**
@@ -167,29 +148,11 @@ public class CommandManager {
         StringBuilder sb = new StringBuilder();
         String command = "mysql --help";
         // Set toBuffer param to true to avoid console text
-        //boolean ret = runOSCommand(command, console, sb, true);
-        boolean ret_val = false;
-        try {
-            switch (CURR_OS) {
-                case 1: // Windows
-                    ret_val = runOSCommand(command, console, sb, true);
-                    break;
-                case 2: // Unix
-                    ret_val = runOSCommand(new ArrayList(Arrays.asList(command.split(" "))), console, sb, true);
-                    break;
-                case 3: // MAC OS
-                    break;
-                default:
-                    ret_val = false;
-                    break;
-            }
-        } catch (Exception ex) {
-            return false;
-        }
-        if (ret_val) {
+        boolean ret = runOSCommand(command, console, sb, true);
+        if (ret) {
             MySQLInstalled = true;
         }
-        return ret_val;
+        return ret;
     }
 
     /**
@@ -475,13 +438,13 @@ public class CommandManager {
         //String command = MySQLPath + "mysql.exe -q -s -h "+server+" --port="+port+" --user="+usrAdmin+" --password="+usrAdminPwd+" < World"+File.separator+"Setup"+File.separator+"mangosdCreateDB.sql";
         String command = MySQLPath + "mysql.exe -q -s -f --host=" + config.getDatabaseServer() + " --port=" + config.getDatabasePort() + " --user=" + config.getDatabaseAdmin() + " --password=" + config.getDatabaseAdminPass();
         String sqlCommand = " -e \""
-                + "CREATE DATABASE `" + config.getWorldDBName() + "` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
-                + "CREATE DATABASE `" + config.getCharDBName() + "` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
-                + "CREATE DATABASE `" + config.getRealmDBName() + "` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
-                + "CREATE USER '" + config.getDatabaseUser() + "'@'localhost' IDENTIFIED BY '" + config.getDatabaseUserPass() + "';"
-                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON `" + config.getWorldDBName() + "`.* TO '" + config.getDatabaseUser() + "'@'localhost';"
-                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON `" + config.getCharDBName() + "`.* TO '" + config.getDatabaseUser() + "'@'localhost';"
-                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON `" + config.getRealmDBName() + "`.* TO '" + config.getDatabaseUser() + "'@'localhost';\"";
+                + "CREATE DATABASE " + config.getWorldDBName() + " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
+                + "CREATE DATABASE " + config.getCharDBName() + " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
+                + "CREATE DATABASE " + config.getRealmDBName() + " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
+                + "CREATE USER '" + config.getDatabaseUser() + "'@'%' IDENTIFIED BY '" + config.getDatabaseUserPass() + "';"
+                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON " + config.getWorldDBName() + ".* TO '" + config.getDatabaseUser() + "'@'localhost';"
+                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON " + config.getCharDBName() + ".* TO '" + config.getDatabaseUser() + "'@'localhost';"
+                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON " + config.getRealmDBName() + ".* TO '" + config.getDatabaseUser() + "'@'localhost';\"";
         //String[] command = new String[]{"cmd.exe"};
         //return runOSCommand(command, console, sb, false);
         boolean ret_val = false;
@@ -492,10 +455,10 @@ public class CommandManager {
                     ret_val = runOSCommand(command + sqlCommand, console, sb, false);
                     break;
                 case 2: // Unix
-                    ArrayList<String> commands = new ArrayList(Arrays.asList(command.replace(".exe", "").split(" ")));
-                    commands.add(sqlCommand);
+                    //ArrayList<String> commands = new ArrayList(Arrays.asList(command.replace(".exe", "").split(" ")));
+                    //commands.add(sqlCommand);
                     // Set toBuffer param to true to avoid console text
-                    ret_val = runOSCommand(commands, console, sb, false);
+                    ret_val = runOSCommand(command.replace(".exe", "") +sqlCommand, console, sb, false);
                     break;
                 case 3: // MAC OS
                     break;
@@ -531,10 +494,10 @@ public class CommandManager {
                     ret_val = runOSCommand(command + sqlCommand, console, sb, false);
                     break;
                 case 2: // Unix
-                    ArrayList<String> commands = new ArrayList(Arrays.asList(command.replace(".exe", "").split(" ")));
-                    commands.add(sqlCommand);
+                    //ArrayList<String> commands = new ArrayList(Arrays.asList(command.replace(".exe", "").split(" ")));
+                    //commands.add(sqlCommand);
                     // Set toBuffer param to true to avoid console text
-                    ret_val = runOSCommand(commands, console, sb, false);
+                    ret_val = runOSCommand(command.replace(".exe", "") +sqlCommand, console, sb, false);
                     break;
                 case 3: // MAC OS
                     break;
@@ -574,10 +537,10 @@ public class CommandManager {
                                 ret_val &= runOSCommand(command + sqlCommand, console, sb, false);
                                 break;
                             case 2: // Unix
-                                ArrayList<String> commands = new ArrayList(Arrays.asList(command.replace(".exe", "").split(" ")));
-                                commands.add(sqlCommand);
+                                //ArrayList<String> commands = new ArrayList(Arrays.asList(command.replace(".exe", "").split(" ")));
+                                //commands.add(sqlCommand);
                                 // Set toBuffer param to true to avoid console text
-                                ret_val &= runOSCommand(commands, console, sb, false);
+                                ret_val &= runOSCommand(command.replace(".exe", "") +sqlCommand, console, sb, false);
                                 break;
                             case 3: // MAC OS
                                 break;
@@ -719,6 +682,56 @@ public class CommandManager {
         }
         return ret_val;
     }
+    
+    public boolean setGitProxy(String proxyServer, String proxyPort, Object console){
+        String command = "git config --global --add http.proxy http://" + proxyServer + ":" + proxyPort;
+        boolean ret_val = false;
+        try {
+            switch (CURR_OS) {
+                case 1: // Windows
+                    // Set toBuffer param to true to avoid console text
+                    ret_val = winCmd.gitOperation(command, console, true);
+                    break;
+                case 2: // Unix
+                    // Set toBuffer param to true to avoid console text
+                    ret_val = unixCmd.gitOperation(command, console, true);
+                    break;
+                case 3: // MAC OS
+                    break;
+                default:
+                    ret_val = false;
+                    break;
+            }
+        } catch (InterruptedException | IOException ex) {
+            return false;
+        }
+        return ret_val;        
+    }
+
+    public boolean remGitProxy(Object console){
+        String command = "git config --global --unset http.proxy";
+        boolean ret_val = false;
+        try {
+            switch (CURR_OS) {
+                case 1: // Windows
+                    // Set toBuffer param to true to avoid console text
+                    ret_val = winCmd.gitOperation(command, console, true);
+                    break;
+                case 2: // Unix
+                    // Set toBuffer param to true to avoid console text
+                    ret_val = unixCmd.gitOperation(command, console, true);
+                    break;
+                case 3: // MAC OS
+                    break;
+                default:
+                    ret_val = false;
+                    break;
+            }
+        } catch (InterruptedException | IOException ex) {
+            return false;
+        }
+        return ret_val;        
+    }
 
     /**
      *
@@ -745,20 +758,15 @@ public class CommandManager {
     public boolean gitDownload(String url, String folder, String branch, String proxyServer, String proxyPort, Object console) {
         StringBuilder sb = new StringBuilder();
         String command = "git clone --recursive";
-        ArrayList<String> commands = new ArrayList(Arrays.asList(command.split(" ")));
         if (!branch.isEmpty()) {
             command += " -b " + branch;
-            commands.add("-b " + branch);
         }
         if (!proxyServer.isEmpty()) {
             command += " -c http.proxy=http://" + proxyServer + ":" + proxyPort;
-            commands.add("-c http.proxy=http://" + proxyServer + ":" + proxyPort);
         }
         command += " " + url;
-        commands.add(url);
         if (!folder.isEmpty()) {
             command += " " + folder;
-            commands.add(folder);
         }
         //return runOSCommand(command, console, sb, false);
         boolean ret_val = false;
@@ -768,7 +776,7 @@ public class CommandManager {
                     ret_val = winCmd.gitOperation(command, console, false);
                     break;
                 case 2: // Unix
-                    ret_val = unixCmd.gitOperation(commands, console, false);
+                    ret_val = unixCmd.gitOperation(command, console, false);
                     //ret_val = runOSCommand(command, console, sb, false);
                     break;
                 case 3: // MAC OS
@@ -792,26 +800,7 @@ public class CommandManager {
     public boolean gitCheckout(Object console) {
         StringBuilder sb = new StringBuilder();
         String command = "git pull";
-        //return runOSCommand(command, console, sb, false);
-        boolean ret_val = false;
-        try {
-            switch (CURR_OS) {
-                case 1: // Windows
-                    ret_val = runOSCommand(command, console, sb, true);
-                    break;
-                case 2: // Unix
-                    ret_val = runOSCommand(new ArrayList(Arrays.asList(command.split(" "))), console, sb, true);
-                    break;
-                case 3: // MAC OS
-                    break;
-                default:
-                    ret_val = false;
-                    break;
-            }
-        } catch (Exception ex) {
-            return false;
-        }
-        return ret_val;
+        return runOSCommand(command, console, sb, false);
     }
 
     /**
@@ -900,6 +889,10 @@ public class CommandManager {
         return ret_val;
     }
 
+    
+    public void copyFolder(String source, String dest){
+        Command.getInstance().copyFolder(new File(source), new File(dest));
+    }
     /**
      * @return the macCmd
      */
@@ -981,6 +974,7 @@ public class CommandManager {
                     winCmd.setDebugLevel(debugLevel);
                     break;
                 case 2: // Unix
+                    unixCmd.setDebugLevel(debugLevel);
                     break;
                 case 3: // MAC OS
                     break;
