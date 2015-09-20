@@ -6,6 +6,8 @@
 package mangosui;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 /**
@@ -24,7 +26,7 @@ public class MaNGOSUI {
      */
     public static void main(String[] args) {
 
-        if (true) { //args.length > 0 && args[0].equalsIgnoreCase("-c")) {
+        if (args.length > 0 && args[0].equalsIgnoreCase("-c")) {
             System.out.println("MaNGOS Universal Installer: console mode.\n");
 
             System.out.print("Loading configuration file...");
@@ -52,10 +54,6 @@ public class MaNGOSUI {
                 boolean optGitElunaInstall = false;
                 boolean optGitElunaWipe = false;
                 boolean optGitElunaUpdate = false;
-                String databaseFolder = "";
-                databaseFolder = confLoader.getGitFolderDatabase().isEmpty() ? "database" : confLoader.getGitFolderDatabase();
-                String serverFolder = "";
-                serverFolder = confLoader.getGitFolderServer().isEmpty() ? "server" : confLoader.getGitFolderServer();
 
                 // Version selection
                 System.out.println("\nSelect wich version of MaNGOS install:");
@@ -75,6 +73,20 @@ public class MaNGOSUI {
                 confLoader.getGitBranchServer(input);
                 confLoader.getGitBranchDatabase(input);
                 confLoader.getGitBranchEluna(input);
+
+                String serverFolder;
+                serverFolder = confLoader.getGitFolderServer().isEmpty()
+                        ? confLoader.getGitURLServer().substring(confLoader.getGitURLServer().lastIndexOf("/") + 1, confLoader.getGitURLServer().length() - 4)
+                        : confLoader.getGitFolderServer();
+                String databaseFolder;
+                databaseFolder = confLoader.getGitFolderDatabase().isEmpty()
+                        ? confLoader.getGitURLDatabase().substring(confLoader.getGitURLDatabase().lastIndexOf("/") + 1, confLoader.getGitURLDatabase().length() - 4)
+                        : confLoader.getGitFolderDatabase();
+                String elunaFolder;
+                elunaFolder = confLoader.getGitFolderEluna().isEmpty()
+                        ? confLoader.getGitURLEluna().substring(confLoader.getGitURLEluna().lastIndexOf("/") + 1, confLoader.getGitURLEluna().length() - 4)
+                        : confLoader.getGitFolderEluna();
+
                 /**
                  * **** Git download *****
                  */
@@ -130,7 +142,6 @@ public class MaNGOSUI {
                             System.out.println("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchServer());
                         }
                         // Check server folder
-                        serverFolder = confLoader.getGitFolderServer().isEmpty() ? "server" : confLoader.getGitFolderServer();
                         if (cmdManager.checkFolder(serverFolder)) {
                             optGitSrvWipe = true;
                             // Check server version for update
@@ -254,8 +265,8 @@ public class MaNGOSUI {
                             System.out.println("No action selected. Download skipped");
                         }
 
-                        // Show Eluna git param
-                        System.out.println("\n\n*** Eluna download parameters:");
+                        // Show LUA Script git param
+                        System.out.println("\n\n*** LUA Script download parameters:");
                         System.out.println("URL                          : " + confLoader.getGitURLEluna());
                         System.out.println("(Optional) DESTINATION FOLDER: " + confLoader.getGitFolderEluna());
                         System.out.println("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchEluna());
@@ -266,48 +277,48 @@ public class MaNGOSUI {
                             confLoader.setGitURLEluna(readNewParam("URL", confLoader.getGitURLEluna()));
                             confLoader.setGitFolderEluna(readNewParam("DESTINATION FOLDER", confLoader.getGitFolderEluna()));
                             confLoader.setGitBranchEluna(readNewParam("REPOSITORY BRANCH", confLoader.getGitBranchEluna()));
-                            System.out.println("\n\n*** NEW Server download parameters:");
+                            System.out.println("\n\n*** NEW LUA Script download parameters:");
                             System.out.println("URL                          : " + confLoader.getGitURLEluna());
                             System.out.println("(Optional) DESTINATION FOLDER: " + confLoader.getGitFolderEluna());
                             System.out.println("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchEluna());
                         }
                         // Check server folder
-                        String elunaFolder = confLoader.getGitFolderEluna().isEmpty() ? "LuaScripts" : confLoader.getGitFolderEluna();
+
                         if (cmdManager.checkFolder(elunaFolder)) {
-                            optGitSrvWipe = true;
+                            optGitElunaWipe = true;
                             // Check server version for update
                             if (!cmdManager.isRepoUpToDate(elunaFolder)) {
-                                optGitSrvUpdate = true;
+                                optGitElunaUpdate = true;
                             }
                         } else {
-                            optGitSrvInstall = true;
+                            optGitElunaInstall = true;
                         }
                         // Ask what to do (first clone, wipe and clone, checkout and update) for server
-                        System.out.println("\n*** Eluna download option avaiable:");
-                        if (optGitSrvInstall) {
+                        System.out.println("\n*** LUA Script download option avaiable:");
+                        if (optGitElunaInstall) {
                             System.out.println("N - New download.");
                         }
-                        if (optGitSrvWipe) {
+                        if (optGitElunaWipe) {
                             System.out.println("W - Wipe current and download again.");
                         }
-                        if (optGitSrvUpdate) {
-                            System.out.println("U - Update local Eluna.");
+                        if (optGitElunaUpdate) {
+                            System.out.println("U - Update local LUA Script.");
                         }
                         System.out.println("Empty for no action.");
                         System.out.print("\nInsert action: ");
                         input = System.console().readLine();
                         if (input.equalsIgnoreCase("N")) {
-                            System.out.println("Downloading new Eluna repository...");
+                            System.out.println("Downloading new LUA Script repository...");
                             if (cmdManager.gitDownload(confLoader.getGitURLEluna(), elunaFolder, confLoader.getGitBranchEluna(), confLoader.getProxyServer(), confLoader.getProxyPort(), null)) {
                                 System.out.println("\nDone.");
                             } else {
                                 System.out.println("\nERROR: Check console output and redo process with W (wipe) option.");
                             }
                         } else if (input.equalsIgnoreCase("W")) {
-                            System.out.print("Wiping current Eluna folder...");
+                            System.out.print("Wiping current LUA Script folder...");
                             if (cmdManager.deleteFolder(elunaFolder)) {
                                 System.out.println("Done.");
-                                System.out.println("Downloading Eluna repository...");
+                                System.out.println("Downloading LUA Script repository...");
                                 if (cmdManager.gitDownload(confLoader.getGitURLEluna(), elunaFolder, confLoader.getGitBranchEluna(), confLoader.getProxyServer(), confLoader.getProxyPort(), null)) {
                                     System.out.println("\nDone.");
                                 } else {
@@ -315,7 +326,7 @@ public class MaNGOSUI {
                                 }
                             }
                         } else if (input.equalsIgnoreCase("U")) {
-                            System.out.println("Updating current Eluna folder...");
+                            System.out.println("Updating current LUA Script folder...");
                             if (cmdManager.gitCheckout(null)) {
                                 System.out.println("\nDone.");
                             } else {
@@ -473,7 +484,10 @@ public class MaNGOSUI {
                                 } else {
                                     System.out.println("ERROR: check console log.");
                                 }
-                                for (String updFolder : confLoader.getRealmUpdRel().values()) {
+                                ArrayList<String> mapKey = new ArrayList<>(confLoader.getRealmUpdRel().keySet());
+                                Collections.sort(mapKey);
+                                for (String updFolderKey : mapKey) {
+                                    String updFolder = confLoader.getRealmUpdRel().get(updFolderKey);
                                     if (!updFolder.isEmpty()) {
                                         String updatePath = databaseFolder + File.separator
                                                 + confLoader.getRealmFolder() + File.separator
@@ -505,7 +519,10 @@ public class MaNGOSUI {
                                 } else {
                                     System.out.println("ERROR: check console log.");
                                 }
-                                for (String updFolder : confLoader.getCharUpdRel().values()) {
+                                ArrayList<String> mapKey = new ArrayList<>(confLoader.getCharUpdRel().keySet());
+                                Collections.sort(mapKey);
+                                for (String updFolderKey : mapKey) {
+                                    String updFolder = confLoader.getCharUpdRel().get(updFolderKey);
                                     if (!updFolder.isEmpty()) {
                                         String updatePath = databaseFolder + File.separator
                                                 + confLoader.getCharFolder() + File.separator
@@ -548,7 +565,10 @@ public class MaNGOSUI {
                                 } else {
                                     System.out.println("ERROR: check console log.");
                                 }
-                                for (String updFolder : confLoader.getWorldUpdRel().values()) {
+                                ArrayList<String> mapKey = new ArrayList<>(confLoader.getWorldUpdRel().keySet());
+                                Collections.sort(mapKey);
+                                for (String updFolderKey : mapKey) {
+                                    String updFolder = confLoader.getWorldUpdRel().get(updFolderKey);
                                     if (!updFolder.isEmpty()) {
                                         updatePath = databaseFolder + File.separator
                                                 + confLoader.getWorldFolder() + File.separator
@@ -565,9 +585,77 @@ public class MaNGOSUI {
                                 }
                             }
                         } else if (optGitDBUpdate) {
-                            /***************************
-                             * TO BE IMPLEMENTED!!!!
-                             ***************************/
+                            System.out.print("\nDo you want to update Realm database? [y/n, default:n] ");
+                            input = System.console().readLine();
+                            if ("y".equalsIgnoreCase(input)) {
+                                boolean dbRet = true;
+                                ArrayList<String> mapKey = new ArrayList<>(confLoader.getRealmUpdRel().keySet());
+                                Collections.sort(mapKey);
+                                for (String updFolderKey : mapKey) {
+                                    String updFolder = confLoader.getRealmUpdRel().get(updFolderKey);
+                                    if (!updFolder.isEmpty()) {
+                                        String updatePath = databaseFolder + File.separator
+                                                + confLoader.getRealmFolder() + File.separator
+                                                + confLoader.getDatabaseUpdateFolder() + File.separator
+                                                + updFolder;
+                                        System.out.println("Importing Realm updates from: " + updatePath);
+                                        dbRet &= cmdManager.loadDBUpdate(confLoader, confLoader.getRealmDBName(), updatePath, null);
+                                    }
+                                }
+                                if (dbRet) {
+                                    System.out.println("Done");
+                                } else {
+                                    System.out.println("ERROR: check console log.");
+                                }
+                            }
+
+                            System.out.print("\nDo you want update Character database? [y/n, default:n] ");
+                            input = System.console().readLine();
+                            if ("y".equalsIgnoreCase(input)) {
+                                boolean dbRet = true;
+                                ArrayList<String> mapKey = new ArrayList<>(confLoader.getCharUpdRel().keySet());
+                                Collections.sort(mapKey);
+                                for (String updFolderKey : mapKey) {
+                                    String updFolder = confLoader.getCharUpdRel().get(updFolderKey);
+                                    if (!updFolder.isEmpty()) {
+                                        String updatePath = databaseFolder + File.separator
+                                                + confLoader.getCharFolder() + File.separator
+                                                + confLoader.getDatabaseUpdateFolder() + File.separator
+                                                + updFolder;
+                                        System.out.println("Importing Character updates from: " + updatePath);
+                                        dbRet &= cmdManager.loadDBUpdate(confLoader, confLoader.getCharDBName(), updatePath, null);
+                                    }
+                                }
+                                if (dbRet) {
+                                    System.out.println("Done");
+                                } else {
+                                    System.out.println("ERROR: check console log.");
+                                }
+                            }
+
+                            System.out.print("\nDo you want to update World database? [y/n, default:n] ");
+                            input = System.console().readLine();
+                            if ("y".equalsIgnoreCase(input)) {
+                                boolean dbRet = true;
+                                ArrayList<String> mapKey = new ArrayList<>(confLoader.getWorldUpdRel().keySet());
+                                Collections.sort(mapKey);
+                                for (String updFolderKey : mapKey) {
+                                    String updFolder = confLoader.getWorldUpdRel().get(updFolderKey);
+                                    if (!updFolder.isEmpty()) {
+                                        String updatePath = databaseFolder + File.separator
+                                                + confLoader.getWorldFolder() + File.separator
+                                                + confLoader.getDatabaseUpdateFolder() + File.separator
+                                                + updFolder;
+                                        System.out.println("Importing World updates from: " + updatePath);
+                                        dbRet &= cmdManager.loadDBUpdate(confLoader, confLoader.getWorldDBName(), updatePath, null);
+                                    }
+                                }
+                                if (dbRet) {
+                                    System.out.println("Done");
+                                } else {
+                                    System.out.println("ERROR: check console log.");
+                                }
+                            }
                         }
                     } else {
                         System.out.println("\n*** Database operation skipped. MySQL command not ready.");
@@ -635,7 +723,20 @@ public class MaNGOSUI {
                     }
 
                     if (cmakeOk) {
-                        System.out.print("\nDo you want to build source code (into folder '" + confLoader.getCMakeBuildFolder() + "')?\n"
+                        System.out.println("\n\n*** buil and install folders configuration:");
+                        System.out.println("BUILD FOLDER  : " + confLoader.getCMakeBuildFolder().replace("\"", ""));
+                        System.out.println("INSTALL FOLDER: " + confLoader.getCMakeRunFolder().replace("\"", ""));
+                        System.out.print("\nDo you want to change theese parameters? [y/n, default:n] ");
+                        input = System.console().readLine();
+                        if ("y".equalsIgnoreCase(input)) {
+                            System.out.println("\nTo remove a param insert a blank space.");
+                            confLoader.setCMakeBuildFolder(readNewParam("BUILD FOLDER", confLoader.getCMakeBuildFolder().replace("\"", "")));
+                            confLoader.setCMakeRunFolder(readNewParam("INSTALL FOLDER", confLoader.getCMakeRunFolder().replace("\"", "")));
+                            System.out.println("\n\n*** NEW buil and install folders configuration:");
+                            System.out.println("LUA SCRIPT FOLDER: " + confLoader.getCMakeBuildFolder().replace("\"", ""));
+                            System.out.println("SERVER RUN FOLDER    : " + confLoader.getCMakeRunFolder().replace("\"", ""));
+                        }
+                        System.out.print("\nDo you want to build source code (into folder '" + confLoader.getCMakeBuildFolder().replace("\"", "") + "')?\n"
                                 + "WARNING: this operation may overwrite already built project! [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
@@ -643,7 +744,7 @@ public class MaNGOSUI {
                             serverFolder = confLoader.getGitFolderServer().isEmpty() ? "server" : confLoader.getGitFolderServer();
                             cmdManager.cmakeConfig(serverFolder, confLoader.getCMakeBuildFolder(), confLoader.getCmakeOptions(), null);
                         }
-                        System.out.print("\nDo you want to compile and install built source (into folder '" + confLoader.getCMakeRunFolder() + "')? [y/n, default:n] ");
+                        System.out.print("\nDo you want to compile and install built source (into folder '" + confLoader.getCMakeRunFolder().replace("\"", "") + "')? [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
                             cmdManager.cmakeInstall(confLoader.getCMakeBuildFolder(), confLoader.getCMakeRunFolder(), null);
@@ -656,7 +757,7 @@ public class MaNGOSUI {
                 /**
                  * **** ELUNA install *****
                  */
-                System.out.print("\nDo you want to install Eluna scripts? [y/n, default:n] ");
+                System.out.print("\nDo you want to install LUA Script scripts? [y/n, default:n] ");
                 input = System.console().readLine();
                 if ("y".equalsIgnoreCase(input)) {
                     if (!mysqlOk) {
@@ -677,9 +778,9 @@ public class MaNGOSUI {
                             System.out.println("INFO: Founded MySQL commands.");
                         }
                     }
-                    
+
                     if (mysqlOk) {
-                        System.out.println("\n\n*** Eluna database installation parameters:");
+                        System.out.println("\n\n*** LUA Script database installation parameters:");
                         System.out.println("SERVER     : " + confLoader.getDatabaseServer());
                         System.out.println("PORT       : " + confLoader.getDatabasePort());
                         System.out.println("ADMIN USER : " + confLoader.getDatabaseAdmin());
@@ -704,50 +805,43 @@ public class MaNGOSUI {
                             System.out.println("DB USER    : " + confLoader.getDatabaseUser());
                             System.out.println("DB PASS    : " + confLoader.getDatabaseUserPass());
                         }
-                        System.out.println("\n\n*** Eluna install configuration:");
+                        System.out.println("\n\n*** LUA Script install configuration:");
+                        System.out.println("LUA SCRIPT FOLDER: " + confLoader.getGitFolderEluna().replace("\"", ""));
                         System.out.println("SERVER RUN FOLDER: " + confLoader.getCMakeRunFolder().replace("\"", ""));
                         System.out.print("\nDo you want to change theese parameters? [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
                             System.out.println("\nTo remove a param insert a blank space.");
+                            confLoader.setGitFolderEluna(readNewParam("LUA SCRIPT FOLDER", confLoader.getGitFolderEluna().replace("\"", "")));
                             confLoader.setCMakeRunFolder(readNewParam("SERVER RUN FOLDER", confLoader.getCMakeRunFolder().replace("\"", "")));
-                            System.out.println("\n\n*** NEW Eluna install configuration:");
-                            System.out.println("SERVER RUN FOLDER    : " + confLoader.getCMakeRunFolder());
+                            System.out.println("\n\n*** NEW LUA Script install configuration:");
+                            System.out.println("LUA SCRIPT FOLDER: " + confLoader.getGitFolderEluna().replace("\"", ""));
+                            System.out.println("SERVER RUN FOLDER    : " + confLoader.getCMakeRunFolder().replace("\"", ""));
                         }
 
-/*
-                                // Installing Realm database
-                                String setupPath = databaseFolder + File.separator
-                                        + confLoader.getRealmFolder() + File.separator
-                                        + confLoader.getDatabaseSetupFolder() + File.separator
-                                        + confLoader.getRealmLoadDBName();
-                                System.out.println("Creating Realm database from: " + setupPath);
-                                boolean dbRet = cmdManager.loadDB(confLoader, confLoader.getRealmDBName(), setupPath, null);
-                                if (dbRet) {
-                                    System.out.println("Done");
-                                } else {
-                                    System.out.println("ERROR: check console log.");
-                                }
-                                for (String updFolder : confLoader.getRealmUpdRel().values()) {
-                                    if (!updFolder.isEmpty()) {
-                                        String updatePath = databaseFolder + File.separator
-                                                + confLoader.getRealmFolder() + File.separator
-                                                + confLoader.getDatabaseUpdateFolder() + File.separator
-                                                + updFolder;
-                                        System.out.println("Importing Realm updates from: " + updatePath);
-                                        dbRet &= cmdManager.loadDBUpdate(confLoader, confLoader.getRealmDBName(), updatePath, null);
-                                    }
-                                }
-                                if (dbRet) {
-                                    System.out.println("Done");
-                                } else {
-                                    System.out.println("ERROR: check console log.");
-                                }
-                            
-*/
+                        // Installing LUA Script database
+                        String setupPath = elunaFolder + File.separator + "sql";
+                        System.out.println("Update database for LUA Script from: " + setupPath);
+                        boolean dbRet = cmdManager.loadDBUpdate(confLoader, confLoader.getWorldDBName(), setupPath, null);
+                        if (dbRet) {
+                            System.out.println("Done");
+                        } else {
+                            System.out.println("ERROR: check console log.");
+                        }
+// Installing LUA scripts
+                        String luaSrc = (confLoader.getGitFolderEluna().isEmpty() ? elunaFolder : confLoader.getGitFolderEluna().replace("\"", ""))
+                                + File.separator + "lua_scripts";
+                        String luaDst = confLoader.getCMakeRunFolder() + File.separator + "lua_scripts";
+                        System.out.println("Update LUA script from: " + setupPath);
+                        boolean cpRet = cmdManager.copyFolder(luaSrc, luaDst);
+                        if (cpRet) {
+                            System.out.println("Done");
+                        } else {
+                            System.out.println("ERROR: check console log.");
+                        }
 
                     } else {
-                        System.out.println("\n*** Database operation skipped. MySQL command not ready.");
+                        System.out.println("\n*** LUA Script operation skipped. MySQL command not ready.");
                     }
                 }
             } else {

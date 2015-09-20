@@ -136,7 +136,7 @@ public class Command {
         }
     }
 
-    public void copyFolder(File src, File dest) {
+    public boolean copyFolder(File src, File dest) {
         try {
             if (src.isDirectory()) {
 
@@ -177,7 +177,9 @@ public class Command {
             }
         } catch (IOException ex) {
             ex.printStackTrace();
+            return false;
         }
+        return true;
     }
 
     /**

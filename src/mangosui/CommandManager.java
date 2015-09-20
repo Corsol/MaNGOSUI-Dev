@@ -442,9 +442,10 @@ public class CommandManager {
                 + "CREATE DATABASE " + config.getCharDBName() + " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
                 + "CREATE DATABASE " + config.getRealmDBName() + " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
                 + "CREATE USER '" + config.getDatabaseUser() + "'@'%' IDENTIFIED BY '" + config.getDatabaseUserPass() + "';"
-                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON " + config.getWorldDBName() + ".* TO '" + config.getDatabaseUser() + "'@'localhost';"
-                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON " + config.getCharDBName() + ".* TO '" + config.getDatabaseUser() + "'@'localhost';"
-                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON " + config.getRealmDBName() + ".* TO '" + config.getDatabaseUser() + "'@'localhost';\"";
+                + "CREATE USER '" + config.getDatabaseUser() + "'@'localhost' IDENTIFIED BY '" + config.getDatabaseUserPass() + "';"
+                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON " + config.getWorldDBName() + ".* TO '" + config.getDatabaseUser() + "'@'%', '" + config.getDatabaseUser() + "'@'localhost';"
+                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON " + config.getCharDBName() + ".* TO '" + config.getDatabaseUser() + "'@'%', '" + config.getDatabaseUser() + "'@'localhost';"
+                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON " + config.getRealmDBName() + ".* TO '" + config.getDatabaseUser() + "'@'%', '" + config.getDatabaseUser() + "'@'localhost';\"";
         //String[] command = new String[]{"cmd.exe"};
         //return runOSCommand(command, console, sb, false);
         boolean ret_val = false;
@@ -890,8 +891,8 @@ public class CommandManager {
     }
 
     
-    public void copyFolder(String source, String dest){
-        Command.getInstance().copyFolder(new File(source), new File(dest));
+    public boolean copyFolder(String source, String dest){
+        return Command.getInstance().copyFolder(new File(source), new File(dest));
     }
     /**
      * @return the macCmd

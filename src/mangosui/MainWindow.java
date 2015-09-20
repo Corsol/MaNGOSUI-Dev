@@ -5,6 +5,8 @@
  */
 package mangosui;
 
+import java.io.File;
+
 /**
  *
  * @author Simone
@@ -35,10 +37,12 @@ public class MainWindow extends javax.swing.JFrame {
         if (cmdManager.getCURR_OS() > 0) {
             console.updateGUIConsole(txpGitConsole, "INFO: Your OS is: " + cmdManager.getOsName() + " version " + cmdManager.getOsVersion() + " with java architecture: " + cmdManager.getOsArch(), console.TEXT_BLUE);
 
-            if (!cmdManager.isPSScriptEnabled() && cmdManager.getCURR_OS() == cmdManager.WINDOWS) {
+            if (cmdManager.getCURR_OS() == cmdManager.WINDOWS && !cmdManager.isPSScriptEnabled()) {
                 console.updateGUIConsole(txpGitConsole, "WARNING: PowerShell script execution is not ebabled. To enable it run PS (x86) as Administrator and use \"Set-ExecutionPolicy Unrestricted\" command.", console.TEXT_ORANGE);
             }
-            if (!cmdManager.checkGit(confLoader.getWinPathGit())) {
+            cmdManager.setWinGitPath(confLoader.getWinPathGit());
+
+            if (!cmdManager.checkGit(null)) {
                 btnGitDownload.setEnabled(false);
                 console.updateGUIConsole(txpGitConsole, "ERROR: Git commands not found on system. Check Git installation or manually download repositories.", console.TEXT_RED);
             } else {
@@ -46,20 +50,38 @@ public class MainWindow extends javax.swing.JFrame {
                 console.updateGUIConsole(txpGitConsole, "INFO: Founded Git commands.", console.TEXT_BLUE);
             }
 
-            String mysqlToolPath = ".\\database\\" + confLoader.getPathToMySQL();
-            if (!txtFolderDatabase.getText().isEmpty()) {
-                mysqlToolPath = ".\\" + txtFolderDatabase.getText() + "\\" + confLoader.getPathToMySQL();
-            }
-            if (!cmdManager.checkMySQL(mysqlToolPath)) {
-                //.setEnabled(false);
-                console.updateGUIConsole(txpGitConsole, "ERROR: mysql.exe command not found on system. Check mysql installation or path '" + mysqlToolPath + "' to mysql.exe into database folder.", console.TEXT_RED);
+            if (!cmdManager.checkMySQL(null)) {
+                console.updateGUIConsole(txpGitConsole, "INFO: MySQL is not locally installed... checking for mysql.exe tool.", console.TEXT_BLUE);
+
+                String mysqlToolPath = "database" + File.separator + confLoader.getPathToMySQL();
+                if (!txtFolderDatabase.getText().isEmpty()) {
+                    mysqlToolPath = txtFolderDatabase.getText() + File.separator + confLoader.getPathToMySQL();
+                }
+                if (!cmdManager.checkMySQL(mysqlToolPath, null)) {
+                    //.setEnabled(false);
+                    console.updateGUIConsole(txpGitConsole, "WARNING: mysql.exe command not found on system. Check mysql installation or path '" + mysqlToolPath + "' to mysql.exe into database folder.", console.TEXT_RED);
+                } else {
+                    mySQLPath = mysqlToolPath;
+                    console.updateGUIConsole(txpGitConsole, "INFO: Founded MySQL commands.", console.TEXT_BLUE);
+                }
             } else {
-                mySQLPath = mysqlToolPath;
                 console.updateGUIConsole(txpGitConsole, "INFO: Founded MySQL commands.", console.TEXT_BLUE);
             }
 
             if (!cmdManager.checkCMAKE(null)) {
                 //.setEnabled(false);
+                console.updateGUIConsole(txpGitConsole, "INFO: CMAKE is not installed into PATH/shell environment... checking for cmake.exe installation folder.", console.TEXT_BLUE);
+                String cmake32Path = confLoader.getWin32PathCMake();
+                String cmake64Path = confLoader.getWin64PathCMake();
+                if (cmdManager.checkCMAKE(cmake32Path, null)) {
+                    // cmakeOk = true;
+                    System.out.println("INFO: Founded CMAKE commands on x86 system.");
+                } else if (cmdManager.checkCMAKE(cmake64Path, null)) {
+                    // cmakeOk = true;
+                    System.out.println("INFO: Founded CMAKE commands on x64 system.");
+                } else {
+                    console.updateGUIConsole(txpGitConsole, "ERROR: CMAKE commands not found on system. Check CMAKE installation!.", console.TEXT_RED);
+                }
                 console.updateGUIConsole(txpGitConsole, "ERROR: CMAKE commands not found on system. Check CMAKE installation!.", console.TEXT_RED);
             } else {
                 // cmakePath =
@@ -438,9 +460,9 @@ public class MainWindow extends javax.swing.JFrame {
             cmdManager.gitDownload(txtGitDatabase.getText(), txtFolderDatabase.getText(), txtBranchDatabase.getText(), txtProxyServer.getText(), txtProxyPort.getText(), txpGitConsole);
         } else {
             console.updateGUIConsole(txpGitConsole, "Starting Git downlodad for Server repository...", console.TEXT_GREEN);
-            cmdManager.gitDownload(txtGitServer.getText(), txtFolderServer.getText(), txtBranchServer.getText(),txpGitConsole);
+            cmdManager.gitDownload(txtGitServer.getText(), txtFolderServer.getText(), txtBranchServer.getText(), txpGitConsole);
             console.updateGUIConsole(txpGitConsole, "Starting Git downlodad for Database repository...", console.TEXT_GREEN);
-            cmdManager.gitDownload(txtGitDatabase.getText(), txtFolderDatabase.getText(), txtBranchDatabase.getText(),txpGitConsole);
+            cmdManager.gitDownload(txtGitDatabase.getText(), txtFolderDatabase.getText(), txtBranchDatabase.getText(), txpGitConsole);
         }
     }//GEN-LAST:event_btnGitDownloadActionPerformed
 
