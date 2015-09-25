@@ -13,9 +13,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.Scanner;
-import static mangosui.WindowsCommands.writeToGUIConsole;
+import java.util.concurrent.ExecutionException;
+import javax.swing.JButton;
+import static mangosui.CommandsWindows.writeToGUIConsole;
 
 /**
  *
@@ -25,6 +26,7 @@ public class Command {
 
     private int debugLevel = 0; // 0: None, 1: console, 2: full
     private static Command instance = null;
+    private JButton btnInvoker;
 
     /**
      *
@@ -42,21 +44,6 @@ public class Command {
         }
         return instance;
     }
-    /*abstract boolean isRepoUpToDate(String pathToRepo) throws InterruptedException, IOException;
-
-     //abstract boolean gitOperation(Object console, String gitCommand, boolean toBuffer) throws InterruptedException, IOException;
-     abstract boolean cmakeConfig(String serverFolder, String buildFolder, HashMap<String, String> options, Object console) throws IOException, InterruptedException;
-
-     abstract boolean cmakeInstall(String buildFolder, String runFolder, Object console) throws IOException, InterruptedException;
-
-     abstract String checkOpenSSLInclude(String pathToOpenSSL, Object console);
-
-     abstract String checkOpenSSLLib(String pathToOpenSSL, Object console);
-
-     abstract String checkMySQLInclude(String pathToMySQL, Object console);
-
-     abstract String checkMySQLLib(String pathToMySQL, Object console);
-     */
 
     /**
      *
@@ -68,43 +55,46 @@ public class Command {
      * @throws IOException
      * @throws InterruptedException
      */
-    protected boolean execute(String[] commands, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer) throws IOException, InterruptedException {
-        ProcessBuilder builder = new ProcessBuilder(commands);
-        builder.redirectErrorStream(true);
-        System.out.print("EXECUTING:");
-        for (String cmd : commands) {
-            System.out.print(" " + cmd);
-        }
-        System.out.print("\n");
-        if (!toBuffer && guiConsole == null) {
-            /*builder.redirectErrorStream(true);*/
-            builder.redirectError(ProcessBuilder.Redirect.INHERIT);
-            builder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-            builder.inheritIO();
-        }
-        //builder.inheritIO();
-        Process proc = builder.start();
+    protected boolean execute(String[] commands, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer) throws IOException, InterruptedException, ExecutionException {
         if (guiConsole != null) {
-            Scanner s = new Scanner(proc.getInputStream()).useDelimiter("\\Z");
-            writeToGUIConsole(proc.getInputStream(), guiConsole, proc);
-        } else if (!toBuffer) {
-            //Scanner s = new Scanner(proc.getInputStream()).useDelimiter("\\Z");
-            //System.out.println(s.next());
+            ProcessExec proc = new ProcessExec(commands, guiConsole, btnInvoker);
+            proc.execute();
+            return false;
         } else {
-            Scanner s = new Scanner(proc.getInputStream()).useDelimiter("\\Z");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                rawConsole.append(line).append("\n");
+            ProcessBuilder builder = new ProcessBuilder(commands);
+            builder.redirectErrorStream(true);
+            System.out.print("EXECUTING:");
+            for (String cmd : commands) {
+                System.out.print(" " + cmd);
             }
-            reader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-            while ((line = reader.readLine()) != null) {
-                rawConsole.append(line).append("\n");
+            System.out.print("\n");
+            if (!toBuffer) {
+                //builder.redirectErrorStream(true);
+                builder.redirectError(ProcessBuilder.Redirect.INHERIT);
+                builder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+                builder.inheritIO();
             }
+            //builder.inheritIO();
+            Process proc = builder.start();
+            if (!toBuffer) {
+                //Scanner s = new Scanner(proc.getInputStream()).useDelimiter("\\Z");
+                //System.out.println(s.next());
+            } else {
+                Scanner s = new Scanner(proc.getInputStream()).useDelimiter("\\Z");
+                BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    rawConsole.append(line).append("\n");
+                }
+                reader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+                while ((line = reader.readLine()) != null) {
+                    rawConsole.append(line).append("\n");
+                }
+            }
+            proc.waitFor();
+            //System.out.println(command + "\n " + sb.toString() + proc.exitValue());
+            return proc.exitValue() <= 0;
         }
-        proc.waitFor();
-        //System.out.println(command + "\n " + sb.toString() + proc.exitValue());
-        return proc.exitValue() <= 0;
     }
 
     static void writeToGUIConsole(InputStream in, Object console, Process proc) throws IOException, InterruptedException {
@@ -113,7 +103,7 @@ public class Command {
             BufferedReader br = new BufferedReader(isr);
             String line;
             while ((line = br.readLine()) != null) {
-                ConsoleManager.getInstance().updateGUIConsole(console, line, ConsoleManager.getInstance().TEXT_BLACK);
+                ConsoleManager.getInstance().updateGUIConsole(console, line, ConsoleManager.TEXT_BLACK);
                 //proc.wait(500);
                 //System.out.println(line);
             }
@@ -196,6 +186,14 @@ public class Command {
      */
     public void setDebugLevel(int debugLevel) {
         this.debugLevel = debugLevel;
+    }
+
+    public JButton getBtnInvoker() {
+        return btnInvoker;
+    }
+
+    public void setBtnInvoker(JButton btnInvoker) {
+        this.btnInvoker = btnInvoker;
     }
 
 }

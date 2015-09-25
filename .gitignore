@@ -1,4 +1,7 @@
 build
+database
+dist
+nbproject
 *.class
 
 # Mobile Tools for Java (J2ME)

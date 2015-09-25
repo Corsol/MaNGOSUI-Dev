@@ -73,6 +73,5 @@
     <target name="-post-compile">
         <copy file="config.properties" todir="${dist.dir}"/>
         <copy file="mysql_portable.zip" todir="${dist.dir}"/>
-        <copy file="openssl_portable.zip" todir="${dist.dir}"/>
     </target>
 </project>

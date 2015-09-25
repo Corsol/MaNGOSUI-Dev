@@ -6,6 +6,7 @@
 package mangosui;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.HashMap;
 
 /**
@@ -61,7 +62,7 @@ public class ConfLoader {
 
     private String debugLevel = "";
     private String PathToMySQL = "";
-    private String WinPathGit = "";
+    private String WinGitPath = "";
     private String Win32PathCMake = "";
     private String Win64PathCMake = "";
 
@@ -123,12 +124,12 @@ public class ConfLoader {
 
             debugLevel = prop.getProperty("debugLevel", "");
             PathToMySQL = prop.getProperty("PathToMySQL", "");
-            WinPathGit = prop.getProperty("WinPathGit", "");
+            WinGitPath = prop.getProperty("WinGitPath", "");
             Win32PathCMake = prop.getProperty("Win32PathCMake", "");
             Win64PathCMake = prop.getProperty("Win64PathCMake", "");
 
             confLoaded = true;
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             confLoaded = false;
         }
     }
@@ -273,17 +274,17 @@ public class ConfLoader {
     }
 
     /**
-     * @return the WinPathGit
+     * @return the WinGitPath
      */
-    public String getWinPathGit() {
-        return WinPathGit;
+    public String getWinGitPath() {
+        return WinGitPath;
     }
 
     /**
-     * @param WinPathGit the WinPathGit to set
+     * @param WinGitPath the WinGitPath to set
      */
-    public void setWinPathGit(String WinPathGit) {
-        this.WinPathGit = WinPathGit;
+    public void setWinGitPath(String WinPathGit) {
+        this.WinGitPath = WinPathGit;
     }
 
     /**
@@ -859,6 +860,14 @@ public class ConfLoader {
     public void setOPENSSL_INCLUDE_DIR(String OPENSSL_INCLUDE_DIR) {
         this.cmakeOptions.put("cmake.OPENSSL_INCLUDE_DIR", OPENSSL_INCLUDE_DIR);
         this.OPENSSL_INCLUDE_DIR = OPENSSL_INCLUDE_DIR;
+    }
+
+    public HashMap<String, String> getMaNGOSVersions() {
+        return MaNGOSVersions;
+    }
+
+    public void setMaNGOSVersions(HashMap<String, String> MaNGOSVersions) {
+        this.MaNGOSVersions = MaNGOSVersions;
     }
 
 }

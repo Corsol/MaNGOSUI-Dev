@@ -12,12 +12,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.Object;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import javax.swing.JButton;
 
 /**
  *
@@ -43,20 +44,20 @@ public class CommandManager {
      *
      */
     public final int MACOS = 3;
-    private WindowsCommands winCmd;
-    private UnixCommand unixCmd;
-    private MacOSCommand macCmd;
+
+    private CommandsWindows winCmd;
+    private CommandsLinux unixCmd;
+    private CommandsMacOS macCmd;
 
     private String osName = "";
     private String osVersion = "";
     private String osArch = "";
     private int CURR_OS = 0; // 0: N/A, 1: Windows, 2: Unix, 3: MAC?
     private boolean PSScriptEnabled = false;
-    private boolean MySQLInstalled = false;
-    private String pathSeparator = "\\";
     private String MySQLPath = "";
     //private String OpenSSLPath = "";
     //private String MySQLWinPath = "";
+    private JButton btnInvoker;
 
     /**
      *
@@ -67,14 +68,14 @@ public class CommandManager {
         osArch = System.getProperty(OS_ARCH);
         if (osName.toLowerCase().contains("windows")) {
             CURR_OS = 1;
-            winCmd = new WindowsCommands();
+            winCmd = new CommandsWindows();
             PSScriptEnabled = winCmd.checkPSScript();
         } else if (osName.toLowerCase().contains("linux")) {
             CURR_OS = 2;
-            unixCmd = new UnixCommand();
+            unixCmd = new CommandsLinux();
         } else if (osName.toLowerCase().contains("mac")) {
             CURR_OS = 3;
-            //macCmd = new MacOSCommand();
+            //macCmd = new CommandsMacOS();
         } else {
         }
     }
@@ -85,7 +86,6 @@ public class CommandManager {
      * @return
      */
     public boolean checkGit(Object console) {
-        StringBuilder sb = new StringBuilder();
         String command = "git --version";
         boolean ret_val = false;
         try {
@@ -104,7 +104,7 @@ public class CommandManager {
                     ret_val = false;
                     break;
             }
-        } catch (InterruptedException | IOException ex) {
+        } catch (InterruptedException | ExecutionException | IOException ex) {
             return false;
         }
         return ret_val;
@@ -148,11 +148,7 @@ public class CommandManager {
         StringBuilder sb = new StringBuilder();
         String command = "mysql --help";
         // Set toBuffer param to true to avoid console text
-        boolean ret = runOSCommand(command, console, sb, true);
-        if (ret) {
-            MySQLInstalled = true;
-        }
-        return ret;
+        return runOSCommand(command, console, sb, true);
     }
 
     /**
@@ -167,7 +163,6 @@ public class CommandManager {
         // Set toBuffer param to true to avoid console text
         boolean ret = runOSCommand(command, console, sb, true);
         if (ret) {
-            MySQLInstalled = false;
             MySQLPath = pathToMySQL + File.separator;
         }
         return ret;
@@ -407,6 +402,88 @@ public class CommandManager {
         return ret_val;
     }
 
+    public boolean checkDBUser(String dbServer, String dbPort, String username, String password, Object console) {
+        StringBuilder sb = new StringBuilder();
+        String command = MySQLPath + "mysql.exe -q -s --host=" + dbServer + " --port=" + dbPort + " --user=" + username + " --password=" + password;
+        String sqlCommand = " -e \"exit\"";
+        // Set toBuffer param to true to avoid console text
+        boolean ret_val = false;
+        try {
+            switch (CURR_OS) {
+                case 1: // Windows
+                    // Set toBuffer param to true to avoid console text
+                    ret_val = runOSCommand(command + sqlCommand, null, sb, true);
+                    break;
+                case 2: // Unix
+                    //ArrayList<String> commands = new ArrayList(Arrays.asList(command.replace(".exe", "").split(" ")));
+                    //commands.add(sqlCommand);
+                    // Set toBuffer param to true to avoid console text
+                    ret_val = runOSCommand(command.replace(".exe", "") + sqlCommand, null, sb, true);
+                    break;
+                case 3: // MAC OS
+                    break;
+                default:
+                    ret_val = false;
+                    break;
+            }
+        } catch (Exception ex) {
+            return false;
+        }
+        if (!ret_val) {
+            String msg = "\nERROR: " + sb.toString();
+            if (console != null) {
+                ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+            } else {
+                System.out.println(msg);
+            }
+        }
+        return ret_val;
+    }
+
+    public boolean checkDBStructure(String dbServer, String dbPort, String dbAdmin, String dbAdminPwd, String worldDBName, String charDBName, String realmDBName, Object console) {
+        StringBuilder sb = new StringBuilder();
+        String command = MySQLPath + "mysql.exe -q -s --host=" + dbServer + " --port=" + dbPort + " --user=" + dbAdmin + " --password=" + dbAdminPwd;
+        /* This will be implemented better!!!!! */
+        String sqlCommand = " -e \"CREATE TABLE `" + worldDBName + "`.dbcheck(test bit(1)) engine = MEMORY;"
+                + "DROP TABLE `" + worldDBName + "`.dbcheck;"
+                + "CREATE TABLE `" + charDBName + "`.dbcheck(test bit(1)) engine = MEMORY;"
+                + "DROP TABLE `" + charDBName + "`.dbcheck;"
+                + "CREATE TABLE `" + realmDBName + "`.dbcheck(test bit(1)) engine = MEMORY;"
+                + "DROP TABLE `" + realmDBName + "`.dbcheck;\"";
+        // Set toBuffer param to true to avoid console text
+        boolean ret_val = false;
+        try {
+            switch (CURR_OS) {
+                case 1: // Windows
+                    // Set toBuffer param to true to avoid console text
+                    ret_val = runOSCommand(command + sqlCommand, null, sb, true);
+                    break;
+                case 2: // Unix
+                    //ArrayList<String> commands = new ArrayList(Arrays.asList(command.replace(".exe", "").split(" ")));
+                    //commands.add(sqlCommand);
+                    // Set toBuffer param to true to avoid console text
+                    ret_val = runOSCommand(command.replace(".exe", "") + sqlCommand, null, sb, true);
+                    break;
+                case 3: // MAC OS
+                    break;
+                default:
+                    ret_val = false;
+                    break;
+            }
+        } catch (Exception ex) {
+            return false;
+        }
+        if (!ret_val) {
+            String msg = "\nERROR: " + sb.toString();
+            if (console != null) {
+                ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+            } else {
+                System.out.println(msg);
+            }
+        }
+        return ret_val;
+    }
+
     private void extractFile(ZipInputStream zipIn, String filePath) throws IOException {
         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
         byte[] bytesIn = new byte[4096];
@@ -433,19 +510,20 @@ public class CommandManager {
      * @param console
      * @return
      */
-    public boolean createDB(ConfLoader config, Object console) {
+    //public boolean createDB(ConfLoader config, Object console) {
+    public boolean createDB(String dbServer, String dbPort, String dbAdmin, String dbAdminPwd, String dbUser, String dbUserPwd, String worldDBName, String charDBName, String realmDBName, Object console) {
         StringBuilder sb = new StringBuilder();
         //String command = MySQLPath + "mysql.exe -q -s -h "+server+" --port="+port+" --user="+usrAdmin+" --password="+usrAdminPwd+" < World"+File.separator+"Setup"+File.separator+"mangosdCreateDB.sql";
-        String command = MySQLPath + "mysql.exe -q -s -f --host=" + config.getDatabaseServer() + " --port=" + config.getDatabasePort() + " --user=" + config.getDatabaseAdmin() + " --password=" + config.getDatabaseAdminPass();
+        String command = MySQLPath + "mysql.exe -q -s -f --host=" + dbServer + " --port=" + dbPort + " --user=" + dbAdmin + " --password=" + dbAdminPwd;
         String sqlCommand = " -e \""
-                + "CREATE DATABASE " + config.getWorldDBName() + " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
-                + "CREATE DATABASE " + config.getCharDBName() + " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
-                + "CREATE DATABASE " + config.getRealmDBName() + " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
-                + "CREATE USER '" + config.getDatabaseUser() + "'@'%' IDENTIFIED BY '" + config.getDatabaseUserPass() + "';"
-                + "CREATE USER '" + config.getDatabaseUser() + "'@'localhost' IDENTIFIED BY '" + config.getDatabaseUserPass() + "';"
-                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON " + config.getWorldDBName() + ".* TO '" + config.getDatabaseUser() + "'@'%', '" + config.getDatabaseUser() + "'@'localhost';"
-                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON " + config.getCharDBName() + ".* TO '" + config.getDatabaseUser() + "'@'%', '" + config.getDatabaseUser() + "'@'localhost';"
-                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON " + config.getRealmDBName() + ".* TO '" + config.getDatabaseUser() + "'@'%', '" + config.getDatabaseUser() + "'@'localhost';\"";
+                + "CREATE DATABASE " + worldDBName + " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
+                + "CREATE DATABASE " + charDBName + " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
+                + "CREATE DATABASE " + realmDBName + " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
+                + "CREATE USER '" + dbUser + "'@'%' IDENTIFIED BY '" + dbUserPwd + "';"
+                + "CREATE USER '" + dbUser + "'@'localhost' IDENTIFIED BY '" + dbUserPwd + "';"
+                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON " + worldDBName + ".* TO '" + dbUser + "'@'%', '" + dbUserPwd + "'@'localhost';"
+                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON " + charDBName + ".* TO '" + dbUser + "'@'%', '" + dbUserPwd + "'@'localhost';"
+                + "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES ON " + realmDBName + ".* TO '" + dbUser + "'@'%', '" + dbUserPwd + "'@'localhost';\"";
         //String[] command = new String[]{"cmd.exe"};
         //return runOSCommand(command, console, sb, false);
         boolean ret_val = false;
@@ -459,7 +537,7 @@ public class CommandManager {
                     //ArrayList<String> commands = new ArrayList(Arrays.asList(command.replace(".exe", "").split(" ")));
                     //commands.add(sqlCommand);
                     // Set toBuffer param to true to avoid console text
-                    ret_val = runOSCommand(command.replace(".exe", "") +sqlCommand, console, sb, false);
+                    ret_val = runOSCommand(command.replace(".exe", "") + sqlCommand, console, sb, false);
                     break;
                 case 3: // MAC OS
                     break;
@@ -481,10 +559,11 @@ public class CommandManager {
      * @param console
      * @return
      */
-    public boolean loadDB(ConfLoader config, String Database, String setupFolder, Object console) {
+    //public boolean loadDB(ConfLoader config, String Database, String setupFolder, Object console) {
+    public boolean loadDB(String dbServer, String dbPort, String dbAdmin, String dbAdminPwd, String Database, String setupFolder, Object console) {
         StringBuilder sb = new StringBuilder();
         //String command = "";
-        String command = MySQLPath + "mysql.exe -q -s --host=" + config.getDatabaseServer() + " --port=" + config.getDatabasePort() + " --user=" + config.getDatabaseAdmin() + " --password=" + config.getDatabaseAdminPass();
+        String command = MySQLPath + "mysql.exe -q -s --host=" + dbServer + " --port=" + dbPort + " --user=" + dbAdmin + " --password=" + dbAdminPwd;
         String sqlCommand = " " + Database + " < " + setupFolder;
         //return runOSCommand(command, console, sb, false);
         boolean ret_val = false;
@@ -498,7 +577,7 @@ public class CommandManager {
                     //ArrayList<String> commands = new ArrayList(Arrays.asList(command.replace(".exe", "").split(" ")));
                     //commands.add(sqlCommand);
                     // Set toBuffer param to true to avoid console text
-                    ret_val = runOSCommand(command.replace(".exe", "") +sqlCommand, console, sb, false);
+                    ret_val = runOSCommand(command.replace(".exe", "") + sqlCommand, console, sb, false);
                     break;
                 case 3: // MAC OS
                     break;
@@ -520,7 +599,8 @@ public class CommandManager {
      * @param console
      * @return
      */
-    public boolean loadDBUpdate(ConfLoader config, String Database, String updateFolder, Object console) {
+    //public boolean loadDBUpdate(ConfLoader config, String Database, String updateFolder, Object console) {
+    public boolean loadDBUpdate(String dbServer, String dbPort, String dbAdmin, String dbAdminPwd, String Database, String updateFolder, Object console) {
         StringBuilder sb = new StringBuilder();
         String command;
         boolean ret_val = true;
@@ -528,7 +608,7 @@ public class CommandManager {
         if (file.isDirectory() && file.list().length > 0) {
             for (File subFile : file.listFiles(new SQLFileFilter())) {
                 if (!subFile.isDirectory()) {
-                    command = MySQLPath + "mysql.exe -q -s -h " + config.getDatabaseServer() + " --port=" + config.getDatabasePort() + " --user=" + config.getDatabaseAdmin() + " --password=" + config.getDatabaseAdminPass();
+                    command = MySQLPath + "mysql.exe -q -s --host=" + dbServer + " --port=" + dbPort + " --user=" + dbAdmin + " --password=" + dbAdminPwd;
                     String sqlCommand = " " + Database + " < " + updateFolder + File.separator + subFile.getName();
                     //ret_val &= runOSCommand(command, console, sb, false);
                     try {
@@ -541,7 +621,7 @@ public class CommandManager {
                                 //ArrayList<String> commands = new ArrayList(Arrays.asList(command.replace(".exe", "").split(" ")));
                                 //commands.add(sqlCommand);
                                 // Set toBuffer param to true to avoid console text
-                                ret_val &= runOSCommand(command.replace(".exe", "") +sqlCommand, console, sb, false);
+                                ret_val &= runOSCommand(command.replace(".exe", "") + sqlCommand, console, sb, false);
                                 break;
                             case 3: // MAC OS
                                 break;
@@ -585,7 +665,7 @@ public class CommandManager {
                     ret_val = false;
                     break;
             }
-        } catch (IOException | InterruptedException ex) {
+        } catch (IOException | ExecutionException | InterruptedException ex) {
             return false;
         }
         return ret_val;
@@ -614,7 +694,7 @@ public class CommandManager {
                     ret_val = false;
                     break;
             }
-        } catch (IOException | InterruptedException ex) {
+        } catch (IOException | ExecutionException | InterruptedException ex) {
             return false;
         }
         return ret_val;
@@ -678,13 +758,13 @@ public class CommandManager {
                     ret_val = false;
                     break;
             }
-        } catch (InterruptedException | IOException ex) {
+        } catch (InterruptedException | ExecutionException | IOException ex) {
             return false;
         }
         return ret_val;
     }
-    
-    public boolean setGitProxy(String proxyServer, String proxyPort, Object console){
+
+    public boolean setGitProxy(String proxyServer, String proxyPort, Object console) {
         String command = "git config --global --add http.proxy http://" + proxyServer + ":" + proxyPort;
         boolean ret_val = false;
         try {
@@ -703,13 +783,13 @@ public class CommandManager {
                     ret_val = false;
                     break;
             }
-        } catch (InterruptedException | IOException ex) {
+        } catch (InterruptedException | ExecutionException | IOException ex) {
             return false;
         }
-        return ret_val;        
+        return ret_val;
     }
 
-    public boolean remGitProxy(Object console){
+    public boolean remGitProxy(Object console) {
         String command = "git config --global --unset http.proxy";
         boolean ret_val = false;
         try {
@@ -728,10 +808,10 @@ public class CommandManager {
                     ret_val = false;
                     break;
             }
-        } catch (InterruptedException | IOException ex) {
+        } catch (InterruptedException | ExecutionException | IOException ex) {
             return false;
         }
-        return ret_val;        
+        return ret_val;
     }
 
     /**
@@ -856,7 +936,7 @@ public class CommandManager {
                     ret_val = false;
                     break;
             }
-        } catch (IOException | InterruptedException ex) {
+        } catch (IOException | ExecutionException | InterruptedException ex) {
             Logger.getLogger(CommandManager.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println(ex.getLocalizedMessage());
             ex.printStackTrace();
@@ -881,7 +961,7 @@ public class CommandManager {
                     ret_val = false;
                     break;
             }
-        } catch (IOException | InterruptedException ex) {
+        } catch (IOException | ExecutionException | InterruptedException ex) {
             Logger.getLogger(CommandManager.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println(ex.getLocalizedMessage());
             ex.printStackTrace();
@@ -890,15 +970,8 @@ public class CommandManager {
         return ret_val;
     }
 
-    
-    public boolean copyFolder(String source, String dest){
+    public boolean copyFolder(String source, String dest) {
         return Command.getInstance().copyFolder(new File(source), new File(dest));
-    }
-    /**
-     * @return the macCmd
-     */
-    public MacOSCommand getMacCmd() {
-        return macCmd;
     }
 
     /**
@@ -981,6 +1054,29 @@ public class CommandManager {
                     break;
                 default:
                     //ret_val = 0;
+                    break;
+            }
+        } catch (Exception ex) {
+        }
+    }
+
+    public JButton getBtnInvoker() {
+        return btnInvoker;
+    }
+
+    public void setBtnInvoker(JButton btnInvoker) {
+        //this.btnInvoker = btnInvoker;
+        try {
+            switch (CURR_OS) {
+                case 1: // Windows
+                    winCmd.setBtnInvoker(btnInvoker);
+                    break;
+                case 2: // Unix
+                    winCmd.setBtnInvoker(btnInvoker);
+                    break;
+                case 3: // MAC OS
+                    break;
+                default:
                     break;
             }
         } catch (Exception ex) {

@@ -14,11 +14,10 @@ import java.util.HashMap;
  *
  * @author Simone
  */
-public class MaNGOSUI {
+public class MaNGOSUI extends WorkExecutor {
 
     private static boolean gitOk = false;
     private static boolean mysqlOk = false;
-    private static String mySQLPath = "";
     private static boolean cmakeOk = false;
 
     /**
@@ -75,17 +74,11 @@ public class MaNGOSUI {
                 confLoader.getGitBranchEluna(input);
 
                 String serverFolder;
-                serverFolder = confLoader.getGitFolderServer().isEmpty()
-                        ? confLoader.getGitURLServer().substring(confLoader.getGitURLServer().lastIndexOf("/") + 1, confLoader.getGitURLServer().length() - 4)
-                        : confLoader.getGitFolderServer();
+                serverFolder = setGitFolder(confLoader.getGitFolderServer(), confLoader.getGitURLServer());
                 String databaseFolder;
-                databaseFolder = confLoader.getGitFolderDatabase().isEmpty()
-                        ? confLoader.getGitURLDatabase().substring(confLoader.getGitURLDatabase().lastIndexOf("/") + 1, confLoader.getGitURLDatabase().length() - 4)
-                        : confLoader.getGitFolderDatabase();
+                databaseFolder = setGitFolder(confLoader.getGitFolderDatabase(), confLoader.getGitURLDatabase());
                 String elunaFolder;
-                elunaFolder = confLoader.getGitFolderEluna().isEmpty()
-                        ? confLoader.getGitURLEluna().substring(confLoader.getGitURLEluna().lastIndexOf("/") + 1, confLoader.getGitURLEluna().length() - 4)
-                        : confLoader.getGitFolderEluna();
+                elunaFolder = setGitFolder(confLoader.getGitFolderEluna(), confLoader.getGitURLEluna());
 
                 /**
                  * **** Git download *****
@@ -94,16 +87,8 @@ public class MaNGOSUI {
                 input = System.console().readLine();
                 if ("y".equalsIgnoreCase(input)) {
                     System.out.println("Checking Git installation... ");
-                    if (cmdManager.getCURR_OS() == cmdManager.WINDOWS && !cmdManager.isPSScriptEnabled()) {
-                        System.out.println("WARNING: PowerShell script execution is not ebabled. To enable it run PS (x86) as Administrator and use \"Set-ExecutionPolicy Unrestricted\" command.");
-                    }
-                    cmdManager.setWinGitPath(confLoader.getWinPathGit());
-                    if (!cmdManager.checkGit(null)) {
-                        System.out.println("ERROR: Git commands not found on system. Check Git installation or manually download repositories.");
-                    } else {
-                        gitOk = true;
-                        System.out.println("INFO: Founded Git commands.");
-                    }
+
+                    gitOk = checkGit(confLoader.getWinGitPath(), cmdManager, null, null);
 
                     if (gitOk) {
                         System.out.println("\n\nProxy configuration:");
@@ -165,34 +150,35 @@ public class MaNGOSUI {
                         System.out.println("Empty for no action.");
                         System.out.print("\nInsert action: ");
                         input = System.console().readLine();
-                        if (input.equalsIgnoreCase("N")) {
-                            System.out.println("Downloading new server repository...");
-                            if (cmdManager.gitDownload(confLoader.getGitURLServer(), serverFolder, confLoader.getGitBranchServer(), confLoader.getProxyServer(), confLoader.getProxyPort(), null)) {
-                                System.out.println("\nDone.");
-                            } else {
-                                System.out.println("\nERROR: Check console output and redo process with W (wipe) option.");
-                            }
-                        } else if (input.equalsIgnoreCase("W")) {
-                            System.out.print("Wiping current server folder...");
-                            if (cmdManager.deleteFolder(serverFolder)) {
-                                System.out.println("Done.");
-                                System.out.println("Downloading server repository...");
-                                if (cmdManager.gitDownload(confLoader.getGitURLServer(), serverFolder, confLoader.getGitBranchServer(), confLoader.getProxyServer(), confLoader.getProxyPort(), null)) {
-                                    System.out.println("\nDone.");
-                                } else {
-                                    System.out.println("\nERROR: Check console output and redo process with W (wipe) option.");
-                                }
-                            }
-                        } else if (input.equalsIgnoreCase("U")) {
-                            System.out.println("Updating current server folder...");
-                            if (cmdManager.gitCheckout(null)) {
-                                System.out.println("\nDone.");
-                            } else {
-                                System.out.println("\nERROR: Check console output.");
-                            }
-                        } else {
-                            System.out.println("No action selected. Download skipped");
-                        }
+                        gitDownload(input, confLoader.getGitURLServer(), serverFolder, confLoader.getGitBranchServer(), confLoader.getProxyServer(), confLoader.getProxyPort(), cmdManager, null, null);
+                        /*if (input.equalsIgnoreCase("N")) {
+                         System.out.println("Downloading new server repository...");
+                         if (cmdManager.gitDownload(confLoader.getGitURLServer(), serverFolder, confLoader.getGitBranchServer(), confLoader.getProxyServer(), confLoader.getProxyPort(), null)) {
+                         System.out.println("\nDone.");
+                         } else {
+                         System.out.println("\nERROR: Check console output and redo process with W (wipe) option.");
+                         }
+                         } else if (input.equalsIgnoreCase("W")) {
+                         System.out.print("Wiping current server folder...");
+                         if (cmdManager.deleteFolder(serverFolder)) {
+                         System.out.println("Done.");
+                         System.out.println("Downloading server repository...");
+                         if (cmdManager.gitDownload(confLoader.getGitURLServer(), serverFolder, confLoader.getGitBranchServer(), confLoader.getProxyServer(), confLoader.getProxyPort(), null)) {
+                         System.out.println("\nDone.");
+                         } else {
+                         System.out.println("\nERROR: Check console output and redo process with W (wipe) option.");
+                         }
+                         }
+                         } else if (input.equalsIgnoreCase("U")) {
+                         System.out.println("Updating current server folder...");
+                         if (cmdManager.gitCheckout(null)) {
+                         System.out.println("\nDone.");
+                         } else {
+                         System.out.println("\nERROR: Check console output.");
+                         }
+                         } else {
+                         System.out.println("No action selected. Download skipped");
+                         }*/
 
                         // Show database git param
                         System.out.println("\n\n*** Database download parameters:");
@@ -212,7 +198,7 @@ public class MaNGOSUI {
                             System.out.println("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchDatabase());
                         }
                         // Check database folder
-                        databaseFolder = confLoader.getGitFolderDatabase().isEmpty() ? "database" : confLoader.getGitFolderDatabase();
+                        databaseFolder = setGitFolder(confLoader.getGitFolderDatabase(), confLoader.getGitURLDatabase());
                         if (cmdManager.checkFolder(databaseFolder)) {
                             optGitDBWipe = true;
                             // Check database version for update
@@ -236,35 +222,36 @@ public class MaNGOSUI {
                         System.out.println("Empty for no action.");
                         System.out.print("\nInsert action: ");
                         input = System.console().readLine();
-                        if (input.equalsIgnoreCase("N")) {
-                            System.out.println("Downloading new database repository...");
-                            if (cmdManager.gitDownload(confLoader.getGitURLDatabase(), databaseFolder, confLoader.getGitBranchDatabase(), confLoader.getProxyServer(), confLoader.getProxyPort(), null)) {
-                                System.out.println("\nDone.");
-                            } else {
-                                System.out.println("\nERROR: Check console output and redo process with W (wipe) option.");
-                            }
-                        } else if (input.equalsIgnoreCase("W")) {
-                            System.out.print("Wiping current database folder...");
-                            if (cmdManager.deleteFolder(databaseFolder)) {
-                                System.out.println("Done.");
-                                System.out.println("Downloading database repository...");
-                                if (cmdManager.gitDownload(confLoader.getGitURLDatabase(), databaseFolder, confLoader.getGitBranchDatabase(), confLoader.getProxyServer(), confLoader.getProxyPort(), null)) {
-                                    System.out.println("\nDone.");
-                                } else {
-                                    System.out.println("\nERROR: Check console output and redo process with W (wipe) option.");
-                                }
-                            }
-                        } else if (input.equalsIgnoreCase("U")) {
-                            System.out.println("Updating current database folder...");
-                            if (cmdManager.gitCheckout(null)) {
-                                System.out.println("\nDone.");
-                            } else {
-                                System.out.println("\nERROR: Check console output.");
-                            }
-                        } else {
-                            System.out.println("No action selected. Download skipped");
-                        }
+                        gitDownload(input, confLoader.getGitURLDatabase(), databaseFolder, confLoader.getGitBranchDatabase(), confLoader.getProxyServer(), confLoader.getProxyPort(), cmdManager, null, null);
 
+                        /*if (input.equalsIgnoreCase("N")) {
+                         System.out.println("Downloading new database repository...");
+                         if (cmdManager.gitDownload(confLoader.getGitURLDatabase(), databaseFolder, confLoader.getGitBranchDatabase(), confLoader.getProxyServer(), confLoader.getProxyPort(), null)) {
+                         System.out.println("\nDone.");
+                         } else {
+                         System.out.println("\nERROR: Check console output and redo process with W (wipe) option.");
+                         }
+                         } else if (input.equalsIgnoreCase("W")) {
+                         System.out.print("Wiping current database folder...");
+                         if (cmdManager.deleteFolder(databaseFolder)) {
+                         System.out.println("Done.");
+                         System.out.println("Downloading database repository...");
+                         if (cmdManager.gitDownload(confLoader.getGitURLDatabase(), databaseFolder, confLoader.getGitBranchDatabase(), confLoader.getProxyServer(), confLoader.getProxyPort(), null)) {
+                         System.out.println("\nDone.");
+                         } else {
+                         System.out.println("\nERROR: Check console output and redo process with W (wipe) option.");
+                         }
+                         }
+                         } else if (input.equalsIgnoreCase("U")) {
+                         System.out.println("Updating current database folder...");
+                         if (cmdManager.gitCheckout(null)) {
+                         System.out.println("\nDone.");
+                         } else {
+                         System.out.println("\nERROR: Check console output.");
+                         }
+                         } else {
+                         System.out.println("No action selected. Download skipped");
+                         }*/
                         // Show LUA Script git param
                         System.out.println("\n\n*** LUA Script download parameters:");
                         System.out.println("URL                          : " + confLoader.getGitURLEluna());
@@ -307,34 +294,35 @@ public class MaNGOSUI {
                         System.out.println("Empty for no action.");
                         System.out.print("\nInsert action: ");
                         input = System.console().readLine();
-                        if (input.equalsIgnoreCase("N")) {
-                            System.out.println("Downloading new LUA Script repository...");
-                            if (cmdManager.gitDownload(confLoader.getGitURLEluna(), elunaFolder, confLoader.getGitBranchEluna(), confLoader.getProxyServer(), confLoader.getProxyPort(), null)) {
-                                System.out.println("\nDone.");
-                            } else {
-                                System.out.println("\nERROR: Check console output and redo process with W (wipe) option.");
-                            }
-                        } else if (input.equalsIgnoreCase("W")) {
-                            System.out.print("Wiping current LUA Script folder...");
-                            if (cmdManager.deleteFolder(elunaFolder)) {
-                                System.out.println("Done.");
-                                System.out.println("Downloading LUA Script repository...");
-                                if (cmdManager.gitDownload(confLoader.getGitURLEluna(), elunaFolder, confLoader.getGitBranchEluna(), confLoader.getProxyServer(), confLoader.getProxyPort(), null)) {
-                                    System.out.println("\nDone.");
-                                } else {
-                                    System.out.println("\nERROR: Check console output and redo process with W (wipe) option.");
-                                }
-                            }
-                        } else if (input.equalsIgnoreCase("U")) {
-                            System.out.println("Updating current LUA Script folder...");
-                            if (cmdManager.gitCheckout(null)) {
-                                System.out.println("\nDone.");
-                            } else {
-                                System.out.println("\nERROR: Check console output.");
-                            }
-                        } else {
-                            System.out.println("No action selected. Download skipped");
-                        }
+                        gitDownload(input, confLoader.getGitURLEluna(), elunaFolder, confLoader.getGitBranchEluna(), confLoader.getProxyServer(), confLoader.getProxyPort(), cmdManager, null, null);
+                        /*if (input.equalsIgnoreCase("N")) {
+                         System.out.println("Downloading new LUA Script repository...");
+                         if (cmdManager.gitDownload(confLoader.getGitURLEluna(), elunaFolder, confLoader.getGitBranchEluna(), confLoader.getProxyServer(), confLoader.getProxyPort(), null)) {
+                         System.out.println("\nDone.");
+                         } else {
+                         System.out.println("\nERROR: Check console output and redo process with W (wipe) option.");
+                         }
+                         } else if (input.equalsIgnoreCase("W")) {
+                         System.out.print("Wiping current LUA Script folder...");
+                         if (cmdManager.deleteFolder(elunaFolder)) {
+                         System.out.println("Done.");
+                         System.out.println("Downloading LUA Script repository...");
+                         if (cmdManager.gitDownload(confLoader.getGitURLEluna(), elunaFolder, confLoader.getGitBranchEluna(), confLoader.getProxyServer(), confLoader.getProxyPort(), null)) {
+                         System.out.println("\nDone.");
+                         } else {
+                         System.out.println("\nERROR: Check console output and redo process with W (wipe) option.");
+                         }
+                         }
+                         } else if (input.equalsIgnoreCase("U")) {
+                         System.out.println("Updating current LUA Script folder...");
+                         if (cmdManager.gitCheckout(null)) {
+                         System.out.println("\nDone.");
+                         } else {
+                         System.out.println("\nERROR: Check console output.");
+                         }
+                         } else {
+                         System.out.println("No action selected. Download skipped");
+                         }*/
                     } else {
                         System.out.println("\n*** Download operation skipped. Git command not ready.");
                     }
@@ -347,21 +335,21 @@ public class MaNGOSUI {
                 input = System.console().readLine();
                 if ("y".equalsIgnoreCase(input)) {
                     System.out.println("Checking MySQL installation... ");
-                    String mysqlToolPath;
-                    if (!cmdManager.checkMySQL(null)) {
-                        System.out.println("INFO: MySQL is not locally installed... checking for mysql.exe tool.");
-                        mysqlToolPath = "database" + File.separator + confLoader.getPathToMySQL();
-                        if (!cmdManager.checkMySQL(mysqlToolPath, null)) {
-                            System.out.println("WARNING: mysql.exe command not found on system. Check mysql installation or path '" + mysqlToolPath + "' to mysql.exe into database folder.");
-                        } else {
-                            mysqlOk = true;
-                            mySQLPath = mysqlToolPath;
-                            System.out.println("INFO: Founded MySQL commands.");
-                        }
-                    } else {
-                        mysqlOk = true;
-                        System.out.println("INFO: Founded MySQL commands.");
-                    }
+                    mysqlOk = checkMySQL(databaseFolder, confLoader.getPathToMySQL(), cmdManager, null, null);
+                    /*String mysqlToolPath;
+                     if (!cmdManager.checkMySQL(null)) {
+                     System.out.println("INFO: MySQL is not locally installed... checking for mysql.exe tool.");
+                     mysqlToolPath = "database" + File.separator + confLoader.getPathToMySQL();
+                     if (!cmdManager.checkMySQL(mysqlToolPath, null)) {
+                     System.out.println("WARNING: mysql.exe command not found on system. Check mysql installation or path '" + mysqlToolPath + "' to mysql.exe into database folder.");
+                     } else {
+                     mysqlOk = true;
+                     System.out.println("INFO: Founded MySQL commands.");
+                     }
+                     } else {
+                     mysqlOk = true;
+                     System.out.println("INFO: Founded MySQL commands.");
+                     }*/
 
                     if (mysqlOk) {
                         System.out.println("\n\n*** Database server installation parameters:");
@@ -465,196 +453,240 @@ public class MaNGOSUI {
                                 System.out.print("\nIs your first DB installation: [y/n, default:n] ");
                                 input = System.console().readLine();
                                 if ("y".equalsIgnoreCase(input)) {
-                                    System.out.println("Installing new database...");
-                                    cmdManager.createDB(confLoader, null);
+                                    mysqlCreateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
+                                            confLoader.getDatabaseUser(), confLoader.getDatabaseUserPass(), confLoader.getWorldDBName(), confLoader.getCharDBName(),
+                                            confLoader.getRealmDBName(), cmdManager, null, null);
                                 }
                             }
                             System.out.print("\nDo you want to wipe (if already installed) and install Realm database? [y/n, default:n] ");
                             input = System.console().readLine();
                             if ("y".equalsIgnoreCase(input)) {
+                                mysqlLoadDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
+                                        databaseFolder, confLoader.getRealmFolder(), confLoader.getRealmLoadDBName(), confLoader.getRealmDBName(),
+                                        confLoader.getDatabaseSetupFolder(), cmdManager, null, null);
                                 // Installing Realm database
-                                String setupPath = databaseFolder + File.separator
-                                        + confLoader.getRealmFolder() + File.separator
-                                        + confLoader.getDatabaseSetupFolder() + File.separator
-                                        + confLoader.getRealmLoadDBName();
-                                System.out.println("Creating Realm database from: " + setupPath);
-                                boolean dbRet = cmdManager.loadDB(confLoader, confLoader.getRealmDBName(), setupPath, null);
-                                if (dbRet) {
-                                    System.out.println("Done");
-                                } else {
-                                    System.out.println("ERROR: check console log.");
-                                }
-                                ArrayList<String> mapKey = new ArrayList<>(confLoader.getRealmUpdRel().keySet());
-                                Collections.sort(mapKey);
-                                for (String updFolderKey : mapKey) {
-                                    String updFolder = confLoader.getRealmUpdRel().get(updFolderKey);
-                                    if (!updFolder.isEmpty()) {
-                                        String updatePath = databaseFolder + File.separator
-                                                + confLoader.getRealmFolder() + File.separator
-                                                + confLoader.getDatabaseUpdateFolder() + File.separator
-                                                + updFolder;
-                                        System.out.println("Importing Realm updates from: " + updatePath);
-                                        dbRet &= cmdManager.loadDBUpdate(confLoader, confLoader.getRealmDBName(), updatePath, null);
-                                    }
-                                }
-                                if (dbRet) {
-                                    System.out.println("Done");
-                                } else {
-                                    System.out.println("ERROR: check console log.");
-                                }
+                                /*String setupPath = databaseFolder + File.separator
+                                 + confLoader.getRealmFolder() + File.separator
+                                 + confLoader.getDatabaseSetupFolder() + File.separator
+                                 + confLoader.getRealmLoadDBName();
+                                 System.out.println("Creating Realm database from: " + setupPath);
+                                 boolean dbRet = cmdManager.loadDB(confLoader, confLoader.getRealmDBName(), setupPath, null);
+                                 if (dbRet) {
+                                 System.out.println("Done");
+                                 } else {
+                                 System.out.println("ERROR: check console log.");
+                                 }*/
+
+                                ArrayList<String> updFolders = new ArrayList<>(confLoader.getRealmUpdRel().values());
+                                Collections.sort(updFolders);
+                                mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
+                                        databaseFolder, confLoader.getRealmFolder(), updFolders, null, confLoader.getRealmLoadDBName(),
+                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
+                                /*for (String updFolderKey : mapKey) {
+                                 String updFolder = confLoader.getRealmUpdRel().get(updFolderKey);
+                                 if (!updFolder.isEmpty()) {
+                                 String updatePath = databaseFolder + File.separator
+                                 + confLoader.getRealmFolder() + File.separator
+                                 + confLoader.getDatabaseUpdateFolder() + File.separator
+                                 + updFolder;
+                                 System.out.println("Importing Realm updates from: " + updatePath);
+                                 dbRet &= cmdManager.loadDBUpdate(confLoader, confLoader.getRealmDBName(), updatePath, null);
+                                 }
+                                 }
+                                 //dbRet = mysqlUpdateDB(databaseFolder, confLoader.getRealmFolder(), mapKey, confLoader.getRealmLoadDBName(), cmdManager, confLoader, null, null);
+                                 if (dbRet) {
+                                 System.out.println("Done");
+                                 } else {
+                                 System.out.println("ERROR: check console log.");
+                                 }*/
                             }
 
                             System.out.print("\nDo you want to wipe (if already installed) and install Character database? [y/n, default:n] ");
                             input = System.console().readLine();
                             if ("y".equalsIgnoreCase(input)) {
-                                // Installing Realm database
-                                String setupPath = databaseFolder + File.separator
-                                        + confLoader.getCharFolder() + File.separator
-                                        + confLoader.getDatabaseSetupFolder() + File.separator
-                                        + confLoader.getCharLoadDBName();
-                                System.out.println("Creating Character database from: " + setupPath);
-                                boolean dbRet = cmdManager.loadDB(confLoader, confLoader.getCharDBName(), setupPath, null);
-                                if (dbRet) {
-                                    System.out.println("Done");
-                                } else {
-                                    System.out.println("ERROR: check console log.");
-                                }
-                                ArrayList<String> mapKey = new ArrayList<>(confLoader.getCharUpdRel().keySet());
-                                Collections.sort(mapKey);
-                                for (String updFolderKey : mapKey) {
-                                    String updFolder = confLoader.getCharUpdRel().get(updFolderKey);
-                                    if (!updFolder.isEmpty()) {
-                                        String updatePath = databaseFolder + File.separator
-                                                + confLoader.getCharFolder() + File.separator
-                                                + confLoader.getDatabaseUpdateFolder() + File.separator
-                                                + updFolder;
-                                        System.out.println("Importing Character updates from: " + updatePath);
-                                        dbRet &= cmdManager.loadDBUpdate(confLoader, confLoader.getCharDBName(), updatePath, null);
-                                    }
-                                }
-                                if (dbRet) {
-                                    System.out.println("Done");
-                                } else {
-                                    System.out.println("ERROR: check console log.");
-                                }
+                                // Installing Character database
+                                mysqlLoadDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
+                                        databaseFolder, confLoader.getCharFolder(), confLoader.getCharLoadDBName(), confLoader.getCharDBName(),
+                                        confLoader.getDatabaseSetupFolder(), cmdManager, null, null);
+
+                                /*String setupPath = databaseFolder + File.separator
+                                 + confLoader.getCharFolder() + File.separator
+                                 + confLoader.getDatabaseSetupFolder() + File.separator
+                                 + confLoader.getCharLoadDBName();
+                                 System.out.println("Creating Character database from: " + setupPath);
+                                 boolean dbRet = cmdManager.loadDB(confLoader, confLoader.getCharDBName(), setupPath, null);
+                                 if (dbRet) {
+                                 System.out.println("Done");
+                                 } else {
+                                 System.out.println("ERROR: check console log.");
+                                 }*/
+                                //ArrayList<String> mapKey = new ArrayList<>(confLoader.getCharUpdRel().keySet());
+                                //Collections.sort(mapKey);
+                                ArrayList<String> updFolders = new ArrayList<>(confLoader.getCharUpdRel().values());
+                                Collections.sort(updFolders);
+                                mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
+                                        databaseFolder, confLoader.getCharFolder(), updFolders, null, confLoader.getCharLoadDBName(),
+                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
+                                /*for (String updFolderKey : mapKey) {
+                                 String updFolder = confLoader.getCharUpdRel().get(updFolderKey);
+                                 if (!updFolder.isEmpty()) {
+                                 String updatePath = databaseFolder + File.separator
+                                 + confLoader.getCharFolder() + File.separator
+                                 + confLoader.getDatabaseUpdateFolder() + File.separator
+                                 + updFolder;
+                                 System.out.println("Importing Character updates from: " + updatePath);
+                                 dbRet &= cmdManager.loadDBUpdate(confLoader, confLoader.getCharDBName(), updatePath, null);
+                                 }
+                                 }
+                                 if (dbRet) {
+                                 System.out.println("Done");
+                                 } else {
+                                 System.out.println("ERROR: check console log.");
+                                 }*/
                             }
 
                             System.out.print("\nDo you want to wipe (if already installed) and install World database? [y/n, default:n] ");
                             input = System.console().readLine();
                             if ("y".equalsIgnoreCase(input)) {
-                                // Installing Realm database
-                                String setupPath = databaseFolder + File.separator
-                                        + confLoader.getWorldFolder() + File.separator
-                                        + confLoader.getDatabaseSetupFolder() + File.separator
-                                        + confLoader.getWorldLoadDBName();
-                                System.out.println("Creating World database from: " + setupPath);
-                                boolean dbRet = cmdManager.loadDB(confLoader, confLoader.getWorldDBName(), setupPath, null);
-                                if (dbRet) {
-                                    System.out.println("Done");
-                                } else {
-                                    System.out.println("ERROR: check console log.");
-                                }
-                                String updatePath = databaseFolder + File.separator
-                                        + confLoader.getWorldFolder() + File.separator
-                                        + confLoader.getDatabaseSetupFolder() + File.separator
-                                        + confLoader.getWorldFullDB();
-                                System.out.println("Importing World data from: " + updatePath);
-                                dbRet = cmdManager.loadDBUpdate(confLoader, confLoader.getWorldDBName(), updatePath, null);
-                                if (dbRet) {
-                                    System.out.println("Done");
-                                } else {
-                                    System.out.println("ERROR: check console log.");
-                                }
-                                ArrayList<String> mapKey = new ArrayList<>(confLoader.getWorldUpdRel().keySet());
-                                Collections.sort(mapKey);
-                                for (String updFolderKey : mapKey) {
-                                    String updFolder = confLoader.getWorldUpdRel().get(updFolderKey);
-                                    if (!updFolder.isEmpty()) {
-                                        updatePath = databaseFolder + File.separator
-                                                + confLoader.getWorldFolder() + File.separator
-                                                + confLoader.getDatabaseUpdateFolder() + File.separator
-                                                + updFolder;
-                                        System.out.println("Importing World updates from: " + updatePath);
-                                        dbRet &= cmdManager.loadDBUpdate(confLoader, confLoader.getWorldDBName(), updatePath, null);
-                                    }
-                                }
-                                if (dbRet) {
-                                    System.out.println("Done");
-                                } else {
-                                    System.out.println("ERROR: check console log.");
-                                }
+                                // Installing World database
+                                mysqlLoadDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
+                                        databaseFolder, confLoader.getWorldFolder(), confLoader.getWorldLoadDBName(), confLoader.getWorldDBName(),
+                                        confLoader.getDatabaseSetupFolder(), cmdManager, null, null);
+                                /*String setupPath = databaseFolder + File.separator
+                                 + confLoader.getWorldFolder() + File.separator
+                                 + confLoader.getDatabaseSetupFolder() + File.separator
+                                 + confLoader.getWorldLoadDBName();
+                                 System.out.println("Creating World database from: " + setupPath);
+                                 boolean dbRet = cmdManager.loadDB(confLoader, confLoader.getWorldDBName(), setupPath, null);
+                                 if (dbRet) {
+                                 System.out.println("Done");
+                                 } else {
+                                 System.out.println("ERROR: check console log.");
+                                 }*/
+                                ArrayList<String> loadFolder = new ArrayList<>();
+                                loadFolder.add(confLoader.getWorldFullDB());
+                                mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
+                                        databaseFolder, confLoader.getWorldFolder(), loadFolder, null, confLoader.getWorldLoadDBName(),
+                                        confLoader.getDatabaseSetupFolder(), cmdManager, null, null);
+                                /*String updatePath = databaseFolder + File.separator
+                                 + confLoader.getWorldFolder() + File.separator
+                                 + confLoader.getDatabaseSetupFolder() + File.separator
+                                 + confLoader.getWorldFullDB();
+                                 System.out.println("Importing World data from: " + updatePath);
+                                 dbRet = cmdManager.loadDBUpdate(confLoader, confLoader.getWorldDBName(), updatePath, null);
+                                 if (dbRet) {
+                                 System.out.println("Done");
+                                 } else {
+                                 System.out.println("ERROR: check console log.");
+                                 }*/
+                                ArrayList<String> updFolders = new ArrayList<>(confLoader.getWorldUpdRel().keySet());
+                                Collections.sort(updFolders);
+                                mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
+                                        databaseFolder, confLoader.getWorldFolder(), updFolders, null, confLoader.getWorldLoadDBName(),
+                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
+                                /*for (String updFolderKey : mapKey) {
+                                 String updFolder = confLoader.getWorldUpdRel().get(updFolderKey);
+                                 if (!updFolder.isEmpty()) {
+                                 updatePath = databaseFolder + File.separator
+                                 + confLoader.getWorldFolder() + File.separator
+                                 + confLoader.getDatabaseUpdateFolder() + File.separator
+                                 + updFolder;
+                                 System.out.println("Importing World updates from: " + updatePath);
+                                 dbRet &= cmdManager.loadDBUpdate(confLoader, confLoader.getWorldDBName(), updatePath, null);
+                                 }
+                                 }
+                                 if (dbRet) {
+                                 System.out.println("Done");
+                                 } else {
+                                 System.out.println("ERROR: check console log.");
+                                 }*/
                             }
                         } else if (optGitDBUpdate) {
                             System.out.print("\nDo you want to update Realm database? [y/n, default:n] ");
                             input = System.console().readLine();
                             if ("y".equalsIgnoreCase(input)) {
-                                boolean dbRet = true;
-                                ArrayList<String> mapKey = new ArrayList<>(confLoader.getRealmUpdRel().keySet());
-                                Collections.sort(mapKey);
-                                for (String updFolderKey : mapKey) {
-                                    String updFolder = confLoader.getRealmUpdRel().get(updFolderKey);
-                                    if (!updFolder.isEmpty()) {
-                                        String updatePath = databaseFolder + File.separator
-                                                + confLoader.getRealmFolder() + File.separator
-                                                + confLoader.getDatabaseUpdateFolder() + File.separator
-                                                + updFolder;
-                                        System.out.println("Importing Realm updates from: " + updatePath);
-                                        dbRet &= cmdManager.loadDBUpdate(confLoader, confLoader.getRealmDBName(), updatePath, null);
-                                    }
-                                }
-                                if (dbRet) {
-                                    System.out.println("Done");
-                                } else {
-                                    System.out.println("ERROR: check console log.");
-                                }
+                                ArrayList<String> updFolders = new ArrayList<>(confLoader.getRealmUpdRel().values());
+                                Collections.sort(updFolders);
+                                mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
+                                        databaseFolder, confLoader.getRealmFolder(), updFolders, null, confLoader.getRealmLoadDBName(),
+                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
+                                /*boolean dbRet = true;
+                                 ArrayList<String> mapKey = new ArrayList<>(confLoader.getRealmUpdRel().keySet());
+                                 Collections.sort(mapKey);
+                                 for (String updFolderKey : mapKey) {
+                                 String updFolder = confLoader.getRealmUpdRel().get(updFolderKey);
+                                 if (!updFolder.isEmpty()) {
+                                 String updatePath = databaseFolder + File.separator
+                                 + confLoader.getRealmFolder() + File.separator
+                                 + confLoader.getDatabaseUpdateFolder() + File.separator
+                                 + updFolder;
+                                 System.out.println("Importing Realm updates from: " + updatePath);
+                                 dbRet &= cmdManager.loadDBUpdate(confLoader, confLoader.getRealmDBName(), updatePath, null);
+                                 }
+                                 }
+                                 if (dbRet) {
+                                 System.out.println("Done");
+                                 } else {
+                                 System.out.println("ERROR: check console log.");
+                                 }*/
                             }
 
                             System.out.print("\nDo you want update Character database? [y/n, default:n] ");
                             input = System.console().readLine();
                             if ("y".equalsIgnoreCase(input)) {
-                                boolean dbRet = true;
-                                ArrayList<String> mapKey = new ArrayList<>(confLoader.getCharUpdRel().keySet());
-                                Collections.sort(mapKey);
-                                for (String updFolderKey : mapKey) {
-                                    String updFolder = confLoader.getCharUpdRel().get(updFolderKey);
-                                    if (!updFolder.isEmpty()) {
-                                        String updatePath = databaseFolder + File.separator
-                                                + confLoader.getCharFolder() + File.separator
-                                                + confLoader.getDatabaseUpdateFolder() + File.separator
-                                                + updFolder;
-                                        System.out.println("Importing Character updates from: " + updatePath);
-                                        dbRet &= cmdManager.loadDBUpdate(confLoader, confLoader.getCharDBName(), updatePath, null);
-                                    }
-                                }
-                                if (dbRet) {
-                                    System.out.println("Done");
-                                } else {
-                                    System.out.println("ERROR: check console log.");
-                                }
+                                ArrayList<String> updFolders = new ArrayList<>(confLoader.getCharUpdRel().values());
+                                Collections.sort(updFolders);
+                                mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
+                                        databaseFolder, confLoader.getCharFolder(), updFolders, null, confLoader.getCharLoadDBName(),
+                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
+                                /*boolean dbRet = true;
+                                 ArrayList<String> mapKey = new ArrayList<>(confLoader.getCharUpdRel().keySet());
+                                 Collections.sort(mapKey);
+                                 for (String updFolderKey : mapKey) {
+                                 String updFolder = confLoader.getCharUpdRel().get(updFolderKey);
+                                 if (!updFolder.isEmpty()) {
+                                 String updatePath = databaseFolder + File.separator
+                                 + confLoader.getCharFolder() + File.separator
+                                 + confLoader.getDatabaseUpdateFolder() + File.separator
+                                 + updFolder;
+                                 System.out.println("Importing Character updates from: " + updatePath);
+                                 dbRet &= cmdManager.loadDBUpdate(confLoader, confLoader.getCharDBName(), updatePath, null);
+                                 }
+                                 }
+                                 if (dbRet) {
+                                 System.out.println("Done");
+                                 } else {
+                                 System.out.println("ERROR: check console log.");
+                                 }*/
                             }
 
                             System.out.print("\nDo you want to update World database? [y/n, default:n] ");
                             input = System.console().readLine();
                             if ("y".equalsIgnoreCase(input)) {
-                                boolean dbRet = true;
-                                ArrayList<String> mapKey = new ArrayList<>(confLoader.getWorldUpdRel().keySet());
-                                Collections.sort(mapKey);
-                                for (String updFolderKey : mapKey) {
-                                    String updFolder = confLoader.getWorldUpdRel().get(updFolderKey);
-                                    if (!updFolder.isEmpty()) {
-                                        String updatePath = databaseFolder + File.separator
-                                                + confLoader.getWorldFolder() + File.separator
-                                                + confLoader.getDatabaseUpdateFolder() + File.separator
-                                                + updFolder;
-                                        System.out.println("Importing World updates from: " + updatePath);
-                                        dbRet &= cmdManager.loadDBUpdate(confLoader, confLoader.getWorldDBName(), updatePath, null);
-                                    }
-                                }
-                                if (dbRet) {
-                                    System.out.println("Done");
-                                } else {
-                                    System.out.println("ERROR: check console log.");
-                                }
+                                ArrayList<String> updFolders = new ArrayList<>(confLoader.getWorldUpdRel().keySet());
+                                Collections.sort(updFolders);
+                                mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
+                                        databaseFolder, confLoader.getWorldFolder(), updFolders, null, confLoader.getWorldLoadDBName(),
+                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
+                                /*boolean dbRet = true;
+                                 ArrayList<String> mapKey = new ArrayList<>(confLoader.getWorldUpdRel().keySet());
+                                 Collections.sort(mapKey);
+                                 for (String updFolderKey : mapKey) {
+                                 String updFolder = confLoader.getWorldUpdRel().get(updFolderKey);
+                                 if (!updFolder.isEmpty()) {
+                                 String updatePath = databaseFolder + File.separator
+                                 + confLoader.getWorldFolder() + File.separator
+                                 + confLoader.getDatabaseUpdateFolder() + File.separator
+                                 + updFolder;
+                                 System.out.println("Importing World updates from: " + updatePath);
+                                 dbRet &= cmdManager.loadDBUpdate(confLoader, confLoader.getWorldDBName(), updatePath, null);
+                                 }
+                                 }
+                                 if (dbRet) {
+                                 System.out.println("Done");
+                                 } else {
+                                 System.out.println("ERROR: check console log.");
+                                 }*/
                             }
                         }
                     } else {
@@ -741,7 +773,7 @@ public class MaNGOSUI {
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
                             System.out.println("Configuring CMake option for compile.");
-                            serverFolder = confLoader.getGitFolderServer().isEmpty() ? "server" : confLoader.getGitFolderServer();
+                            serverFolder = setGitFolder(confLoader.getGitFolderServer(), confLoader.getGitURLServer());
                             cmdManager.cmakeConfig(serverFolder, confLoader.getCMakeBuildFolder(), confLoader.getCmakeOptions(), null);
                         }
                         System.out.print("\nDo you want to compile and install built source (into folder '" + confLoader.getCMakeRunFolder().replace("\"", "") + "')? [y/n, default:n] ");
@@ -770,7 +802,6 @@ public class MaNGOSUI {
                                 System.out.println("WARNING: mysql.exe command not found on system. Check mysql installation or path '" + mysqlToolPath + "' to mysql.exe into database folder.");
                             } else {
                                 mysqlOk = true;
-                                mySQLPath = mysqlToolPath;
                                 System.out.println("INFO: Founded MySQL commands.");
                             }
                         } else {
@@ -822,12 +853,15 @@ public class MaNGOSUI {
                         // Installing LUA Script database
                         String setupPath = elunaFolder + File.separator + "sql";
                         System.out.println("Update database for LUA Script from: " + setupPath);
-                        boolean dbRet = cmdManager.loadDBUpdate(confLoader, confLoader.getWorldDBName(), setupPath, null);
-                        if (dbRet) {
-                            System.out.println("Done");
-                        } else {
-                            System.out.println("ERROR: check console log.");
-                        }
+                        mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
+                                databaseFolder, confLoader.getWorldFolder(), null, setupPath, confLoader.getWorldLoadDBName(),
+                                confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
+                        /*boolean dbRet = cmdManager.loadDBUpdate(confLoader, confLoader.getWorldDBName(), setupPath, null);
+                         if (dbRet) {
+                         System.out.println("Done");
+                         } else {
+                         System.out.println("ERROR: check console log.");
+                         }*/
 // Installing LUA scripts
                         String luaSrc = (confLoader.getGitFolderEluna().isEmpty() ? elunaFolder : confLoader.getGitFolderEluna().replace("\"", ""))
                                 + File.separator + "lua_scripts";

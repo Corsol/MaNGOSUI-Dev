@@ -17,45 +17,45 @@ import javax.swing.text.StyledDocument;
  * @author Simone
  */
 public class ConsoleManager {
-    
+
     private static ConsoleManager instance = null;
-    
-    /**
-     *
-     */
-    public int TEXT_NO_COLOR = 0;
 
     /**
      *
      */
-    public int TEXT_RED = 1;
+    public static int TEXT_NO_COLOR = 0;
 
     /**
      *
      */
-    public int TEXT_GREEN = 2;
+    public static int TEXT_RED = 1;
 
     /**
      *
      */
-    public int TEXT_ORANGE = 3;
+    public static int TEXT_GREEN = 2;
 
     /**
      *
      */
-    public int TEXT_BLACK = 4;
+    public static int TEXT_ORANGE = 3;
 
     /**
      *
      */
-    public int TEXT_BLUE = 5;
-    
+    public static int TEXT_BLACK = 4;
+
+    /**
+     *
+     */
+    public static int TEXT_BLUE = 5;
+
     /**
      *
      */
     public ConsoleManager() {
     }
-    
+
     /**
      *
      * @return
@@ -66,7 +66,7 @@ public class ConsoleManager {
         }
         return instance;
     }
-    
+
     /**
      *
      * @param console
@@ -75,7 +75,7 @@ public class ConsoleManager {
     public void updateGUIConsole(Object console, String text) {
         updateGUIConsole(console, text, TEXT_NO_COLOR);
     }
-    
+
     /**
      *
      * @param console
@@ -112,7 +112,7 @@ public class ConsoleManager {
                     //StyleConstants.setForeground(style, Color.GRAY);
                     break;
             }
-            
+
             try {
                 doc.insertString(doc.getLength(), "\n" + text, style);
             } catch (BadLocationException e) {
