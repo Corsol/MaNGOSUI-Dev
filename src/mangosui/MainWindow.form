@@ -957,7 +957,7 @@
                               <Group type="102" alignment="0" attributes="0">
                                   <Component id="txtWorldLoadDB" min="-2" pref="160" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
-                                  <Component id="btnWorldSetup" min="-2" max="-2" attributes="0"/>
+                                  <Component id="btnDBWorldSetup" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                               </Group>
                               <Group type="102" alignment="0" attributes="0">
@@ -1027,7 +1027,7 @@
                           <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="txtWorldLoadDB" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="btnWorldSetup" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="btnDBWorldSetup" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace type="unrelated" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
@@ -1113,7 +1113,7 @@
                 <Component class="javax.swing.JRadioButton" name="rdbDBWorldWipe">
                   <Properties>
                     <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
-                      <ComponentRef name="btnGrpGitServer"/>
+                      <ComponentRef name="btnGrpDBWorld"/>
                     </Property>
                     <Property name="text" type="java.lang.String" value="(Wipe and) Install"/>
                     <Property name="actionCommand" type="java.lang.String" value="W"/>
@@ -1123,17 +1123,22 @@
                 <Component class="javax.swing.JRadioButton" name="rdbDBWorldUpdate">
                   <Properties>
                     <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
-                      <ComponentRef name="btnGrpGitServer"/>
+                      <ComponentRef name="btnGrpDBWorld"/>
                     </Property>
                     <Property name="text" type="java.lang.String" value="Update"/>
                     <Property name="actionCommand" type="java.lang.String" value="U"/>
                     <Property name="enabled" type="boolean" value="false"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JButton" name="btnWorldSetup">
+                <Component class="javax.swing.JButton" name="btnDBWorldSetup">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Setup"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="btnDBWorldSetupMouseClicked"/>
+                    <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="btnDBWorldSetupPropertyChange"/>
+                    <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="btnDBWorldSetupKeyPressed"/>
+                  </Events>
                 </Component>
               </SubComponents>
             </Container>
@@ -1161,7 +1166,7 @@
                               <Group type="102" alignment="0" attributes="0">
                                   <Component id="txtCharLoadDB" min="-2" pref="160" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
-                                  <Component id="btnDBCharacter" min="-2" max="-2" attributes="0"/>
+                                  <Component id="btnDBCharSetup" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                               </Group>
                               <Group type="102" alignment="0" attributes="0">
@@ -1226,7 +1231,7 @@
                           <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="txtCharLoadDB" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="btnDBCharacter" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="btnDBCharSetup" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace type="unrelated" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
@@ -1320,7 +1325,7 @@
                     <Property name="enabled" type="boolean" value="false"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JButton" name="btnDBCharacter">
+                <Component class="javax.swing.JButton" name="btnDBCharSetup">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Setup"/>
                   </Properties>
@@ -1351,7 +1356,7 @@
                               <Group type="102" alignment="0" attributes="0">
                                   <Component id="txtRealmLoadDB" min="-2" pref="160" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
-                                  <Component id="btnDBRealm" min="-2" max="-2" attributes="0"/>
+                                  <Component id="btnDBRealmSetup" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                               </Group>
                               <Group type="102" alignment="0" attributes="0">
@@ -1416,7 +1421,7 @@
                           <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="txtRealmLoadDB" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="btnDBRealm" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="btnDBRealmSetup" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace type="unrelated" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
@@ -1510,7 +1515,7 @@
                     <Property name="enabled" type="boolean" value="false"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JButton" name="btnDBRealm">
+                <Component class="javax.swing.JButton" name="btnDBRealmSetup">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Setup"/>
                   </Properties>

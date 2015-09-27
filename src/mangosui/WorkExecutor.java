@@ -182,7 +182,7 @@ public class WorkExecutor extends javax.swing.JFrame {
                 }
                 outMsg = "Importing Realm updates from: " + updatePath;
                 sendOutput(outMsg, console, txpConsole, ConsoleManager.TEXT_BLUE);
-                dbRet &= cmdManager.loadDBUpdate(dbServer, dbPort, dbAdmin, dbAdminPwd, dbName, updatePath, null);
+                dbRet &= cmdManager.loadDBUpdate(dbServer, dbPort, dbAdmin, dbAdminPwd, dbName, updatePath, txpConsole);
             }
         }
         if (dbRet) {

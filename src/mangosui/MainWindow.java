@@ -7,15 +7,18 @@ package mangosui;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import javax.swing.DefaultListModel;
+import javax.swing.JButton;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.ListModel;
+import javax.swing.plaf.basic.BasicButtonListener;
 import javax.swing.text.DefaultCaret;
+import static mangosui.WorkExecutor.mysqlUpdateDB;
 
 /**
  *
@@ -144,7 +147,7 @@ public class MainWindow extends WorkExecutor {
     }
 
     private void checkGitConf(String serverFolder, String databaseFolder, String elunaFolder) {
-        serverFolder = setGitFolder(txtFolderServer.getText(), txtGitServer.getText());
+        this.serverFolder = setGitFolder(txtFolderServer.getText(), txtGitServer.getText());
 
         rdbGitServerWipe.setEnabled(false);
         rdbGitServerUpdate.setEnabled(false);
@@ -160,7 +163,7 @@ public class MainWindow extends WorkExecutor {
             rdbGitServerNew.setEnabled(true);
         }
 
-        databaseFolder = setGitFolder(txtFolderDatabase.getText(), txtGitDatabase.getText());
+        this.databaseFolder = setGitFolder(txtFolderDatabase.getText(), txtGitDatabase.getText());
 
         rdbGitDatabaseWipe.setEnabled(false);
         rdbGitDatabaseUpdate.setEnabled(false);
@@ -176,7 +179,7 @@ public class MainWindow extends WorkExecutor {
             rdbGitDatabaseNew.setEnabled(true);
         }
 
-        elunaFolder = setGitFolder(txtFolderLUA.getText(), txtGitLUA.getText());
+        this.elunaFolder = setGitFolder(txtFolderLUA.getText(), txtGitLUA.getText());
 
         rdbGitLUAWipe.setEnabled(false);
         rdbGitLUAUpdate.setEnabled(false);
@@ -294,32 +297,60 @@ public class MainWindow extends WorkExecutor {
         lstRealmUpdFolders.setListData(updFolders.toArray(new String[updFolders.size()]));
     }
 
-    private void addUpdFolder(JList jList) {
+    private ArrayList<String> getListItems(JList jList) {
         ListModel listModel = jList.getModel();
+        ArrayList<String> listItems = new ArrayList<String>();
+        for (int i = 0; i < listModel.getSize(); i++) {
+            listItems.add((String) listModel.getElementAt(i));
+        }
+        Collections.sort(listItems);
+        return listItems;
+    }
+
+    private void addUpdFolder(JList<String> jList) {
         String newUpdFolder = JOptionPane.showInputDialog(null, "Insert new update folder that can be found inside 'Updates' folder:");
         if (!newUpdFolder.isEmpty()) {
-            ArrayList<String> currFolders = new ArrayList<String>();
-            for (int i = 0; i < listModel.getSize(); i++) {
-                currFolders.add((String) listModel.getElementAt(i));
-            }
+            ArrayList<String> currFolders = getListItems(jList);
             currFolders.add(newUpdFolder);
             Collections.sort(currFolders);
             jList.setListData(currFolders.toArray(new String[currFolders.size()]));
         }
     }
 
-    private void remUpdFolder(JList jList) {
-        ListModel listModel = (ListModel) jList.getModel();
+    private void remUpdFolder(JList<String> jList) {
         if (jList.getSelectedIndex() >= 0) {
-            ArrayList<String> currFolders = new ArrayList<String>();
-            for (int i = 0; i < listModel.getSize(); i++) {
-                if (i != jList.getSelectedIndex()) {
-                    currFolders.add((String) listModel.getElementAt(i));
-                }
-            }
+            ArrayList<String> currFolders = getListItems(jList);
+            currFolders.remove(jList.getSelectedIndex());
             Collections.sort(currFolders);
             jList.setListData(currFolders.toArray(new String[currFolders.size()]));
         }
+    }
+
+    private JButton jButtonWorker(final JButton nextButton, final String dbFolder, final ArrayList<String> updSubFolders, final String midUpdFolder, final String dbName) {
+        final JButton btnWorker = new JButton("DB Worker");
+        PropertyChangeListener propChangeCreation = new PropertyChangeListener() {
+
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+
+                if (evt.getPropertyName().equalsIgnoreCase("Text")) {
+                    //if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
+                        cmdManager.setBtnInvoker(nextButton);
+
+                        mysqlUpdateDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
+                                databaseFolder, dbFolder, updSubFolders, null, dbName, midUpdFolder,
+                                cmdManager, console, txpGitConsole);
+
+                        //console.updateGUIConsole(txpGitConsole, "Done", ConsoleManager.TEXT_BLUE);
+                    //} else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
+                        //console.updateGUIConsole(txpGitConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
+                    //}
+                }
+                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+        };
+        btnWorker.addPropertyChangeListener(propChangeCreation);
+        return btnWorker;
     }
 
     /**
@@ -412,7 +443,7 @@ public class MainWindow extends WorkExecutor {
         btnWorldDelUpdFolder = new javax.swing.JButton();
         rdbDBWorldWipe = new javax.swing.JRadioButton();
         rdbDBWorldUpdate = new javax.swing.JRadioButton();
-        btnWorldSetup = new javax.swing.JButton();
+        btnDBWorldSetup = new javax.swing.JButton();
         pnlDBCharacter = new javax.swing.JPanel();
         jLabel24 = new javax.swing.JLabel();
         txtCharDBName = new javax.swing.JTextField();
@@ -427,7 +458,7 @@ public class MainWindow extends WorkExecutor {
         btnCharDelUpdFolder = new javax.swing.JButton();
         rdbDBCharWipe = new javax.swing.JRadioButton();
         rdbDBCharUpdate = new javax.swing.JRadioButton();
-        btnDBCharacter = new javax.swing.JButton();
+        btnDBCharSetup = new javax.swing.JButton();
         pnlDBRealm = new javax.swing.JPanel();
         jLabel26 = new javax.swing.JLabel();
         txtRealmDBName = new javax.swing.JTextField();
@@ -442,7 +473,7 @@ public class MainWindow extends WorkExecutor {
         btnRealmDelUpdFolder = new javax.swing.JButton();
         rdbDBRealmWipe = new javax.swing.JRadioButton();
         rdbDBRealmUpdate = new javax.swing.JRadioButton();
-        btnDBRealm = new javax.swing.JButton();
+        btnDBRealmSetup = new javax.swing.JButton();
         pnlDBFirstInstall = new javax.swing.JPanel();
         btnDBFirstInstall = new javax.swing.JButton();
         pnlCompile = new javax.swing.JPanel();
@@ -1026,17 +1057,32 @@ public class MainWindow extends WorkExecutor {
             }
         });
 
-        btnGrpGitServer.add(rdbDBWorldWipe);
+        btnGrpDBWorld.add(rdbDBWorldWipe);
         rdbDBWorldWipe.setText("(Wipe and) Install");
         rdbDBWorldWipe.setActionCommand("W");
         rdbDBWorldWipe.setEnabled(false);
 
-        btnGrpGitServer.add(rdbDBWorldUpdate);
+        btnGrpDBWorld.add(rdbDBWorldUpdate);
         rdbDBWorldUpdate.setText("Update");
         rdbDBWorldUpdate.setActionCommand("U");
         rdbDBWorldUpdate.setEnabled(false);
 
-        btnWorldSetup.setText("Setup");
+        btnDBWorldSetup.setText("Setup");
+        btnDBWorldSetup.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnDBWorldSetupMouseClicked(evt);
+            }
+        });
+        btnDBWorldSetup.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                btnDBWorldSetupPropertyChange(evt);
+            }
+        });
+        btnDBWorldSetup.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                btnDBWorldSetupKeyPressed(evt);
+            }
+        });
 
         javax.swing.GroupLayout pnlDBWorldLayout = new javax.swing.GroupLayout(pnlDBWorld);
         pnlDBWorld.setLayout(pnlDBWorldLayout);
@@ -1053,7 +1099,7 @@ public class MainWindow extends WorkExecutor {
                     .addGroup(pnlDBWorldLayout.createSequentialGroup()
                         .addComponent(txtWorldLoadDB, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnWorldSetup)
+                        .addComponent(btnDBWorldSetup)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(pnlDBWorldLayout.createSequentialGroup()
                         .addGroup(pnlDBWorldLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -1107,7 +1153,7 @@ public class MainWindow extends WorkExecutor {
                 .addGap(8, 8, 8)
                 .addGroup(pnlDBWorldLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtWorldLoadDB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnWorldSetup))
+                    .addComponent(btnDBWorldSetup))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(pnlDBWorldLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(rdbDBWorldWipe)
@@ -1162,7 +1208,7 @@ public class MainWindow extends WorkExecutor {
         rdbDBCharUpdate.setActionCommand("U");
         rdbDBCharUpdate.setEnabled(false);
 
-        btnDBCharacter.setText("Setup");
+        btnDBCharSetup.setText("Setup");
 
         javax.swing.GroupLayout pnlDBCharacterLayout = new javax.swing.GroupLayout(pnlDBCharacter);
         pnlDBCharacter.setLayout(pnlDBCharacterLayout);
@@ -1179,7 +1225,7 @@ public class MainWindow extends WorkExecutor {
                     .addGroup(pnlDBCharacterLayout.createSequentialGroup()
                         .addComponent(txtCharLoadDB, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnDBCharacter)
+                        .addComponent(btnDBCharSetup)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(pnlDBCharacterLayout.createSequentialGroup()
                         .addGroup(pnlDBCharacterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -1228,7 +1274,7 @@ public class MainWindow extends WorkExecutor {
                 .addGap(8, 8, 8)
                 .addGroup(pnlDBCharacterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtCharLoadDB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnDBCharacter))
+                    .addComponent(btnDBCharSetup))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(pnlDBCharacterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(rdbDBCharWipe)
@@ -1283,7 +1329,7 @@ public class MainWindow extends WorkExecutor {
         rdbDBRealmUpdate.setActionCommand("U");
         rdbDBRealmUpdate.setEnabled(false);
 
-        btnDBRealm.setText("Setup");
+        btnDBRealmSetup.setText("Setup");
 
         javax.swing.GroupLayout pnlDBRealmLayout = new javax.swing.GroupLayout(pnlDBRealm);
         pnlDBRealm.setLayout(pnlDBRealmLayout);
@@ -1300,7 +1346,7 @@ public class MainWindow extends WorkExecutor {
                     .addGroup(pnlDBRealmLayout.createSequentialGroup()
                         .addComponent(txtRealmLoadDB, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnDBRealm)
+                        .addComponent(btnDBRealmSetup)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(pnlDBRealmLayout.createSequentialGroup()
                         .addGroup(pnlDBRealmLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -1349,7 +1395,7 @@ public class MainWindow extends WorkExecutor {
                 .addGap(8, 8, 8)
                 .addGroup(pnlDBRealmLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtRealmLoadDB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnDBRealm))
+                    .addComponent(btnDBRealmSetup))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(pnlDBRealmLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(rdbDBRealmWipe)
@@ -1697,6 +1743,87 @@ public class MainWindow extends WorkExecutor {
         remUpdFolder(lstRealmUpdFolders);
     }//GEN-LAST:event_btnRealmDelUpdFolderMouseClicked
 
+    private void btnDBWorldSetupKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnDBWorldSetupKeyPressed
+        btnDBWorldSetupMouseClicked(null);
+    }//GEN-LAST:event_btnDBWorldSetupKeyPressed
+
+    private void btnDBWorldSetupMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnDBWorldSetupMouseClicked
+        if (btnGrpDBWorld.getSelection() != null) {
+            disableComponentCascade(pnlDBWorld);
+            disableComponentCascade(pnlDBCharacter);
+            disableComponentCascade(pnlDBRealm);
+            /*final JButton btnCreate = new JButton("DB Creation");
+             final JButton btnLoad = new JButton("DB Load");
+             final JButton btnUpdate = new JButton("DB Update");
+             PropertyChangeListener propChangeCreation = new PropertyChangeListener() {
+
+             @Override
+             public void propertyChange(PropertyChangeEvent evt) {
+
+             if (evt.getPropertyName().equalsIgnoreCase("Text")) {
+             if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
+             cmdManager.setBtnInvoker(btnLoad);
+             //console.updateGUIConsole(txpGitConsole, "Done", ConsoleManager.TEXT_BLUE);
+             } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
+             //console.updateGUIConsole(txpGitConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
+             }
+             }
+             //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+             }
+             };
+             PropertyChangeListener propChangeLoad = new PropertyChangeListener() {
+
+             @Override
+             public void propertyChange(PropertyChangeEvent evt) {
+             cmdManager.setBtnInvoker(btnUpdate);
+             //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+             }
+             };
+             PropertyChangeListener proChangeUpdate = new PropertyChangeListener() {
+
+             @Override
+             public void propertyChange(PropertyChangeEvent evt) {
+             cmdManager.setBtnInvoker(btnDBWorldSetup);
+             //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+             }
+             };
+             btnCreate.addPropertyChangeListener(propChangeCreation);
+             btnLoad.addPropertyChangeListener(propChangeLoad);
+             btnUpdate.addPropertyChangeListener(proChangeUpdate);*/
+
+            if ("W".equalsIgnoreCase(btnGrpDBWorld.getSelection().getActionCommand())) {
+                ArrayList<String> updFolders = new ArrayList<>();
+                updFolders.add(txtWorldFullDB.getText());
+                JButton btnLoad = jButtonWorker(btnDBWorldSetup, txtWorldFolder.getText(), getListItems(lstWorldUpdFolders), confLoader.getDatabaseUpdateFolder(), txtWorldDBName.getText());
+                JButton btnCreate = jButtonWorker(btnLoad, txtWorldFolder.getText(), updFolders, txtWorldFullDB.getText(), txtWorldDBName.getText());
+                cmdManager.setBtnInvoker(btnCreate);
+                mysqlLoadDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
+                        databaseFolder, txtWorldFolder.getText(), txtWorldLoadDB.getText(), txtWorldDBName.getText(), confLoader.getDatabaseSetupFolder(),
+                        cmdManager, console, txpGitConsole);
+            } else if ("U".equalsIgnoreCase(btnGrpDBWorld.getSelection().getActionCommand())) {
+                ArrayList<String> updFolders = new ArrayList<>();
+                updFolders.add("Rel21");
+                JButton btnCreate = jButtonWorker(btnDBWorldSetup, txtWorldFolder.getText(), updFolders/*getListItems(lstWorldUpdFolders)*/, txtWorldFullDB.getText(), txtWorldDBName.getText());
+                cmdManager.setBtnInvoker(btnCreate);
+                ArrayList<String> updSubFolders = new ArrayList<>();
+                updSubFolders.add("Rel20");
+                mysqlUpdateDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
+                        databaseFolder, txtWorldFolder.getText(), updSubFolders/*getListItems(lstWorldUpdFolders)*/, null, txtWorldDBName.getText(),
+                        confLoader.getDatabaseUpdateFolder(), cmdManager, console, txpGitConsole);
+                //serverFolder = setGitFolder(txtFolderServer.getText(), txtGitServer.getText());
+                //gitDownload(btnGrpGitServer.getSelection().getActionCommand(), txtGitServer.getText(), serverFolder, txtBranchServer.getText(), txtProxyServer.getText(), txtProxyPort.getText(), cmdManager, console, txpGitConsole);
+            }
+        }
+    }//GEN-LAST:event_btnDBWorldSetupMouseClicked
+
+    private void btnDBWorldSetupPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnDBWorldSetupPropertyChange
+        if (evt.getPropertyName().equalsIgnoreCase("Text")) {
+            enableComponentCascade(pnlDBWorld);
+            enableComponentCascade(pnlDBCharacter);
+            enableComponentCascade(pnlDBRealm);
+        }
+    }//GEN-LAST:event_btnDBWorldSetupPropertyChange
+
     /**
      * @param args the command line arguments
      */
@@ -1740,10 +1867,11 @@ public class MainWindow extends WorkExecutor {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCharAddUpdFolder;
     private javax.swing.JButton btnCharDelUpdFolder;
-    private javax.swing.JButton btnDBCharacter;
+    private javax.swing.JButton btnDBCharSetup;
     private javax.swing.JButton btnDBCheck;
     private javax.swing.JButton btnDBFirstInstall;
-    private javax.swing.JButton btnDBRealm;
+    private javax.swing.JButton btnDBRealmSetup;
+    private javax.swing.JButton btnDBWorldSetup;
     private javax.swing.JButton btnDatabaseDownload;
     private javax.swing.ButtonGroup btnGrpDBCharacter;
     private javax.swing.ButtonGroup btnGrpDBRealm;
@@ -1757,7 +1885,6 @@ public class MainWindow extends WorkExecutor {
     private javax.swing.JButton btnServerDownload;
     private javax.swing.JButton btnWorldAddUpdFolder;
     private javax.swing.JButton btnWorldDelUpdFolder;
-    private javax.swing.JButton btnWorldSetup;
     private javax.swing.JCheckBox chkProxy;
     private javax.swing.JComboBox cmbCores;
     private javax.swing.JLabel jLabel1;

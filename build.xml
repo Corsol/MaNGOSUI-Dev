@@ -73,5 +73,7 @@
     <target name="-post-compile">
         <copy file="config.properties" todir="${dist.dir}"/>
         <copy file="mysql_portable.zip" todir="${dist.dir}"/>
+		<copy file="runMaNGOSUI.bat" todir="${dist.dir}"/>
+		<copy file="runMaNGOSUI.sh" todir="${dist.dir}"/>
     </target>
 </project>
