@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
+import javax.swing.JProgressBar;
 
 /**
  *
@@ -36,14 +37,14 @@ public class CommandsWindows extends Command {
      * @throws IOException
      * @throws InterruptedException
      */
-    public boolean executeCmd(String command, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer) throws IOException, InterruptedException, ExecutionException {
+    public boolean executeCmd(String command, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer, final JProgressBar prbCurrWork) throws IOException, InterruptedException, ExecutionException {
 //        command += " > NUL 2>&1";
-        if (super.getDebugLevel() > 0) {
+        if (super.getDebugLevel() > 1) {
             System.out.println("\nDEBUG - command:" + command + "\n");
             if (guiConsole != null) {
             }
         }
-        return execute(new String[]{"cmd.exe", "/c", command}, guiConsole, rawConsole, toBuffer);
+        return execute(new String[]{"cmd.exe", "/c", command}, guiConsole, rawConsole, toBuffer, prbCurrWork);
     }
 
     /**
@@ -56,12 +57,12 @@ public class CommandsWindows extends Command {
      * @throws IOException
      * @throws InterruptedException
      */
-    public boolean executeCmd(ArrayList<String> commands, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer) throws IOException, InterruptedException, ExecutionException {
+    public boolean executeCmd(ArrayList<String> commands, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer, final JProgressBar prbCurrWork) throws IOException, InterruptedException, ExecutionException {
         ArrayList<String> command = new ArrayList<String>();
         command.add("cmd.exe");
         command.add("/c");
         command.addAll(commands);
-        if (super.getDebugLevel() > 0) {
+        if (super.getDebugLevel() > 1) {
             System.out.print("\nDEBUG - command:");
             for (String cmd : commands) {
                 System.out.print("\n" + cmd);
@@ -70,7 +71,7 @@ public class CommandsWindows extends Command {
             if (guiConsole != null) {
             }
         }
-        return execute(command.toArray(new String[command.size()]), guiConsole, rawConsole, toBuffer);
+        return execute(command.toArray(new String[command.size()]), guiConsole, rawConsole, toBuffer, prbCurrWork);
     }
 
     /**
@@ -83,13 +84,13 @@ public class CommandsWindows extends Command {
      * @throws IOException
      * @throws InterruptedException
      */
-    public boolean executePS(String command, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer) throws IOException, InterruptedException, ExecutionException {
-        if (super.getDebugLevel() > 0) {
+    public boolean executePS(String command, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer, final JProgressBar prbCurrWork) throws IOException, InterruptedException, ExecutionException {
+        if (super.getDebugLevel() > 1) {
             System.out.println("\nDEBUG - command:" + command + "\n");
             if (guiConsole != null) {
             }
         }
-        return execute(new String[]{"powershell.exe", command}, guiConsole, rawConsole, toBuffer);
+        return execute(new String[]{"powershell.exe", command}, guiConsole, rawConsole, toBuffer, prbCurrWork);
     }
 
     /**
@@ -199,7 +200,7 @@ public class CommandsWindows extends Command {
                     String cmdRegVal = "reg query " + '"' + registry + "\" /v \"InstallLocation\"";
                     sb = new StringBuilder();
                     try {
-                        executeCmd(cmdRegVal, console, sb, true);
+                        executeCmd(cmdRegVal, console, sb, true, null);
                     } catch (IOException | InterruptedException ex) {
                     }
                     if (!sb.toString().isEmpty() && sb.indexOf("REG_SZ") > 0) {
@@ -250,7 +251,7 @@ public class CommandsWindows extends Command {
                     String cmdRegVal = "reg query " + '"' + registry + "\" /v \"InstallLocation\"";
                     sb = new StringBuilder();
                     try {
-                        executeCmd(cmdRegVal, console, sb, true);
+                        executeCmd(cmdRegVal, console, sb, true, null);
                     } catch (IOException | InterruptedException ex) {
                     }
                     if (!sb.toString().isEmpty() && sb.indexOf("REG_SZ") > 0) {
@@ -289,9 +290,9 @@ public class CommandsWindows extends Command {
     public boolean checkPSScript() {
         try {
             StringBuilder sb = new StringBuilder();
-            executePS("Get-ExecutionPolicy", null, sb, true);
+            executePS("Get-ExecutionPolicy", null, sb, true, null);
             return !(!sb.toString().contains("Unrestricted") && !sb.toString().contains("Bypass"));
-        } catch (InterruptedException |ExecutionException |IOException ex) {
+        } catch (InterruptedException | ExecutionException | IOException ex) {
             ex.printStackTrace();
             return false;
         }
@@ -332,7 +333,7 @@ public class CommandsWindows extends Command {
         }
         command += " " + serverFolder;
         //command.add(cmd);
-        return executeCmd(command, console, sb, false);
+        return executeCmd(command, console, sb, false, null);
     }
 
     /**
@@ -347,24 +348,24 @@ public class CommandsWindows extends Command {
     //@Override
     public boolean cmakeInstall(String buildFolder, String runFolder, Object console) throws IOException, InterruptedException, ExecutionException {
         StringBuilder sb = new StringBuilder();
-        runFolder= runFolder.replace("\"", "");
-        File file = new File(runFolder);
-        if (!file.exists()) {
-            file.mkdirs();
+        runFolder = runFolder.replace("\"", "");
+        File folder = new File(runFolder);
+        if (!folder.exists()) {
+            folder.mkdirs();
         }
         //ArrayList<String> command = new ArrayList<>();
 
         String command = "cd " + buildFolder + " & \"" + cmakePath + "cmake.exe\" --build .";
 
         //command.add(cmd);
-        boolean ret = executeCmd(command, console, sb, false);
-        String txtCopy = "Coping built file to install destination";
+        boolean ret = executeCmd(command, console, sb, false, null);
+        String txtCopy = "\nCoping built file to install destination (" + folder.getPath() + ")...";
         if (console != null) {
-            
+            //ConsoleManager.getInstance().updateGUIConsole(console, txtCopy, ConsoleManager.TEXT_BLUE);
         }
         System.out.println(txtCopy);
         if (ret) {
-            super.copyFolder(new File(buildFolder + File.separator + "bin" + File.separator + "Debug"), file);
+            super.copyFolder(new File(buildFolder + File.separator + "bin" + File.separator + "Debug"), folder, console);
         }
         return ret;
     }
@@ -372,11 +373,25 @@ public class CommandsWindows extends Command {
     //@Override
     boolean isRepoUpToDate(String pathToRepo) throws InterruptedException, IOException, ExecutionException {
         StringBuilder sb = new StringBuilder();
-        String command = "cd " + pathToRepo + "\n"
-                + "& \"" + gitPath + File.separator +"shell.ps1\"\n"
-                + "git status";
-        executePS(command, null, sb, true);
-        return sb.toString().contains("Your branch is up-to-date");
+        String command = "git status";
+        String pre = "cd " + pathToRepo;
+        /*= "cd " + pathToRepo + "\n"
+         + "& \"" + gitPath + File.separator + "shell.ps1\"\n"
+         + "git status";
+         executePS(command, null, sb, true, null);*/
+        String gitStatus;
+        //ArrayList<String> cmdCommand = new ArrayList<>();
+        if (gitPath.isEmpty()) {
+            command = pre + " & " + command;
+            /*cmdCommand.add(pre);
+            cmdCommand.add(command);*/
+            return executeCmd(command, null, sb, true, null);
+        } else {
+            String psCommand = pre + " & \"" + gitPath + File.separator + "shell.ps1\" \n " + command;
+            String cmdCommand = pre + " & \"" + gitPath + File.separator + "\"" + command;
+            gitStatus = executeCmd(cmdCommand, null, sb, true, null) ? sb.toString() : (executePS(psCommand, null, sb, true, null) ? sb.toString() : "");
+        }
+        return gitStatus.contains("Your branch is up-to-date");
     }
 
     //@Override
@@ -387,8 +402,16 @@ public class CommandsWindows extends Command {
         } else if (!toBuffer) {
             System.out.println(gitCommand);
         }
-        String command = "& \"" + gitPath + File.separator +"shell.ps1\" \n " + gitCommand;
-        return executePS(command, console, sb, toBuffer);
+        String command;
+        if (gitPath.isEmpty()) {
+            command = gitCommand;
+            return executeCmd(command, console, sb, toBuffer, null);
+        } else {
+            String psCommand = "& \"" + gitPath + File.separator + "shell.ps1\" \n " + gitCommand;
+            String cmdCommand = " \"" + gitPath + File.separator + "\"" + gitCommand;
+            return executeCmd(cmdCommand, console, sb, toBuffer, null) || executePS(psCommand, console, sb, toBuffer, null);
+        }
+
     }
 
     /**

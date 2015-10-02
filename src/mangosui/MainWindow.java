@@ -9,15 +9,21 @@ import java.awt.Component;
 import java.awt.Container;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.ListModel;
-import javax.swing.plaf.basic.BasicButtonListener;
+import javax.swing.SwingWorker;
 import javax.swing.text.DefaultCaret;
+import static mangosui.WorkExecutor.mysqlLoadDB;
 import static mangosui.WorkExecutor.mysqlUpdateDB;
 
 /**
@@ -36,23 +42,40 @@ public class MainWindow extends WorkExecutor {
     private String serverFolder = "";
     private String databaseFolder = "";
     private String elunaFolder = "";
+    private LinkedList<JButton> btnWorkList = new LinkedList<JButton>();
+    private JButton btnInvoker;
 
     /**
      * Creates new form MainWindow
      */
     public MainWindow() {
         cmdManager = new CommandManager();
-
+        if (confLoader.isConfLoaded()) {
+            cmdManager.setDebugLevel(confLoader.getDebugLevel());
+        }
         initComponents();
-        disableComponentCascade(pnlDatabase);
-
-        DefaultCaret caret = (DefaultCaret) txpGitConsole.getCaret();
+        DefaultCaret caret = (DefaultCaret) txpConsole.getCaret();
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+
+        //pnlSysDeps.setVisible(false);
+        disableComponentCascade(pnlDatabase);
+        disableComponentCascade(pnlSetupDeps);
+        disableComponentCascade(pnlDownloadDeps);
+        pnlSetupDeps.setVisible(false);
+        pnlDownloadDeps.setVisible(false);
+        if (cmdManager.getCURR_OS() == cmdManager.WINDOWS) {
+            pnlSetupDeps.setVisible(false);
+        } else {
+            pnlDownloadDeps.setVisible(false);
+        }
+
+        txtMapTools.setText(getRunFolder() + File.separator + "tools");
+        txtMapServer.setText(getRunFolder() + File.separator + "data");
     }
 
     private void doAllChecks() {
         if (!confLoader.isConfLoaded()) {
-            console.updateGUIConsole(txpGitConsole, "ERROR: Configuration file NOT loaded. Check it.", ConsoleManager.TEXT_RED);
+            console.updateGUIConsole(txpConsole, "ERROR: Configuration file NOT loaded. Check it.", ConsoleManager.TEXT_RED);
         } else {
             HashMap<String, String> mangosVers = confLoader.getMaNGOSVersions();
             ArrayList<String> keysMap = new ArrayList<String>(mangosVers.keySet());
@@ -64,10 +87,12 @@ public class MainWindow extends WorkExecutor {
         }
 
         if (cmdManager.getCURR_OS() > 0) {
-            console.updateGUIConsole(txpGitConsole, "INFO: Your OS is: " + cmdManager.getOsName() + " version " + cmdManager.getOsVersion() + " with java architecture: " + cmdManager.getOsArch(), ConsoleManager.TEXT_BLUE);
+            console.updateGUIConsole(txpConsole, "INFO: Your OS is: " + cmdManager.getOsName() + " version " + cmdManager.getOsVersion() + " with java architecture: " + cmdManager.getOsArch(), ConsoleManager.TEXT_BLUE);
 
-            gitOk = checkGit(confLoader.getWinGitPath(), cmdManager, console, txpGitConsole);
+            gitOk = checkGit(confLoader.getWinGitHubPath(), confLoader.getWinGitExtPath(), cmdManager, console, txpConsole);
             if (!gitOk) {
+                lblDownloadGit.setEnabled(true);
+                chkSetupGit.setEnabled(true);
                 disableComponentCascade(pnlDownload);
             } else {
                 enableComponentCascade(pnlDownload);
@@ -75,79 +100,42 @@ public class MainWindow extends WorkExecutor {
                 btnServerDownload.setEnabled(true);
                 btnLUADownload.setEnabled(true);
             }
-            checkGitConf(serverFolder, databaseFolder, elunaFolder);
-            /*if (cmdManager.getCURR_OS() == cmdManager.WINDOWS && !cmdManager.isPSScriptEnabled()) {
-             console.updateGUIConsole(txpGitConsole, "WARNING: PowerShell script execution is not ebabled. To enable it run PS (x86) as Administrator and use \"Set-ExecutionPolicy Unrestricted\" command.", console.TEXT_ORANGE);
-             }
-             cmdManager.setWinGitPath(confLoader.getWinPathGit());
+            checkGitConf();
 
-             if (!cmdManager.checkGit(null)) {
-             btnGitDownload.setEnabled(false);
-             console.updateGUIConsole(txpGitConsole, "ERROR: Git commands not found on system. Check Git installation or manually download repositories.", console.TEXT_RED);
-             } else {
-             console.updateGUIConsole(txpGitConsole, "INFO: Founded Git commands.", console.TEXT_BLUE);
-             }*/
-            mysqlOk = checkMySQL(databaseFolder, confLoader.getPathToMySQL(), cmdManager, console, txpGitConsole);
+            mysqlOk = checkMySQL(databaseFolder, confLoader.getPathToMySQL(), cmdManager, console, txpConsole);
             if (!mysqlOk) {
+                lblDownloadMySQL.setEnabled(true);
+                chkSetupMySQL.setEnabled(true);
                 disableComponentCascade(pnlDatabase);
             } else {
                 pnlDatabase.setEnabled(true);
                 enableComponentCascade(pnlDatabaseConfig);
-                if (!checkDBExistance(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
-                        confLoader.getDatabaseUser(), confLoader.getDatabaseUserPass(), confLoader.getWorldDBName(), confLoader.getCharDBName(), confLoader.getRealmDBName(),
-                        cmdManager, console, txpGitConsole)) {
-                    enableComponentCascade(pnlDBFirstInstall);
-                } else {
-                    enableComponentCascade(pnlDBWorld);
-                    enableComponentCascade(pnlDBCharacter);
-                    enableComponentCascade(pnlDBRealm);
-                }
+                checkMySQLConf(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
+                        confLoader.getDatabaseUser(), confLoader.getDatabaseUserPass(), confLoader.getWorldDBName(), confLoader.getCharDBName(), confLoader.getRealmDBName());
             }
-            /*if (!cmdManager.checkMySQL(null)) {
-             console.updateGUIConsole(txpGitConsole, "INFO: MySQL is not locally installed... checking for mysql.exe tool.", ConsoleManager.TEXT_BLUE);
 
-             String mysqlToolPath = "database" + File.separator + confLoader.getPathToMySQL();
-             if (!txtFolderDatabase.getText().isEmpty()) {
-             mysqlToolPath = txtFolderDatabase.getText() + File.separator + confLoader.getPathToMySQL();
-             }
-             if (!cmdManager.checkMySQL(mysqlToolPath, null)) {
-             //.setEnabled(false);
-             console.updateGUIConsole(txpGitConsole, "WARNING: mysql.exe command not found on system. Check mysql installation or path '" + mysqlToolPath + "' to mysql.exe into database folder.", ConsoleManager.TEXT_RED);
-             } else {
-             console.updateGUIConsole(txpGitConsole, "INFO: Founded MySQL commands.", console.TEXT_BLUE);
-             }
-             } else {
-             console.updateGUIConsole(txpGitConsole, "INFO: Founded MySQL commands.", console.TEXT_BLUE);
-             }*/
-
-            if (!cmdManager.checkCMAKE(null)) {
-                //.setEnabled(false);
-                console.updateGUIConsole(txpGitConsole, "INFO: CMAKE is not installed into PATH/shell environment... checking for cmake.exe installation folder.", ConsoleManager.TEXT_BLUE);
-                String cmake32Path = confLoader.getWin32PathCMake();
-                String cmake64Path = confLoader.getWin64PathCMake();
-                if (cmdManager.checkCMAKE(cmake32Path, null)) {
-                    // cmakeOk = true;
-                    System.out.println("INFO: Founded CMAKE commands on x86 system.");
-                } else if (cmdManager.checkCMAKE(cmake64Path, null)) {
-                    // cmakeOk = true;
-                    System.out.println("INFO: Founded CMAKE commands on x64 system.");
-                } else {
-                    console.updateGUIConsole(txpGitConsole, "ERROR: CMAKE commands not found on system. Check CMAKE installation!.", ConsoleManager.TEXT_RED);
+            cmakeOk = checkCMake(confLoader.getWin32PathCMake(), confLoader.getWin64PathCMake(), cmdManager, console, txpConsole);
+            if (!cmakeOk) {
+                lblDownnloadCMake.setEnabled(true);
+                chkSetupCMake.setEnabled(true);
+                if (!cmdManager.checkOpenSSLInclude("", null).isEmpty()) {
+                    lblDownloadOpenSSL.setEnabled(true);
+                    chkSetupOpenSSL.setEnabled(true);
                 }
-                console.updateGUIConsole(txpGitConsole, "ERROR: CMAKE commands not found on system. Check CMAKE installation!.", ConsoleManager.TEXT_RED);
+                disableComponentCascade(pnlBuildInstall);
             } else {
-                // cmakePath =
-                console.updateGUIConsole(txpGitConsole, "INFO: Founded CMAKE commands.", ConsoleManager.TEXT_BLUE);
+                enableComponentCascade(pnlBuildInstall);
+                checkCMakeConf(confLoader.getCMakeBuildFolder());
             }
 
         } else {
-            console.updateGUIConsole(txpGitConsole, "CRITICAL: Operatig system not supported.", ConsoleManager.TEXT_RED);
+            console.updateGUIConsole(txpConsole, "CRITICAL: Operatig system not supported.", ConsoleManager.TEXT_RED);
             disableComponentCascade(tabOperations);
         }
     }
 
-    private void checkGitConf(String serverFolder, String databaseFolder, String elunaFolder) {
-        this.serverFolder = setGitFolder(txtFolderServer.getText(), txtGitServer.getText());
+    private void checkGitConf(/*String serverFolder, String databaseFolder, String elunaFolder*/) {
+        serverFolder = setGitFolder(txtFolderServer.getText(), txtGitServer.getText());
 
         rdbGitServerWipe.setEnabled(false);
         rdbGitServerUpdate.setEnabled(false);
@@ -163,7 +151,7 @@ public class MainWindow extends WorkExecutor {
             rdbGitServerNew.setEnabled(true);
         }
 
-        this.databaseFolder = setGitFolder(txtFolderDatabase.getText(), txtGitDatabase.getText());
+        databaseFolder = setGitFolder(txtFolderDatabase.getText(), txtGitDatabase.getText());
 
         rdbGitDatabaseWipe.setEnabled(false);
         rdbGitDatabaseUpdate.setEnabled(false);
@@ -179,7 +167,7 @@ public class MainWindow extends WorkExecutor {
             rdbGitDatabaseNew.setEnabled(true);
         }
 
-        this.elunaFolder = setGitFolder(txtFolderLUA.getText(), txtGitLUA.getText());
+        elunaFolder = setGitFolder(txtFolderLUA.getText(), txtGitLUA.getText());
 
         rdbGitLUAWipe.setEnabled(false);
         rdbGitLUAUpdate.setEnabled(false);
@@ -196,7 +184,24 @@ public class MainWindow extends WorkExecutor {
         }
     }
 
-    private void checkMySQLConf() {
+    private void checkMySQLConf(String dbServer, String dbPort, String dbAdmin, String dbAdminPass, String dbUser, String dbUserPass, String dbWorld, String dbCharacter, String dbRealm) {
+        if (!checkDBExistance(dbServer, dbPort, dbAdmin, dbAdminPass, dbUser, dbUserPass, dbWorld, dbCharacter, dbRealm, cmdManager, console, txpConsole)) {
+            enableComponentCascade(pnlDBFirstInstall);
+        } else {
+            enableComponentCascade(pnlDBWorld);
+            enableComponentCascade(pnlDBCharacter);
+            enableComponentCascade(pnlDBRealm);
+            disableComponentCascade(pnlDBFirstInstall);
+        }
+    }
+
+    private void checkCMakeConf(String buildFolder) {
+        buildFolder += File.separator + "CMakeFiles";
+        if (!cmdManager.checkFolder(buildFolder)) {
+            btnInstall.setEnabled(false);
+        } else {
+            btnInstall.setEnabled(true);
+        }
     }
 
     private void disableComponentCascade(Component component) {
@@ -242,7 +247,7 @@ public class MainWindow extends WorkExecutor {
         confLoader.getGitBranchDatabase(input);
         confLoader.getGitBranchEluna(input);
         applyConfLoaded();
-        checkGitConf(serverFolder, databaseFolder, elunaFolder);
+        checkGitConf();
     }
 
     private void applyConfLoaded() {
@@ -295,6 +300,16 @@ public class MainWindow extends WorkExecutor {
         }
         Collections.sort(updFolders);
         lstRealmUpdFolders.setListData(updFolders.toArray(new String[updFolders.size()]));
+
+        txtBuildFolder.setText(confLoader.getCMakeBuildFolder());
+        ArrayList<String> cmakeOptions = new ArrayList<String>();
+        for (String optKey : confLoader.getCmakeOptions().keySet()) {
+            String lstItem = optKey.substring(optKey.indexOf(".") + 1);
+            lstItem += "=" + confLoader.getCmakeOptions().get(optKey);
+            cmakeOptions.add(lstItem);
+        }
+        Collections.sort(cmakeOptions);
+        lstCMakeOptions.setListData(cmakeOptions.toArray(new String[cmakeOptions.size()]));
     }
 
     private ArrayList<String> getListItems(JList jList) {
@@ -308,7 +323,7 @@ public class MainWindow extends WorkExecutor {
     }
 
     private void addUpdFolder(JList<String> jList) {
-        String newUpdFolder = JOptionPane.showInputDialog(null, "Insert new update folder that can be found inside 'Updates' folder:");
+        String newUpdFolder = JOptionPane.showInputDialog(null, "Insert new update folder that can be found inside 'Updates' folder:", "New update folder", JOptionPane.OK_CANCEL_OPTION);
         if (!newUpdFolder.isEmpty()) {
             ArrayList<String> currFolders = getListItems(jList);
             currFolders.add(newUpdFolder);
@@ -326,24 +341,77 @@ public class MainWindow extends WorkExecutor {
         }
     }
 
-    private JButton jButtonWorker(final JButton nextButton, final String dbFolder, final ArrayList<String> updSubFolders, final String midUpdFolder, final String dbName) {
+    private JButton dbWorkerSetup(final String dbFolder, final String loadScript, final String midUpdFolder, final String dbName) {
         final JButton btnWorker = new JButton("DB Worker");
         PropertyChangeListener propChangeCreation = new PropertyChangeListener() {
 
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
+                DefaultCaret caret = (DefaultCaret) txpConsole.getCaret();
+                caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 
-                if (evt.getPropertyName().equalsIgnoreCase("Text")) {
+                if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
+                    SwingWorker<Object, Object> mySqlWorker = new SwingWorker<Object, Object>() {
+
+                        @Override
+                        protected Object doInBackground() throws Exception {
+                            //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                            //cmdManager.setPrbCurrWork(prbDBCurrWork);
+                            return mysqlLoadDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
+                                    databaseFolder, dbFolder, loadScript, dbName, midUpdFolder, cmdManager, console, txpConsole, prbDBCurrWork);
+
+                        }
+
+                        @Override
+                        public void done() {
+                            prbDBOverall.setValue(prbDBOverall.getValue() + 1);
+                        }
+                    };
+                    mySqlWorker.execute();
+                }
+            }
+        };
+        btnWorker.addPropertyChangeListener(propChangeCreation);
+        return btnWorker;
+    }
+
+    private JButton dbWorkersUpdate(final String dbFolder, final ArrayList<String> updSubFolders, final String midUpdFolder, final String dbName) {
+        final JButton btnWorker = new JButton("DB Worker");
+        PropertyChangeListener propChangeCreation = new PropertyChangeListener() {
+
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                DefaultCaret caret = (DefaultCaret) txpConsole.getCaret();
+                caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+
+                if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
                     //if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
-                        cmdManager.setBtnInvoker(nextButton);
+                    //cmdManager.setBtnInvoker(nextButton);
+                    //cmdManager.setPrbCurrWork(prbDBCurrWork);
+                    SwingWorker<Object, Object> mySqlWorker = new SwingWorker<Object, Object>() {
 
-                        mysqlUpdateDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
-                                databaseFolder, dbFolder, updSubFolders, null, dbName, midUpdFolder,
-                                cmdManager, console, txpGitConsole);
+                        @Override
+                        protected Object doInBackground() throws Exception {
+                            //cmdManager.setPrbCurrWork(prbDBCurrWork);
+                            //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                            return mysqlUpdateDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
+                                    databaseFolder, dbFolder, updSubFolders, null, dbName, midUpdFolder,
+                                    cmdManager, console, txpConsole, prbDBCurrWork);
 
-                        //console.updateGUIConsole(txpGitConsole, "Done", ConsoleManager.TEXT_BLUE);
+                        }
+
+                        @Override
+                        public void done() {
+                            prbDBOverall.setValue(prbDBOverall.getValue() + 1);
+                        }
+                    };
+                    mySqlWorker.execute();
+                    /*mysqlUpdateDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
+                     databaseFolder, dbFolder, updSubFolders, null, dbName, midUpdFolder,
+                     cmdManager, console, txpGitConsole);
+                     */ //console.updateGUIConsole(txpGitConsole, "Done", ConsoleManager.TEXT_BLUE);
                     //} else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
-                        //console.updateGUIConsole(txpGitConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
+                    //console.updateGUIConsole(txpGitConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
                     //}
                 }
                 //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -351,6 +419,51 @@ public class MainWindow extends WorkExecutor {
         };
         btnWorker.addPropertyChangeListener(propChangeCreation);
         return btnWorker;
+    }
+
+    private void dbSetup(JList jList, String dbFolder, String dbName, String loadScript, String fullDB) {
+        btnWorkList = new LinkedList<>();
+
+        JButton btnSetup = dbWorkerSetup(dbFolder, loadScript, confLoader.getDatabaseSetupFolder(), dbName);
+        btnWorkList.add(btnSetup);
+
+        if (fullDB != null && !fullDB.isEmpty()) {
+            ArrayList<String> updFolders = new ArrayList<>();
+            updFolders.add(fullDB);
+            JButton btnLoad = dbWorkersUpdate(dbFolder, updFolders, confLoader.getDatabaseSetupFolder(), dbName);
+            btnWorkList.add(btnLoad);
+        }
+        dbUpdate(jList, dbFolder, dbName);
+
+    }
+
+    private void dbUpdate(JList jList, String dbFolder, String dbName) {
+        if (btnWorkList == null || btnWorkList.isEmpty()) {
+            btnWorkList = new LinkedList<>();
+        }
+        //prbDBCurrWork.setValue();
+        //prbDBOverall.setMaximum(getListItems(lstWorldUpdFolders).size()+1);
+        for (String curSubFolder : getListItems(jList)) {
+            ArrayList<String> updFolders = new ArrayList<>();
+            updFolders.add(curSubFolder);
+            JButton btnWorker = dbWorkersUpdate(dbFolder, updFolders, confLoader.getDatabaseUpdateFolder(), dbName);
+            btnWorkList.add(btnWorker);
+            //prbDBCurrWork.setValue(prbDBCurrWork.getValue()+5);
+        }
+        prbDBOverall.setMaximum(btnWorkList.size());
+        //cmdManager.setPrbCurrWork(prbDBCurrWork);
+        btnWorkList.removeFirst().setText("Run");
+
+    }
+
+    private String getRunFolder() {
+        ArrayList<String> currOptions = getListItems(lstCMakeOptions);
+        for (String option : currOptions) {
+            if (option.contains("CMAKE_INSTALL_PREFIX")) {
+                return option.split("=")[1].replace("\"", "");
+            }
+        }
+        return "";
     }
 
     /**
@@ -369,6 +482,20 @@ public class MainWindow extends WorkExecutor {
         btnGrpDBCharacter = new javax.swing.ButtonGroup();
         btnGrpDBRealm = new javax.swing.ButtonGroup();
         tabOperations = new javax.swing.JTabbedPane();
+        pnlSysDeps = new javax.swing.JPanel();
+        pnlSetupDeps = new javax.swing.JPanel();
+        chkSetupGit = new javax.swing.JCheckBox();
+        chkSetupMySQL = new javax.swing.JCheckBox();
+        chkSetupCMake = new javax.swing.JCheckBox();
+        chkSetupOpenSSL = new javax.swing.JCheckBox();
+        btnSetupMissingDeps = new javax.swing.JButton();
+        pnlDownloadDeps = new javax.swing.JPanel();
+        lblDownloadGit = new javax.swing.JLabel();
+        lblDownloadMySQL = new javax.swing.JLabel();
+        lblDownnloadCMake = new javax.swing.JLabel();
+        lblDownloadOpenSSL = new javax.swing.JLabel();
+        jLabel36 = new javax.swing.JLabel();
+        jLabel37 = new javax.swing.JLabel();
         pnlDownload = new javax.swing.JPanel();
         pnlGitRepos = new javax.swing.JPanel();
         pnlGitServer = new javax.swing.JPanel();
@@ -476,10 +603,45 @@ public class MainWindow extends WorkExecutor {
         btnDBRealmSetup = new javax.swing.JButton();
         pnlDBFirstInstall = new javax.swing.JPanel();
         btnDBFirstInstall = new javax.swing.JButton();
-        pnlCompile = new javax.swing.JPanel();
+        lblDBCurrentJob = new javax.swing.JLabel();
+        pnlDBStatus = new javax.swing.JPanel();
+        jLabel33 = new javax.swing.JLabel();
+        prbDBCurrWork = new javax.swing.JProgressBar();
+        jLabel32 = new javax.swing.JLabel();
+        prbDBOverall = new javax.swing.JProgressBar();
+        pnlBuildInstall = new javax.swing.JPanel();
+        pnlBuild = new javax.swing.JPanel();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        lstCMakeOptions = new javax.swing.JList();
+        jLabel34 = new javax.swing.JLabel();
+        btnCMakeOptAdd = new javax.swing.JButton();
+        btnCMakeOptDel = new javax.swing.JButton();
+        btnCMakeOptEdit = new javax.swing.JButton();
+        jLabel35 = new javax.swing.JLabel();
+        txtBuildFolder = new javax.swing.JTextField();
+        btnBuild = new javax.swing.JButton();
+        btnInstall = new javax.swing.JButton();
+        btnSetupLuaScripts = new javax.swing.JButton();
+        pnlMapExtraction = new javax.swing.JPanel();
+        jPanel1 = new javax.swing.JPanel();
+        jLabel38 = new javax.swing.JLabel();
+        txtMapTools = new javax.swing.JTextField();
+        jLabel39 = new javax.swing.JLabel();
+        txtMapClient = new javax.swing.JTextField();
+        jLabel40 = new javax.swing.JLabel();
+        txtMapServer = new javax.swing.JTextField();
+        btnMapExtractor = new javax.swing.JButton();
+        pnlExtractionResult = new javax.swing.JPanel();
+        jLabel41 = new javax.swing.JLabel();
+        prbMapExtraction = new javax.swing.JProgressBar();
+        chkMapExtracted = new javax.swing.JCheckBox();
+        chkVMapExtracted = new javax.swing.JCheckBox();
+        chkVMapAssmbled = new javax.swing.JCheckBox();
+        chkMMapGenerated = new javax.swing.JCheckBox();
+        chkMapCleaning = new javax.swing.JCheckBox();
         pnlDownloadConsole = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        txpGitConsole = new javax.swing.JTextPane();
+        txpConsole = new javax.swing.JTextPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("MaNGOS Universal Installer");
@@ -493,6 +655,164 @@ public class MainWindow extends WorkExecutor {
         });
 
         tabOperations.setName(""); // NOI18N
+
+        pnlSysDeps.setEnabled(false);
+
+        pnlSetupDeps.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Needed dependecies", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.TOP));
+
+        chkSetupGit.setText("Git");
+
+        chkSetupMySQL.setText("MySQL");
+
+        chkSetupCMake.setText("CMake");
+
+        chkSetupOpenSSL.setText("OpenSSL");
+
+        btnSetupMissingDeps.setText("Install missing");
+        btnSetupMissingDeps.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnSetupMissingDepsMouseClicked(evt);
+            }
+        });
+        btnSetupMissingDeps.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                btnSetupMissingDepsPropertyChange(evt);
+            }
+        });
+        btnSetupMissingDeps.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                btnSetupMissingDepsKeyPressed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout pnlSetupDepsLayout = new javax.swing.GroupLayout(pnlSetupDeps);
+        pnlSetupDeps.setLayout(pnlSetupDepsLayout);
+        pnlSetupDepsLayout.setHorizontalGroup(
+            pnlSetupDepsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlSetupDepsLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnlSetupDepsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(chkSetupGit)
+                    .addComponent(chkSetupOpenSSL)
+                    .addGroup(pnlSetupDepsLayout.createSequentialGroup()
+                        .addGroup(pnlSetupDepsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(chkSetupMySQL)
+                            .addComponent(chkSetupCMake))
+                        .addGap(18, 18, 18)
+                        .addComponent(btnSetupMissingDeps)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        pnlSetupDepsLayout.setVerticalGroup(
+            pnlSetupDepsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlSetupDepsLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(chkSetupGit)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(pnlSetupDepsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnlSetupDepsLayout.createSequentialGroup()
+                        .addComponent(chkSetupMySQL)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(chkSetupCMake))
+                    .addGroup(pnlSetupDepsLayout.createSequentialGroup()
+                        .addGap(11, 11, 11)
+                        .addComponent(btnSetupMissingDeps)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(chkSetupOpenSSL)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        pnlDownloadDeps.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Download dependencies", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.TOP));
+
+        lblDownloadGit.setText("<html>Git: <a href=\"http://sourceforge.net/projects/gitextensions/files/latest/download\">http://sourceforge.net/projects/gitextensions/files/latest/download</a></html>");
+        lblDownloadGit.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                lblDownloadGitMouseClicked(evt);
+            }
+        });
+
+        lblDownloadMySQL.setText("<html>MySQL: <a href=\"https://dev.mysql.com/downloads/windows/installer/5.6.html\">https://dev.mysql.com/downloads/windows/installer/5.6.html</a></html>");
+        lblDownloadMySQL.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                lblDownloadMySQLMouseClicked(evt);
+            }
+        });
+
+        lblDownnloadCMake.setText("<html>CMake: <a href=\"http://www.cmake.org/files/v3.3/cmake-3.3.1-win32-x86.exe\">http://www.cmake.org/files/v3.3/cmake-3.3.1-win32-x86.exe</a></html>");
+        lblDownnloadCMake.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                lblDownnloadCMakeMouseClicked(evt);
+            }
+        });
+
+        lblDownloadOpenSSL.setText("<html>OpenSSL: <a href=\"http://slproweb.com/download/Win32OpenSSL-1_0_2d.exe\">http://slproweb.com/download/Win32OpenSSL-1_0_2d.exe</a></html>");
+        lblDownloadOpenSSL.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                lblDownloadOpenSSLMouseClicked(evt);
+            }
+        });
+
+        jLabel36.setText("Download and install follow enabled links to anable all MaNGOS UI features...");
+
+        javax.swing.GroupLayout pnlDownloadDepsLayout = new javax.swing.GroupLayout(pnlDownloadDeps);
+        pnlDownloadDeps.setLayout(pnlDownloadDepsLayout);
+        pnlDownloadDepsLayout.setHorizontalGroup(
+            pnlDownloadDepsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlDownloadDepsLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnlDownloadDepsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblDownloadGit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblDownloadMySQL, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblDownnloadCMake, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblDownloadOpenSSL, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel36))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        pnlDownloadDepsLayout.setVerticalGroup(
+            pnlDownloadDepsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlDownloadDepsLayout.createSequentialGroup()
+                .addComponent(jLabel36)
+                .addGap(9, 9, 9)
+                .addComponent(lblDownloadGit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblDownloadMySQL, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblDownnloadCMake, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblDownloadOpenSSL, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jLabel37.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
+        jLabel37.setText("Work in progress... use other panels");
+
+        javax.swing.GroupLayout pnlSysDepsLayout = new javax.swing.GroupLayout(pnlSysDeps);
+        pnlSysDeps.setLayout(pnlSysDepsLayout);
+        pnlSysDepsLayout.setHorizontalGroup(
+            pnlSysDepsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlSysDepsLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(pnlSetupDeps, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(pnlDownloadDeps, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+            .addGroup(pnlSysDepsLayout.createSequentialGroup()
+                .addGap(326, 326, 326)
+                .addComponent(jLabel37)
+                .addContainerGap(340, Short.MAX_VALUE))
+        );
+        pnlSysDepsLayout.setVerticalGroup(
+            pnlSysDepsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlSysDepsLayout.createSequentialGroup()
+                .addGap(13, 13, 13)
+                .addGroup(pnlSysDepsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(pnlDownloadDeps, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(pnlSetupDeps, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(45, 45, 45)
+                .addComponent(jLabel37)
+                .addContainerGap(186, Short.MAX_VALUE))
+        );
+
+        tabOperations.addTab("System deps", pnlSysDeps);
 
         pnlGitRepos.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Git Repositories", javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.TOP));
 
@@ -911,7 +1231,7 @@ public class MainWindow extends WorkExecutor {
             pnlDownloadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlDownloadLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(pnlGitRepos, javax.swing.GroupLayout.PREFERRED_SIZE, 967, Short.MAX_VALUE)
+                .addComponent(pnlGitRepos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
         pnlDownloadLayout.setVerticalGroup(
@@ -919,7 +1239,7 @@ public class MainWindow extends WorkExecutor {
             .addGroup(pnlDownloadLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(pnlGitRepos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(24, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         tabOperations.addTab("Download", pnlDownload);
@@ -1209,6 +1529,21 @@ public class MainWindow extends WorkExecutor {
         rdbDBCharUpdate.setEnabled(false);
 
         btnDBCharSetup.setText("Setup");
+        btnDBCharSetup.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnDBCharSetupMouseClicked(evt);
+            }
+        });
+        btnDBCharSetup.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                btnDBCharSetupPropertyChange(evt);
+            }
+        });
+        btnDBCharSetup.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                btnDBCharSetupKeyPressed(evt);
+            }
+        });
 
         javax.swing.GroupLayout pnlDBCharacterLayout = new javax.swing.GroupLayout(pnlDBCharacter);
         pnlDBCharacter.setLayout(pnlDBCharacterLayout);
@@ -1218,34 +1553,37 @@ public class MainWindow extends WorkExecutor {
                 .addContainerGap()
                 .addGroup(pnlDBCharacterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnlDBCharacterLayout.createSequentialGroup()
-                        .addComponent(rdbDBCharWipe)
-                        .addGap(67, 67, 67)
-                        .addComponent(rdbDBCharUpdate)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(pnlDBCharacterLayout.createSequentialGroup()
-                        .addComponent(txtCharLoadDB, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnDBCharSetup)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(pnlDBCharacterLayout.createSequentialGroup()
-                        .addGroup(pnlDBCharacterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addGroup(pnlDBCharacterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel24)
                             .addComponent(txtCharDBName, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel25)
                             .addComponent(txtCharFolder, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel27))
+                            .addComponent(btnCharAddUpdFolder))
                         .addGroup(pnlDBCharacterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(pnlDBCharacterLayout.createSequentialGroup()
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(pnlDBCharacterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(btnCharAddUpdFolder)
                                     .addComponent(btnCharDelUpdFolder))
-                                .addGap(0, 11, Short.MAX_VALUE))
+                                .addGap(0, 10, Short.MAX_VALUE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlDBCharacterLayout.createSequentialGroup()
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(jLabel28)
-                                .addGap(38, 38, 38))))))
+                                .addGap(38, 38, 38))))
+                    .addGroup(pnlDBCharacterLayout.createSequentialGroup()
+                        .addGroup(pnlDBCharacterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(pnlDBCharacterLayout.createSequentialGroup()
+                                .addComponent(rdbDBCharWipe)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(rdbDBCharUpdate)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(btnDBCharSetup)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(pnlDBCharacterLayout.createSequentialGroup()
+                                .addComponent(jLabel27)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(txtCharLoadDB, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addContainerGap())))
         );
         pnlDBCharacterLayout.setVerticalGroup(
             pnlDBCharacterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1263,23 +1601,19 @@ public class MainWindow extends WorkExecutor {
                         .addComponent(txtCharFolder, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(pnlDBCharacterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnlDBCharacterLayout.createSequentialGroup()
-                        .addGap(46, 46, 46)
-                        .addComponent(jLabel27))
-                    .addGroup(pnlDBCharacterLayout.createSequentialGroup()
-                        .addComponent(btnCharAddUpdFolder)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnCharDelUpdFolder)))
-                .addGap(8, 8, 8)
                 .addGroup(pnlDBCharacterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtCharLoadDB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnDBCharSetup))
+                    .addComponent(btnCharDelUpdFolder)
+                    .addComponent(btnCharAddUpdFolder))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(pnlDBCharacterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel27)
+                    .addComponent(txtCharLoadDB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(pnlDBCharacterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(rdbDBCharWipe)
-                    .addComponent(rdbDBCharUpdate))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(rdbDBCharUpdate)
+                    .addComponent(btnDBCharSetup))
+                .addContainerGap())
         );
 
         pnlDBRealm.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Realm DB", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.TOP));
@@ -1330,6 +1664,21 @@ public class MainWindow extends WorkExecutor {
         rdbDBRealmUpdate.setEnabled(false);
 
         btnDBRealmSetup.setText("Setup");
+        btnDBRealmSetup.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnDBRealmSetupMouseClicked(evt);
+            }
+        });
+        btnDBRealmSetup.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                btnDBRealmSetupPropertyChange(evt);
+            }
+        });
+        btnDBRealmSetup.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                btnDBRealmSetupKeyPressed(evt);
+            }
+        });
 
         javax.swing.GroupLayout pnlDBRealmLayout = new javax.swing.GroupLayout(pnlDBRealm);
         pnlDBRealm.setLayout(pnlDBRealmLayout);
@@ -1339,34 +1688,38 @@ public class MainWindow extends WorkExecutor {
                 .addContainerGap()
                 .addGroup(pnlDBRealmLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnlDBRealmLayout.createSequentialGroup()
-                        .addComponent(rdbDBRealmWipe)
-                        .addGap(67, 67, 67)
-                        .addComponent(rdbDBRealmUpdate)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(pnlDBRealmLayout.createSequentialGroup()
-                        .addComponent(txtRealmLoadDB, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnDBRealmSetup)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(pnlDBRealmLayout.createSequentialGroup()
                         .addGroup(pnlDBRealmLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jLabel26)
                             .addComponent(txtRealmDBName, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel29)
-                            .addComponent(txtRealmFolder, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel30))
+                            .addComponent(txtRealmFolder, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGroup(pnlDBRealmLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(pnlDBRealmLayout.createSequentialGroup()
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(pnlDBRealmLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(btnRealmAddUpdFolder)
-                                    .addComponent(btnRealmDelUpdFolder))
+                                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(0, 11, Short.MAX_VALUE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlDBRealmLayout.createSequentialGroup()
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(jLabel31)
-                                .addGap(37, 37, 37))))))
+                                .addGap(37, 37, 37))))
+                    .addGroup(pnlDBRealmLayout.createSequentialGroup()
+                        .addComponent(jLabel30)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(txtRealmLoadDB, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())
+                    .addGroup(pnlDBRealmLayout.createSequentialGroup()
+                        .addGroup(pnlDBRealmLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(pnlDBRealmLayout.createSequentialGroup()
+                                .addComponent(btnRealmAddUpdFolder)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnRealmDelUpdFolder))
+                            .addGroup(pnlDBRealmLayout.createSequentialGroup()
+                                .addComponent(rdbDBRealmWipe)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(rdbDBRealmUpdate)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(btnDBRealmSetup)))
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
         pnlDBRealmLayout.setVerticalGroup(
             pnlDBRealmLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1383,23 +1736,19 @@ public class MainWindow extends WorkExecutor {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(txtRealmFolder, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(pnlDBRealmLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnlDBRealmLayout.createSequentialGroup()
-                        .addGap(46, 46, 46)
-                        .addComponent(jLabel30))
-                    .addGroup(pnlDBRealmLayout.createSequentialGroup()
-                        .addComponent(btnRealmAddUpdFolder)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnRealmDelUpdFolder)))
-                .addGap(8, 8, 8)
+                .addGap(6, 6, 6)
                 .addGroup(pnlDBRealmLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtRealmLoadDB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnDBRealmSetup))
+                    .addComponent(btnRealmAddUpdFolder)
+                    .addComponent(btnRealmDelUpdFolder))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(pnlDBRealmLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel30)
+                    .addComponent(txtRealmLoadDB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(pnlDBRealmLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(rdbDBRealmWipe)
-                    .addComponent(rdbDBRealmUpdate))
+                    .addComponent(rdbDBRealmUpdate)
+                    .addComponent(btnDBRealmSetup))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -1439,6 +1788,48 @@ public class MainWindow extends WorkExecutor {
                 .addContainerGap())
         );
 
+        jLabel33.setText("Current job:");
+
+        prbDBCurrWork.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                prbDBCurrWorkStateChanged(evt);
+            }
+        });
+
+        jLabel32.setText("Overall progress:");
+
+        prbDBOverall.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                prbDBOverallStateChanged(evt);
+            }
+        });
+
+        javax.swing.GroupLayout pnlDBStatusLayout = new javax.swing.GroupLayout(pnlDBStatus);
+        pnlDBStatus.setLayout(pnlDBStatusLayout);
+        pnlDBStatusLayout.setHorizontalGroup(
+            pnlDBStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlDBStatusLayout.createSequentialGroup()
+                .addComponent(jLabel33)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(prbDBCurrWork, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel32)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(prbDBOverall, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        pnlDBStatusLayout.setVerticalGroup(
+            pnlDBStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlDBStatusLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(pnlDBStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(jLabel32)
+                    .addComponent(prbDBOverall, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(pnlDBStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jLabel33)
+                        .addComponent(prbDBCurrWork, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+
         javax.swing.GroupLayout pnlDatabaseLayout = new javax.swing.GroupLayout(pnlDatabase);
         pnlDatabase.setLayout(pnlDatabaseLayout);
         pnlDatabaseLayout.setHorizontalGroup(
@@ -1447,17 +1838,24 @@ public class MainWindow extends WorkExecutor {
                 .addContainerGap()
                 .addGroup(pnlDatabaseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnlDatabaseLayout.createSequentialGroup()
-                        .addComponent(pnlDBWorld, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(pnlDBCharacter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(pnlDBRealm, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(pnlDatabaseLayout.createSequentialGroup()
                         .addComponent(pnlDatabaseConfig, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(pnlDBFirstInstall, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(120, 120, 120))
+                        .addComponent(pnlDBFirstInstall, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(120, 120, 120))
+                    .addGroup(pnlDatabaseLayout.createSequentialGroup()
+                        .addGroup(pnlDatabaseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(pnlDBWorld, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(pnlDatabaseLayout.createSequentialGroup()
+                                .addGap(65, 65, 65)
+                                .addComponent(lblDBCurrentJob)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(pnlDatabaseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(pnlDatabaseLayout.createSequentialGroup()
+                                .addComponent(pnlDBCharacter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(pnlDBRealm, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(pnlDBStatus, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
         pnlDatabaseLayout.setVerticalGroup(
             pnlDatabaseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1467,34 +1865,369 @@ public class MainWindow extends WorkExecutor {
                     .addComponent(pnlDatabaseConfig, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(pnlDBFirstInstall, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(pnlDatabaseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(pnlDBCharacter, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(pnlDBWorld, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(pnlDBRealm, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(63, Short.MAX_VALUE))
+                .addGroup(pnlDatabaseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(pnlDatabaseLayout.createSequentialGroup()
+                        .addGroup(pnlDatabaseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(pnlDBWorld, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(pnlDBStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(lblDBCurrentJob)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(pnlDatabaseLayout.createSequentialGroup()
+                        .addGroup(pnlDatabaseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(pnlDBCharacter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(pnlDBRealm, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
 
         tabOperations.addTab("Database setup", pnlDatabase);
 
-        javax.swing.GroupLayout pnlCompileLayout = new javax.swing.GroupLayout(pnlCompile);
-        pnlCompile.setLayout(pnlCompileLayout);
-        pnlCompileLayout.setHorizontalGroup(
-            pnlCompileLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 987, Short.MAX_VALUE)
+        pnlBuild.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Build parameters", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.TOP));
+
+        lstCMakeOptions.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        jScrollPane5.setViewportView(lstCMakeOptions);
+
+        jLabel34.setText("Build options (leave no value to use defaults)");
+
+        btnCMakeOptAdd.setText("Add option");
+        btnCMakeOptAdd.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnCMakeOptAddMouseClicked(evt);
+            }
+        });
+        btnCMakeOptAdd.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                btnCMakeOptAddPropertyChange(evt);
+            }
+        });
+        btnCMakeOptAdd.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                btnCMakeOptAddKeyPressed(evt);
+            }
+        });
+
+        btnCMakeOptDel.setText("Delete option");
+        btnCMakeOptDel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnCMakeOptDelMouseClicked(evt);
+            }
+        });
+        btnCMakeOptDel.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                btnCMakeOptDelPropertyChange(evt);
+            }
+        });
+        btnCMakeOptDel.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                btnCMakeOptDelKeyPressed(evt);
+            }
+        });
+
+        btnCMakeOptEdit.setText("Edit option");
+        btnCMakeOptEdit.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnCMakeOptEditMouseClicked(evt);
+            }
+        });
+        btnCMakeOptEdit.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                btnCMakeOptEditPropertyChange(evt);
+            }
+        });
+        btnCMakeOptEdit.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                btnCMakeOptEditKeyPressed(evt);
+            }
+        });
+
+        jLabel35.setText("Build folder");
+
+        txtBuildFolder.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                txtBuildFolderFocusLost(evt);
+            }
+        });
+
+        btnBuild.setText("Build");
+        btnBuild.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnBuildMouseClicked(evt);
+            }
+        });
+        btnBuild.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                btnBuildPropertyChange(evt);
+            }
+        });
+        btnBuild.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                btnBuildKeyPressed(evt);
+            }
+        });
+
+        btnInstall.setText("Install");
+        btnInstall.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnInstallMouseClicked(evt);
+            }
+        });
+        btnInstall.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                btnInstallPropertyChange(evt);
+            }
+        });
+        btnInstall.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                btnInstallKeyPressed(evt);
+            }
+        });
+
+        btnSetupLuaScripts.setText("Install LUA Scripts");
+        btnSetupLuaScripts.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnSetupLuaScriptsMouseClicked(evt);
+            }
+        });
+        btnSetupLuaScripts.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                btnSetupLuaScriptsPropertyChange(evt);
+            }
+        });
+        btnSetupLuaScripts.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                btnSetupLuaScriptsKeyPressed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout pnlBuildLayout = new javax.swing.GroupLayout(pnlBuild);
+        pnlBuild.setLayout(pnlBuildLayout);
+        pnlBuildLayout.setHorizontalGroup(
+            pnlBuildLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlBuildLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnlBuildLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlBuildLayout.createSequentialGroup()
+                        .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 447, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(pnlBuildLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(btnCMakeOptDel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnCMakeOptEdit, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnCMakeOptAdd, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(pnlBuildLayout.createSequentialGroup()
+                        .addGroup(pnlBuildLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel34)
+                            .addComponent(jLabel35))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(pnlBuildLayout.createSequentialGroup()
+                        .addComponent(txtBuildFolder, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnBuild)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnInstall)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnSetupLuaScripts)))
+                .addContainerGap())
         );
-        pnlCompileLayout.setVerticalGroup(
-            pnlCompileLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 397, Short.MAX_VALUE)
+        pnlBuildLayout.setVerticalGroup(
+            pnlBuildLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlBuildLayout.createSequentialGroup()
+                .addComponent(jLabel34)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(pnlBuildLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnlBuildLayout.createSequentialGroup()
+                        .addComponent(btnCMakeOptAdd)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnCMakeOptEdit)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnCMakeOptDel))
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 257, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel35)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(pnlBuildLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtBuildFolder, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnBuild)
+                    .addComponent(btnInstall)
+                    .addComponent(btnSetupLuaScripts))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        tabOperations.addTab("Build and Install", pnlCompile);
+        javax.swing.GroupLayout pnlBuildInstallLayout = new javax.swing.GroupLayout(pnlBuildInstall);
+        pnlBuildInstall.setLayout(pnlBuildInstallLayout);
+        pnlBuildInstallLayout.setHorizontalGroup(
+            pnlBuildInstallLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlBuildInstallLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(pnlBuild, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(397, Short.MAX_VALUE))
+        );
+        pnlBuildInstallLayout.setVerticalGroup(
+            pnlBuildInstallLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlBuildInstallLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(pnlBuild, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        tabOperations.addTab("Build and Install", pnlBuildInstall);
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Wow client information", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.TOP));
+
+        jLabel38.setText("Path to tools forlder");
+
+        jLabel39.setText("Path to WoW client folder");
+
+        jLabel40.setText("Path to MaNGOS runnable folder");
+
+        btnMapExtractor.setText("Run extractions tools");
+        btnMapExtractor.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnMapExtractorMouseClicked(evt);
+            }
+        });
+        btnMapExtractor.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                btnMapExtractorPropertyChange(evt);
+            }
+        });
+        btnMapExtractor.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                btnMapExtractorKeyPressed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(txtMapTools)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel38)
+                            .addComponent(jLabel39)
+                            .addComponent(jLabel40))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(txtMapClient)
+                    .addComponent(txtMapServer))
+                .addContainerGap())
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(240, 240, 240)
+                .addComponent(btnMapExtractor)
+                .addContainerGap(250, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel38)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtMapTools, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel39)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtMapClient, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel40)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtMapServer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(btnMapExtractor)
+                .addContainerGap(27, Short.MAX_VALUE))
+        );
+
+        pnlExtractionResult.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Extraction results", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.TOP));
+
+        jLabel41.setText("Extraction progress");
+
+        prbMapExtraction.setMaximum(5);
+        prbMapExtraction.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                prbMapExtractionStateChanged(evt);
+            }
+        });
+
+        chkMapExtracted.setText("Map extraction");
+        chkMapExtracted.setToolTipText("");
+
+        chkVMapExtracted.setText("VMap extraction");
+
+        chkVMapAssmbled.setText("VMap assembled");
+
+        chkMMapGenerated.setText("MMap generated");
+
+        chkMapCleaning.setText("Clean unused folder");
+
+        javax.swing.GroupLayout pnlExtractionResultLayout = new javax.swing.GroupLayout(pnlExtractionResult);
+        pnlExtractionResult.setLayout(pnlExtractionResultLayout);
+        pnlExtractionResultLayout.setHorizontalGroup(
+            pnlExtractionResultLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlExtractionResultLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnlExtractionResultLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(prbMapExtraction, javax.swing.GroupLayout.DEFAULT_SIZE, 286, Short.MAX_VALUE)
+                    .addGroup(pnlExtractionResultLayout.createSequentialGroup()
+                        .addGroup(pnlExtractionResultLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(chkMapCleaning)
+                            .addComponent(chkMMapGenerated)
+                            .addComponent(chkVMapAssmbled)
+                            .addComponent(chkVMapExtracted)
+                            .addComponent(chkMapExtracted)
+                            .addComponent(jLabel41))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        pnlExtractionResultLayout.setVerticalGroup(
+            pnlExtractionResultLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlExtractionResultLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel41)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(prbMapExtraction, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(chkMapExtracted)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(chkVMapExtracted)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(chkVMapAssmbled)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(chkMMapGenerated)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(chkMapCleaning)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        javax.swing.GroupLayout pnlMapExtractionLayout = new javax.swing.GroupLayout(pnlMapExtraction);
+        pnlMapExtraction.setLayout(pnlMapExtractionLayout);
+        pnlMapExtractionLayout.setHorizontalGroup(
+            pnlMapExtractionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlMapExtractionLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addComponent(pnlExtractionResult, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+        pnlMapExtractionLayout.setVerticalGroup(
+            pnlMapExtractionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlMapExtractionLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnlMapExtractionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(pnlExtractionResult, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(152, Short.MAX_VALUE))
+        );
+
+        tabOperations.addTab("Map-VMap-MMap extraction", pnlMapExtraction);
 
         pnlDownloadConsole.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Console", javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.TOP));
 
-        txpGitConsole.setEditable(false);
-        txpGitConsole.setText("Welcome to MaNGOS Universal Installer. Initializing...");
-        txpGitConsole.setAutoscrolls(false);
-        jScrollPane2.setViewportView(txpGitConsole);
+        txpConsole.setEditable(false);
+        txpConsole.setText("Welcome to MaNGOS Universal Installer. Initializing...");
+        txpConsole.setAutoscrolls(false);
+        jScrollPane2.setViewportView(txpConsole);
 
         javax.swing.GroupLayout pnlDownloadConsoleLayout = new javax.swing.GroupLayout(pnlDownloadConsole);
         pnlDownloadConsole.setLayout(pnlDownloadConsoleLayout);
@@ -1571,7 +2304,7 @@ public class MainWindow extends WorkExecutor {
             btnLUADownload.setEnabled(false);
             cmdManager.setBtnInvoker(btnServerDownload);
             serverFolder = setGitFolder(txtFolderServer.getText(), txtGitServer.getText());
-            gitDownload(btnGrpGitServer.getSelection().getActionCommand(), txtGitServer.getText(), serverFolder, txtBranchServer.getText(), txtProxyServer.getText(), txtProxyPort.getText(), cmdManager, console, txpGitConsole);
+            gitDownload(btnGrpGitServer.getSelection().getActionCommand(), txtGitServer.getText(), serverFolder, txtBranchServer.getText(), txtProxyServer.getText(), txtProxyPort.getText(), cmdManager, console, txpConsole);
         }
 
     }//GEN-LAST:event_btnServerDownloadMouseClicked
@@ -1587,7 +2320,7 @@ public class MainWindow extends WorkExecutor {
             btnLUADownload.setEnabled(false);
             cmdManager.setBtnInvoker(btnDatabaseDownload);
             databaseFolder = setGitFolder(txtFolderDatabase.getText(), txtGitDatabase.getText());
-            gitDownload(btnGrpGitDatabase.getSelection().getActionCommand(), txtGitDatabase.getText(), databaseFolder, txtBranchDatabase.getText(), txtProxyServer.getText(), txtProxyPort.getText(), cmdManager, console, txpGitConsole);
+            gitDownload(btnGrpGitDatabase.getSelection().getActionCommand(), txtGitDatabase.getText(), databaseFolder, txtBranchDatabase.getText(), txtProxyServer.getText(), txtProxyPort.getText(), cmdManager, console, txpConsole);
         }
     }//GEN-LAST:event_btnDatabaseDownloadMouseClicked
 
@@ -1602,16 +2335,16 @@ public class MainWindow extends WorkExecutor {
             btnLUADownload.setEnabled(false);
             cmdManager.setBtnInvoker(btnLUADownload);
             elunaFolder = setGitFolder(txtFolderLUA.getText(), txtGitLUA.getText());
-            gitDownload(btnGrpGitLUA.getSelection().getActionCommand(), txtGitLUA.getText(), elunaFolder, txtBranchLUA.getText(), txtProxyServer.getText(), txtProxyPort.getText(), cmdManager, console, txpGitConsole);
+            gitDownload(btnGrpGitLUA.getSelection().getActionCommand(), txtGitLUA.getText(), elunaFolder, txtBranchLUA.getText(), txtProxyServer.getText(), txtProxyPort.getText(), cmdManager, console, txpConsole);
         }
     }//GEN-LAST:event_btnLUADownloadMouseClicked
 
     private void btnServerDownloadPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnServerDownloadPropertyChange
-        if (evt.getPropertyName().equalsIgnoreCase("Text")) {
+        if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
             if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
-                console.updateGUIConsole(txpGitConsole, "Done", ConsoleManager.TEXT_BLUE);
+                console.updateGUIConsole(txpConsole, "Done", ConsoleManager.TEXT_BLUE);
             } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
-                console.updateGUIConsole(txpGitConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
+                console.updateGUIConsole(txpConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
             }
             btnDatabaseDownload.setEnabled(true);
             //btnServerDownload.setEnabled(true);
@@ -1620,18 +2353,18 @@ public class MainWindow extends WorkExecutor {
     }//GEN-LAST:event_btnServerDownloadPropertyChange
 
     private void btnDatabaseDownloadPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnDatabaseDownloadPropertyChange
-        if (evt.getPropertyName().equalsIgnoreCase("Text")) {
+        if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
             if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
-                mysqlOk = checkMySQL(databaseFolder, confLoader.getPathToMySQL(), cmdManager, console, txpGitConsole);
+                mysqlOk = checkMySQL(databaseFolder, confLoader.getPathToMySQL(), cmdManager, console, txpConsole);
                 if (!mysqlOk) {
                     disableComponentCascade(pnlDatabase);
                 } else {
                     pnlDatabase.setEnabled(true);
                     enableComponentCascade(pnlDatabaseConfig);
                 }
-                console.updateGUIConsole(txpGitConsole, "Done", ConsoleManager.TEXT_BLUE);
+                console.updateGUIConsole(txpConsole, "Done", ConsoleManager.TEXT_BLUE);
             } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
-                console.updateGUIConsole(txpGitConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
+                console.updateGUIConsole(txpConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
             }
             //btnDatabaseDownload.setEnabled(true);
             btnServerDownload.setEnabled(true);
@@ -1640,11 +2373,11 @@ public class MainWindow extends WorkExecutor {
     }//GEN-LAST:event_btnDatabaseDownloadPropertyChange
 
     private void btnLUADownloadPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnLUADownloadPropertyChange
-        if (evt.getPropertyName().equalsIgnoreCase("Text")) {
+        if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
             if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
-                console.updateGUIConsole(txpGitConsole, "Done", ConsoleManager.TEXT_BLUE);
+                console.updateGUIConsole(txpConsole, "Done", ConsoleManager.TEXT_BLUE);
             } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
-                console.updateGUIConsole(txpGitConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
+                console.updateGUIConsole(txpConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
             }
             btnDatabaseDownload.setEnabled(true);
             btnServerDownload.setEnabled(true);
@@ -1654,20 +2387,8 @@ public class MainWindow extends WorkExecutor {
 
     private void btnDBCheckMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnDBCheckMouseClicked
         //cmdManager.setBtnInvoker(btnDBCheck);
-        if (checkDBExistance(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
-                txtDBConfUser.getText(), txtDBConfUserPwd.getText(), confLoader.getWorldDBName(), confLoader.getCharDBName(), confLoader.getRealmDBName(),
-                cmdManager, console, txpGitConsole)) {
-            enableComponentCascade(pnlDBWorld);
-            enableComponentCascade(pnlDBCharacter);
-            enableComponentCascade(pnlDBRealm);
-            disableComponentCascade(pnlDBFirstInstall);
-            btnDBCheck.setText("Check parameters");
-            //console.updateGUIConsole(txpGitConsole, "Done", ConsoleManager.TEXT_BLUE);
-        } else {
-            enableComponentCascade(pnlDBFirstInstall);
-            btnDBCheck.setText("Check parameters");
-            //console.updateGUIConsole(txpGitConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
-        }
+        checkMySQLConf(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
+                txtDBConfUser.getText(), txtDBConfUserPwd.getText(), confLoader.getWorldDBName(), confLoader.getCharDBName(), confLoader.getRealmDBName());
     }//GEN-LAST:event_btnDBCheckMouseClicked
 
     private void btnDBCheckKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnDBCheckKeyPressed
@@ -1681,11 +2402,11 @@ public class MainWindow extends WorkExecutor {
     private void btnDBFirstInstallMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnDBFirstInstallMouseClicked
         mysqlCreateDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
                 txtDBConfUser.getText(), txtDBConfUserPwd.getText(), txtWorldDBName.getText(), txtCharDBName.getText(), txtRealmDBName.getText(),
-                cmdManager, console, txpGitConsole);
+                cmdManager, console, txpConsole);
     }//GEN-LAST:event_btnDBFirstInstallMouseClicked
 
     private void btnDBFirstInstallPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnDBFirstInstallPropertyChange
-        if (evt.getPropertyName().equalsIgnoreCase("Text")) {
+        if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
             if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
                 btnDBCheckMouseClicked(null);
                 //console.updateGUIConsole(txpGitConsole, "Done", ConsoleManager.TEXT_BLUE);
@@ -1719,14 +2440,6 @@ public class MainWindow extends WorkExecutor {
         addUpdFolder(lstCharUpdFolders);
     }//GEN-LAST:event_btnCharAddUpdFolderMouseClicked
 
-    private void btnRealmAddUpdFolderKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnRealmAddUpdFolderKeyPressed
-        btnRealmAddUpdFolderMouseClicked(null);
-    }//GEN-LAST:event_btnRealmAddUpdFolderKeyPressed
-
-    private void btnRealmAddUpdFolderMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnRealmAddUpdFolderMouseClicked
-        addUpdFolder(lstRealmUpdFolders);
-    }//GEN-LAST:event_btnRealmAddUpdFolderMouseClicked
-
     private void btnCharDelUpdFolderKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnCharDelUpdFolderKeyPressed
         btnCharDelUpdFolderMouseClicked(null);
     }//GEN-LAST:event_btnCharDelUpdFolderKeyPressed
@@ -1734,6 +2447,14 @@ public class MainWindow extends WorkExecutor {
     private void btnCharDelUpdFolderMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCharDelUpdFolderMouseClicked
         remUpdFolder(lstCharUpdFolders);
     }//GEN-LAST:event_btnCharDelUpdFolderMouseClicked
+
+    private void btnRealmAddUpdFolderKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnRealmAddUpdFolderKeyPressed
+        btnRealmAddUpdFolderMouseClicked(null);
+    }//GEN-LAST:event_btnRealmAddUpdFolderKeyPressed
+
+    private void btnRealmAddUpdFolderMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnRealmAddUpdFolderMouseClicked
+        addUpdFolder(lstRealmUpdFolders);
+    }//GEN-LAST:event_btnRealmAddUpdFolderMouseClicked
 
     private void btnRealmDelUpdFolderKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnRealmDelUpdFolderKeyPressed
         btnRealmDelUpdFolderMouseClicked(null);
@@ -1749,80 +2470,419 @@ public class MainWindow extends WorkExecutor {
 
     private void btnDBWorldSetupMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnDBWorldSetupMouseClicked
         if (btnGrpDBWorld.getSelection() != null) {
+            btnInvoker = btnDBWorldSetup;
+            //cmdManager.setPrbCurrWork(prbDBCurrWork);
             disableComponentCascade(pnlDBWorld);
             disableComponentCascade(pnlDBCharacter);
             disableComponentCascade(pnlDBRealm);
-            /*final JButton btnCreate = new JButton("DB Creation");
-             final JButton btnLoad = new JButton("DB Load");
-             final JButton btnUpdate = new JButton("DB Update");
-             PropertyChangeListener propChangeCreation = new PropertyChangeListener() {
-
-             @Override
-             public void propertyChange(PropertyChangeEvent evt) {
-
-             if (evt.getPropertyName().equalsIgnoreCase("Text")) {
-             if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
-             cmdManager.setBtnInvoker(btnLoad);
-             //console.updateGUIConsole(txpGitConsole, "Done", ConsoleManager.TEXT_BLUE);
-             } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
-             //console.updateGUIConsole(txpGitConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
-             }
-             }
-             //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-             }
-             };
-             PropertyChangeListener propChangeLoad = new PropertyChangeListener() {
-
-             @Override
-             public void propertyChange(PropertyChangeEvent evt) {
-             cmdManager.setBtnInvoker(btnUpdate);
-             //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-             }
-             };
-             PropertyChangeListener proChangeUpdate = new PropertyChangeListener() {
-
-             @Override
-             public void propertyChange(PropertyChangeEvent evt) {
-             cmdManager.setBtnInvoker(btnDBWorldSetup);
-             //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-             }
-             };
-             btnCreate.addPropertyChangeListener(propChangeCreation);
-             btnLoad.addPropertyChangeListener(propChangeLoad);
-             btnUpdate.addPropertyChangeListener(proChangeUpdate);*/
+            disableComponentCascade(pnlDatabaseConfig);
+            enableComponentCascade(pnlDBStatus);
+            prbDBCurrWork.setValue(0);
+            prbDBOverall.setValue(0);
 
             if ("W".equalsIgnoreCase(btnGrpDBWorld.getSelection().getActionCommand())) {
-                ArrayList<String> updFolders = new ArrayList<>();
-                updFolders.add(txtWorldFullDB.getText());
-                JButton btnLoad = jButtonWorker(btnDBWorldSetup, txtWorldFolder.getText(), getListItems(lstWorldUpdFolders), confLoader.getDatabaseUpdateFolder(), txtWorldDBName.getText());
-                JButton btnCreate = jButtonWorker(btnLoad, txtWorldFolder.getText(), updFolders, txtWorldFullDB.getText(), txtWorldDBName.getText());
-                cmdManager.setBtnInvoker(btnCreate);
-                mysqlLoadDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
-                        databaseFolder, txtWorldFolder.getText(), txtWorldLoadDB.getText(), txtWorldDBName.getText(), confLoader.getDatabaseSetupFolder(),
-                        cmdManager, console, txpGitConsole);
+                dbSetup(lstWorldUpdFolders, txtWorldFolder.getText(), txtWorldDBName.getText(), txtWorldLoadDB.getText(), txtWorldFullDB.getText());
             } else if ("U".equalsIgnoreCase(btnGrpDBWorld.getSelection().getActionCommand())) {
-                ArrayList<String> updFolders = new ArrayList<>();
-                updFolders.add("Rel21");
-                JButton btnCreate = jButtonWorker(btnDBWorldSetup, txtWorldFolder.getText(), updFolders/*getListItems(lstWorldUpdFolders)*/, txtWorldFullDB.getText(), txtWorldDBName.getText());
-                cmdManager.setBtnInvoker(btnCreate);
-                ArrayList<String> updSubFolders = new ArrayList<>();
-                updSubFolders.add("Rel20");
-                mysqlUpdateDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
-                        databaseFolder, txtWorldFolder.getText(), updSubFolders/*getListItems(lstWorldUpdFolders)*/, null, txtWorldDBName.getText(),
-                        confLoader.getDatabaseUpdateFolder(), cmdManager, console, txpGitConsole);
-                //serverFolder = setGitFolder(txtFolderServer.getText(), txtGitServer.getText());
-                //gitDownload(btnGrpGitServer.getSelection().getActionCommand(), txtGitServer.getText(), serverFolder, txtBranchServer.getText(), txtProxyServer.getText(), txtProxyPort.getText(), cmdManager, console, txpGitConsole);
+                dbUpdate(lstWorldUpdFolders, txtWorldFolder.getText(), txtWorldDBName.getText());
             }
         }
     }//GEN-LAST:event_btnDBWorldSetupMouseClicked
 
     private void btnDBWorldSetupPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnDBWorldSetupPropertyChange
-        if (evt.getPropertyName().equalsIgnoreCase("Text")) {
+
+    }//GEN-LAST:event_btnDBWorldSetupPropertyChange
+
+    private void btnDBCharSetupKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnDBCharSetupKeyPressed
+        btnDBCharSetupMouseClicked(null);
+    }//GEN-LAST:event_btnDBCharSetupKeyPressed
+
+    private void btnDBCharSetupMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnDBCharSetupMouseClicked
+        if (btnGrpDBCharacter.getSelection() != null) {
+            btnInvoker = btnDBCharSetup;
+            //cmdManager.setPrbCurrWork(prbDBCurrWork);
+            disableComponentCascade(pnlDBWorld);
+            disableComponentCascade(pnlDBCharacter);
+            disableComponentCascade(pnlDBRealm);
+            disableComponentCascade(pnlDatabaseConfig);
+            enableComponentCascade(pnlDBStatus);
+            prbDBCurrWork.setValue(0);
+            prbDBOverall.setValue(0);
+
+            if ("W".equalsIgnoreCase(btnGrpDBCharacter.getSelection().getActionCommand())) {
+                dbSetup(lstCharUpdFolders, txtCharFolder.getText(), txtCharDBName.getText(), txtCharLoadDB.getText(), null);
+            } else if ("U".equalsIgnoreCase(btnGrpDBCharacter.getSelection().getActionCommand())) {
+                dbUpdate(lstCharUpdFolders, txtCharFolder.getText(), txtCharDBName.getText());
+            }
+        }
+    }//GEN-LAST:event_btnDBCharSetupMouseClicked
+
+    private void btnDBCharSetupPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnDBCharSetupPropertyChange
+
+    }//GEN-LAST:event_btnDBCharSetupPropertyChange
+
+    private void btnDBRealmSetupKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnDBRealmSetupKeyPressed
+        btnDBRealmSetupMouseClicked(null);
+    }//GEN-LAST:event_btnDBRealmSetupKeyPressed
+
+    private void btnDBRealmSetupMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnDBRealmSetupMouseClicked
+        if (btnGrpDBRealm.getSelection() != null) {
+            btnInvoker = btnDBRealmSetup;
+            //cmdManager.setPrbCurrWork(prbDBCurrWork);
+            disableComponentCascade(pnlDBWorld);
+            disableComponentCascade(pnlDBCharacter);
+            disableComponentCascade(pnlDBRealm);
+            disableComponentCascade(pnlDatabaseConfig);
+            enableComponentCascade(pnlDBStatus);
+            prbDBCurrWork.setValue(0);
+            prbDBOverall.setValue(0);
+
+            if ("W".equalsIgnoreCase(btnGrpDBRealm.getSelection().getActionCommand())) {
+                dbSetup(lstRealmUpdFolders, txtRealmFolder.getText(), txtRealmDBName.getText(), txtRealmLoadDB.getText(), null);
+            } else if ("U".equalsIgnoreCase(btnGrpDBRealm.getSelection().getActionCommand())) {
+                dbUpdate(lstRealmUpdFolders, txtRealmFolder.getText(), txtRealmDBName.getText());
+            }
+        }
+    }//GEN-LAST:event_btnDBRealmSetupMouseClicked
+
+    private void btnDBRealmSetupPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnDBRealmSetupPropertyChange
+
+    }//GEN-LAST:event_btnDBRealmSetupPropertyChange
+
+    private void prbDBCurrWorkStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_prbDBCurrWorkStateChanged
+        if (prbDBCurrWork.getValue() >= prbDBCurrWork.getMaximum()) {
+            prbDBCurrWork.setValue(0);
+            console.updateGUIConsole(txpConsole, "\nCurrent job done.", ConsoleManager.TEXT_BLUE);
+            if (!btnWorkList.isEmpty()) {
+                btnWorkList.removeFirst().setText("Run");
+            }
+        }
+    }//GEN-LAST:event_prbDBCurrWorkStateChanged
+
+    private void prbDBOverallStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_prbDBOverallStateChanged
+        if (prbDBOverall.getValue() >= prbDBOverall.getMaximum()) {
+            //cmdManager.setPrbCurrWork(null);
+            //prbDBCurrWork.setValue(0);
+            //prbDBOverall.setValue(0);
+            console.updateGUIConsole(txpConsole, "\nAll processes done.", ConsoleManager.TEXT_BLUE);
             enableComponentCascade(pnlDBWorld);
             enableComponentCascade(pnlDBCharacter);
             enableComponentCascade(pnlDBRealm);
+            enableComponentCascade(pnlDatabaseConfig);
+            disableComponentCascade(pnlDBStatus);
         }
-    }//GEN-LAST:event_btnDBWorldSetupPropertyChange
+    }//GEN-LAST:event_prbDBOverallStateChanged
+
+    private void btnCMakeOptAddKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnCMakeOptAddKeyPressed
+        btnCMakeOptAddMouseClicked(null);
+    }//GEN-LAST:event_btnCMakeOptAddKeyPressed
+
+    private void btnCMakeOptAddMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCMakeOptAddMouseClicked
+        String newOption = JOptionPane.showInputDialog(null, "Insert new option for CMake process with format 'OptionName=Value':", "New CMake ption", JOptionPane.OK_CANCEL_OPTION);
+        if (newOption != null && !newOption.isEmpty()) {
+            ArrayList<String> currOptions = getListItems(lstCMakeOptions);
+            currOptions.add(newOption);
+            Collections.sort(currOptions);
+            lstCMakeOptions.setListData(currOptions.toArray(new String[currOptions.size()]));
+        }
+    }//GEN-LAST:event_btnCMakeOptAddMouseClicked
+
+    private void btnCMakeOptAddPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnCMakeOptAddPropertyChange
+
+    }//GEN-LAST:event_btnCMakeOptAddPropertyChange
+
+    private void btnCMakeOptEditKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnCMakeOptEditKeyPressed
+        btnCMakeOptEditMouseClicked(null);
+    }//GEN-LAST:event_btnCMakeOptEditKeyPressed
+
+    private void btnCMakeOptEditMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCMakeOptEditMouseClicked
+        if (lstCMakeOptions.getSelectedIndex() >= 0) {
+            ArrayList<String> currOptions = getListItems(lstCMakeOptions);
+//            String lstItem = currOptions.get(lstCMakeOptions.getSelectedIndex());
+            String newlstItem = (String) JOptionPane.showInputDialog(null, "Edit selected option for CMake process with format 'OptionName=Value':", "Edit CMake option", JOptionPane.OK_CANCEL_OPTION, null, null, currOptions.get(lstCMakeOptions.getSelectedIndex()));
+            if (newlstItem != null && !newlstItem.isEmpty()) {
+                currOptions.remove(lstCMakeOptions.getSelectedIndex());
+                currOptions.add(newlstItem);
+                Collections.sort(currOptions);
+                lstCMakeOptions.setListData(currOptions.toArray(new String[currOptions.size()]));
+            }
+        }
+    }//GEN-LAST:event_btnCMakeOptEditMouseClicked
+
+    private void btnCMakeOptEditPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnCMakeOptEditPropertyChange
+
+    }//GEN-LAST:event_btnCMakeOptEditPropertyChange
+
+    private void btnCMakeOptDelKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnCMakeOptDelKeyPressed
+        btnCMakeOptDelMouseClicked(null);
+    }//GEN-LAST:event_btnCMakeOptDelKeyPressed
+
+    private void btnCMakeOptDelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCMakeOptDelMouseClicked
+        if (lstCMakeOptions.getSelectedIndex() >= 0) {
+            ArrayList<String> currOptions = getListItems(lstCMakeOptions);
+            currOptions.remove(lstCMakeOptions.getSelectedIndex());
+            Collections.sort(currOptions);
+            lstCMakeOptions.setListData(currOptions.toArray(new String[currOptions.size()]));
+        }
+    }//GEN-LAST:event_btnCMakeOptDelMouseClicked
+
+    private void btnCMakeOptDelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnCMakeOptDelPropertyChange
+
+    }//GEN-LAST:event_btnCMakeOptDelPropertyChange
+
+    private void txtBuildFolderFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtBuildFolderFocusLost
+        checkCMakeConf(txtBuildFolder.getText());
+    }//GEN-LAST:event_txtBuildFolderFocusLost
+
+    private void btnBuildKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnBuildKeyPressed
+        btnBuildMouseClicked(null);
+    }//GEN-LAST:event_btnBuildKeyPressed
+
+    private void btnBuildMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnBuildMouseClicked
+        if (JOptionPane.showConfirmDialog(null, "WARNING: This operation may overwrite already built project. Do you want to continue?", "Build confirmation", JOptionPane.OK_CANCEL_OPTION) == 0) {
+            ArrayList<String> currOptions = getListItems(lstCMakeOptions);
+            HashMap<String, String> cmakeOptions = new HashMap<>();
+            for (String item : currOptions) {
+                String[] option = item.split("=");
+                if (option.length > 1) {
+                    cmakeOptions.put(option[0], option[1]);
+                }
+            }
+            disableComponentCascade(pnlBuildInstall);
+            cmdManager.setBtnInvoker(btnBuild);
+            cmdManager.cmakeConfig(serverFolder, txtBuildFolder.getText(), cmakeOptions, txpConsole);
+        }
+    }//GEN-LAST:event_btnBuildMouseClicked
+
+    private void btnBuildPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnBuildPropertyChange
+        if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
+            if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
+                //btnDBCheckMouseClicked(null);
+                console.updateGUIConsole(txpConsole, "Done", ConsoleManager.TEXT_BLUE);
+            } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
+                //console.updateGUIConsole(txpGitConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
+            }
+            enableComponentCascade(pnlBuildInstall);
+            btnInstall.setEnabled(true);
+        }
+    }//GEN-LAST:event_btnBuildPropertyChange
+
+    private void btnInstallKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnInstallKeyPressed
+        btnInstallMouseClicked(null);
+    }//GEN-LAST:event_btnInstallKeyPressed
+
+    private void btnInstallMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnInstallMouseClicked
+        disableComponentCascade(pnlBuildInstall);
+        cmdManager.setBtnInvoker(btnInstall);
+        cmdManager.cmakeInstall(txtBuildFolder.getText(), getRunFolder(), txpConsole);
+    }//GEN-LAST:event_btnInstallMouseClicked
+
+    private void btnInstallPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnInstallPropertyChange
+        if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
+            if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
+                //btnDBCheckMouseClicked(null);
+                if (cmdManager.copyFolder(txtBuildFolder.getText() + File.separator + "bin" + File.separator + "Debug", getRunFolder(), txpConsole)) {
+                    console.updateGUIConsole(txpConsole, "Done", ConsoleManager.TEXT_BLUE);
+                } else {
+                    console.updateGUIConsole(txpConsole, "ERROR: check console output and redo process.", ConsoleManager.TEXT_RED);
+                }
+            } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
+                console.updateGUIConsole(txpConsole, "ERROR: check console output and redo process.", ConsoleManager.TEXT_RED);
+            }
+            enableComponentCascade(pnlBuildInstall);
+        }
+    }//GEN-LAST:event_btnInstallPropertyChange
+
+    private void btnSetupLuaScriptsKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnSetupLuaScriptsKeyPressed
+        btnSetupLuaScriptsMouseClicked(null);
+    }//GEN-LAST:event_btnSetupLuaScriptsKeyPressed
+
+    private void btnSetupLuaScriptsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnSetupLuaScriptsMouseClicked
+        String runFolder = getRunFolder();
+        if (cmdManager.checkFolder(elunaFolder) && mysqlOk && !runFolder.isEmpty() && cmdManager.checkFolder(runFolder)) {
+            disableComponentCascade(pnlBuildInstall);
+
+            SwingWorker<Object, Object> mySqlWorker;
+            mySqlWorker = new SwingWorker<Object, Object>() {
+
+                @Override
+                protected Object doInBackground() throws Exception {
+                    String setupPath = elunaFolder + File.separator + "sql";
+                    //cmdManager.setBtnInvoker(btnSetupLuaScripts);
+                    return mysqlUpdateDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
+                            databaseFolder, null, null, setupPath, txtWorldDBName.getText(), null, cmdManager, console, txpConsole, prbDBCurrWork);
+                }
+
+                @Override
+                public void done() {
+                    try {
+                        //prbDBOverall.setValue(prbDBOverall.getValue() + 1);
+                        if (true == (boolean) get()) {
+                            btnSetupLuaScripts.setText("DONE");
+                            //btnInvoker.setActionCommand("DONE");
+                        } else {
+                            //btnInvoker.setActionCommand("ERROR");
+                            btnSetupLuaScripts.setText("ERROR");
+                        }
+                    } catch (InterruptedException | ExecutionException ex) {
+                        //Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                        btnSetupLuaScripts.setText("ERROR");
+                    }
+                }
+            };
+            mySqlWorker.execute();
+        }
+    }//GEN-LAST:event_btnSetupLuaScriptsMouseClicked
+
+    private void btnSetupLuaScriptsPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnSetupLuaScriptsPropertyChange
+        if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
+            if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
+                //btnDBCheckMouseClicked(null);
+                String luaSrc = (txtFolderLUA.getText().isEmpty() ? elunaFolder : txtFolderLUA.getText().replace("\"", "")) + File.separator + "lua_scripts";
+                String luaDst = getRunFolder() + File.separator + "lua_scripts";
+                console.updateGUIConsole(txpConsole, "\nInstalling binaries into destination folder...", ConsoleManager.TEXT_BLUE);
+                boolean cpRet = cmdManager.copyFolder(luaSrc, luaDst, txpConsole);
+                if (cpRet) {
+                    console.updateGUIConsole(txpConsole, "Done", ConsoleManager.TEXT_BLUE);
+                } else {
+                    console.updateGUIConsole(txpConsole, "ERROR: check console output and redo process.", ConsoleManager.TEXT_RED);
+                }
+            } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
+                console.updateGUIConsole(txpConsole, "ERROR: Check console output and redo process.", ConsoleManager.TEXT_RED);
+            }
+            enableComponentCascade(pnlBuildInstall);
+        }
+    }//GEN-LAST:event_btnSetupLuaScriptsPropertyChange
+
+    private void btnSetupMissingDepsKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnSetupMissingDepsKeyPressed
+        btnSetupMissingDepsMouseClicked(null);
+    }//GEN-LAST:event_btnSetupMissingDepsKeyPressed
+
+    private void btnSetupMissingDepsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnSetupMissingDepsMouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnSetupMissingDepsMouseClicked
+
+    private void btnSetupMissingDepsPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnSetupMissingDepsPropertyChange
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnSetupMissingDepsPropertyChange
+
+    private void lblDownloadGitMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblDownloadGitMouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_lblDownloadGitMouseClicked
+
+    private void lblDownloadMySQLMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblDownloadMySQLMouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_lblDownloadMySQLMouseClicked
+
+    private void lblDownnloadCMakeMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblDownnloadCMakeMouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_lblDownnloadCMakeMouseClicked
+
+    private void lblDownloadOpenSSLMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblDownloadOpenSSLMouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_lblDownloadOpenSSLMouseClicked
+
+    private void btnMapExtractorKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnMapExtractorKeyPressed
+        btnMapExtractorMouseClicked(null);
+    }//GEN-LAST:event_btnMapExtractorKeyPressed
+
+    private void btnMapExtractorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnMapExtractorMouseClicked
+        //disableComponentCascade(pnlMapExtraction);
+        btnWorkList = new LinkedList<>();
+
+        final JButton btnClean = new JButton("Clean");
+        PropertyChangeListener btnCleanPropertyChange = new PropertyChangeListener() {
+
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
+                    chkMapCleaning.setSelected(true);
+                    prbMapExtraction.setValue(prbMapExtraction.getValue() + 1);
+                    btnMapExtractor.setText((String) evt.getNewValue());
+                }
+            }
+        };
+        btnClean.addPropertyChangeListener(btnCleanPropertyChange);
+
+        final JButton btnMMapGenerator = new JButton("Generate MMap");
+        PropertyChangeListener btnMMapGeneratorPropertyChange = new PropertyChangeListener() {
+
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
+                    chkMMapGenerated.setSelected(true);
+                    prbMapExtraction.setValue(prbMapExtraction.getValue() + 1);
+                    btnClean.setText((String) evt.getNewValue());
+                }
+            }
+        };
+        btnMMapGenerator.addPropertyChangeListener(btnMMapGeneratorPropertyChange);
+
+        final JButton btnVMapAssembler = new JButton("Assemble VMap");
+        PropertyChangeListener btnVMapAssemblerPropertyChange = new PropertyChangeListener() {
+
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
+                    chkVMapAssmbled.setSelected(true);
+                    prbMapExtraction.setValue(prbMapExtraction.getValue() + 1);
+                    cmdManager.setBtnInvoker(btnMMapGenerator);
+                    cmdManager.mapExtraction(txtMapTools.getText(), txtMapClient.getText(), txtMapServer.getText(), 4, txpConsole, null);
+                }
+            }
+        };
+        btnVMapAssembler.addPropertyChangeListener(btnVMapAssemblerPropertyChange);
+
+        final JButton btnVMapExtractor = new JButton("Extract VMap");
+        PropertyChangeListener btnVMapExtractorPropertyChange = new PropertyChangeListener() {
+
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
+                    chkVMapExtracted.setSelected(true);
+                    prbMapExtraction.setValue(prbMapExtraction.getValue() + 1);
+                    cmdManager.setBtnInvoker(btnVMapAssembler);
+                    cmdManager.mapExtraction(txtMapTools.getText(), txtMapClient.getText(), txtMapServer.getText(), 3, txpConsole, null);
+                }
+            }
+        };
+        btnVMapExtractor.addPropertyChangeListener(btnVMapExtractorPropertyChange);
+
+        final JButton btnMapExtract = new JButton("Extract Map");
+        PropertyChangeListener btnMapExtractorPropertyChange = new PropertyChangeListener() {
+
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
+                    chkMapExtracted.setSelected(true);
+                    prbMapExtraction.setValue(prbMapExtraction.getValue() + 1);
+                    cmdManager.setBtnInvoker(btnVMapExtractor);
+                    cmdManager.mapExtraction(txtMapTools.getText(), txtMapClient.getText(), txtMapServer.getText(), 2, txpConsole, null);
+                }
+            }
+        };
+        btnMapExtract.addPropertyChangeListener(btnMapExtractorPropertyChange);
+
+        cmdManager.setBtnInvoker(btnMapExtract);
+        cmdManager.mapExtraction(txtMapTools.getText(), txtMapClient.getText(), txtMapServer.getText(), 1, txpConsole, null);
+
+    }//GEN-LAST:event_btnMapExtractorMouseClicked
+
+    private void btnMapExtractorPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnMapExtractorPropertyChange
+        if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
+            if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
+                //btnDBCheckMouseClicked(null);
+                console.updateGUIConsole(txpConsole, "Done", ConsoleManager.TEXT_BLUE);
+            } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
+                //console.updateGUIConsole(txpGitConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
+            }
+            enableComponentCascade(pnlMapExtraction);
+            btnInstall.setEnabled(true);
+        }
+    }//GEN-LAST:event_btnMapExtractorPropertyChange
+
+    private void prbMapExtractionStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_prbMapExtractionStateChanged
+        // TODO add your handling code here:
+    }//GEN-LAST:event_prbMapExtractionStateChanged
 
     /**
      * @param args the command line arguments
@@ -1865,6 +2925,10 @@ public class MainWindow extends WorkExecutor {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnBuild;
+    private javax.swing.JButton btnCMakeOptAdd;
+    private javax.swing.JButton btnCMakeOptDel;
+    private javax.swing.JButton btnCMakeOptEdit;
     private javax.swing.JButton btnCharAddUpdFolder;
     private javax.swing.JButton btnCharDelUpdFolder;
     private javax.swing.JButton btnDBCharSetup;
@@ -1879,13 +2943,26 @@ public class MainWindow extends WorkExecutor {
     private javax.swing.ButtonGroup btnGrpGitDatabase;
     private javax.swing.ButtonGroup btnGrpGitLUA;
     private javax.swing.ButtonGroup btnGrpGitServer;
+    private javax.swing.JButton btnInstall;
     private javax.swing.JButton btnLUADownload;
+    private javax.swing.JButton btnMapExtractor;
     private javax.swing.JButton btnRealmAddUpdFolder;
     private javax.swing.JButton btnRealmDelUpdFolder;
     private javax.swing.JButton btnServerDownload;
+    private javax.swing.JButton btnSetupLuaScripts;
+    private javax.swing.JButton btnSetupMissingDeps;
     private javax.swing.JButton btnWorldAddUpdFolder;
     private javax.swing.JButton btnWorldDelUpdFolder;
+    private javax.swing.JCheckBox chkMMapGenerated;
+    private javax.swing.JCheckBox chkMapCleaning;
+    private javax.swing.JCheckBox chkMapExtracted;
     private javax.swing.JCheckBox chkProxy;
+    private javax.swing.JCheckBox chkSetupCMake;
+    private javax.swing.JCheckBox chkSetupGit;
+    private javax.swing.JCheckBox chkSetupMySQL;
+    private javax.swing.JCheckBox chkSetupOpenSSL;
+    private javax.swing.JCheckBox chkVMapAssmbled;
+    private javax.swing.JCheckBox chkVMapExtracted;
     private javax.swing.JComboBox cmbCores;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
@@ -1912,33 +2989,61 @@ public class MainWindow extends WorkExecutor {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel30;
     private javax.swing.JLabel jLabel31;
+    private javax.swing.JLabel jLabel32;
+    private javax.swing.JLabel jLabel33;
+    private javax.swing.JLabel jLabel34;
+    private javax.swing.JLabel jLabel35;
+    private javax.swing.JLabel jLabel36;
+    private javax.swing.JLabel jLabel37;
+    private javax.swing.JLabel jLabel38;
+    private javax.swing.JLabel jLabel39;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel40;
+    private javax.swing.JLabel jLabel41;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JLabel lblDBCurrentJob;
+    private javax.swing.JLabel lblDownloadGit;
+    private javax.swing.JLabel lblDownloadMySQL;
+    private javax.swing.JLabel lblDownloadOpenSSL;
+    private javax.swing.JLabel lblDownnloadCMake;
+    private javax.swing.JList lstCMakeOptions;
     private javax.swing.JList lstCharUpdFolders;
     private javax.swing.JList lstRealmUpdFolders;
     private javax.swing.JList lstWorldUpdFolders;
-    private javax.swing.JPanel pnlCompile;
+    private javax.swing.JPanel pnlBuild;
+    private javax.swing.JPanel pnlBuildInstall;
     private javax.swing.JPanel pnlDBCharacter;
     private javax.swing.JPanel pnlDBFirstInstall;
     private javax.swing.JPanel pnlDBRealm;
+    private javax.swing.JPanel pnlDBStatus;
     private javax.swing.JPanel pnlDBWorld;
     private javax.swing.JPanel pnlDatabase;
     private javax.swing.JPanel pnlDatabaseConfig;
     private javax.swing.JPanel pnlDownload;
     private javax.swing.JPanel pnlDownloadConsole;
+    private javax.swing.JPanel pnlDownloadDeps;
+    private javax.swing.JPanel pnlExtractionResult;
     private javax.swing.JPanel pnlGitDatabase;
     private javax.swing.JPanel pnlGitLUA;
     private javax.swing.JPanel pnlGitRepos;
     private javax.swing.JPanel pnlGitServer;
+    private javax.swing.JPanel pnlMapExtraction;
     private javax.swing.JPanel pnlProxy;
+    private javax.swing.JPanel pnlSetupDeps;
+    private javax.swing.JPanel pnlSysDeps;
+    private javax.swing.JProgressBar prbDBCurrWork;
+    private javax.swing.JProgressBar prbDBOverall;
+    private javax.swing.JProgressBar prbMapExtraction;
     private javax.swing.JRadioButton rdbDBCharUpdate;
     private javax.swing.JRadioButton rdbDBCharWipe;
     private javax.swing.JRadioButton rdbDBRealmUpdate;
@@ -1955,10 +3060,11 @@ public class MainWindow extends WorkExecutor {
     private javax.swing.JRadioButton rdbGitServerUpdate;
     private javax.swing.JRadioButton rdbGitServerWipe;
     private javax.swing.JTabbedPane tabOperations;
-    private javax.swing.JTextPane txpGitConsole;
+    private javax.swing.JTextPane txpConsole;
     private javax.swing.JTextField txtBranchDatabase;
     private javax.swing.JTextField txtBranchLUA;
     private javax.swing.JTextField txtBranchServer;
+    private javax.swing.JTextField txtBuildFolder;
     private javax.swing.JTextField txtCharDBName;
     private javax.swing.JTextField txtCharFolder;
     private javax.swing.JTextField txtCharLoadDB;
@@ -1974,6 +3080,9 @@ public class MainWindow extends WorkExecutor {
     private javax.swing.JTextField txtGitDatabase;
     private javax.swing.JTextField txtGitLUA;
     private javax.swing.JTextField txtGitServer;
+    private javax.swing.JTextField txtMapClient;
+    private javax.swing.JTextField txtMapServer;
+    private javax.swing.JTextField txtMapTools;
     private javax.swing.JTextField txtProxyPort;
     private javax.swing.JTextField txtProxyServer;
     private javax.swing.JTextField txtRealmDBName;

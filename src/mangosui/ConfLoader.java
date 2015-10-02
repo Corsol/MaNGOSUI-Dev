@@ -62,7 +62,8 @@ public class ConfLoader {
 
     private String debugLevel = "";
     private String PathToMySQL = "";
-    private String WinGitPath = "";
+    private String WinGitHubPath = "";
+    private String WinGitExtPath = "";
     private String Win32PathCMake = "";
     private String Win64PathCMake = "";
 
@@ -124,7 +125,8 @@ public class ConfLoader {
 
             debugLevel = prop.getProperty("debugLevel", "");
             PathToMySQL = prop.getProperty("PathToMySQL", "");
-            WinGitPath = prop.getProperty("WinGitPath", "");
+            WinGitHubPath = prop.getProperty("WinGitHubPath", "");
+            WinGitExtPath = prop.getProperty("WinGitExtPath", "");
             Win32PathCMake = prop.getProperty("Win32PathCMake", "");
             Win64PathCMake = prop.getProperty("Win64PathCMake", "");
 
@@ -274,17 +276,25 @@ public class ConfLoader {
     }
 
     /**
-     * @return the WinGitPath
+     * @return the WinGitHubPath
      */
-    public String getWinGitPath() {
-        return WinGitPath;
+    public String getWinGitHubPath() {
+        return WinGitHubPath;
     }
 
     /**
-     * @param WinGitPath the WinGitPath to set
+     * @param WinGitHubPath the WinGitHubPath to set
      */
-    public void setWinGitPath(String WinPathGit) {
-        this.WinGitPath = WinPathGit;
+    public void setWinGitHubPath(String WinPathGit) {
+        this.WinGitHubPath = WinPathGit;
+    }
+
+    public String getWinGitExtPath() {
+        return WinGitExtPath;
+    }
+
+    public void setWinGitExtPath(String WinGitExtPath) {
+        this.WinGitExtPath = WinGitExtPath;
     }
 
     /**

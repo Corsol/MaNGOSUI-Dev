@@ -16,6 +16,7 @@ import java.io.OutputStream;
 import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
 import javax.swing.JButton;
+import javax.swing.JProgressBar;
 import static mangosui.CommandsWindows.writeToGUIConsole;
 
 /**
@@ -27,6 +28,7 @@ public class Command {
     private int debugLevel = 0; // 0: None, 1: console, 2: full
     private static Command instance = null;
     private JButton btnInvoker;
+//    private JProgressBar prbCurrWork;
 
     /**
      *
@@ -55,19 +57,22 @@ public class Command {
      * @throws IOException
      * @throws InterruptedException
      */
-    protected boolean execute(String[] commands, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer) throws IOException, InterruptedException, ExecutionException {
-        if (guiConsole != null) {
-            ProcessExec proc = new ProcessExec(commands, guiConsole, btnInvoker);
+    protected boolean execute(String[] commands, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer, final JProgressBar prbCurrWork) throws IOException, InterruptedException, ExecutionException {
+        if (guiConsole != null && prbCurrWork == null) {
+            ProcessExec proc = new ProcessExec(commands, guiConsole, debugLevel, btnInvoker, prbCurrWork);
             proc.execute();
             return false;
         } else {
             ProcessBuilder builder = new ProcessBuilder(commands);
             builder.redirectErrorStream(true);
-            System.out.print("EXECUTING:");
-            for (String cmd : commands) {
-                System.out.print(" " + cmd);
+            String msg = "";
+            if (debugLevel > 0) {
+                msg = "EXECUTING:";
+                for (String cmd : commands) {
+                    msg += " " + cmd;
+                }
+                System.out.println(msg);
             }
-            System.out.print("\n");
             if (!toBuffer) {
                 //builder.redirectErrorStream(true);
                 builder.redirectError(ProcessBuilder.Redirect.INHERIT);
@@ -79,6 +84,9 @@ public class Command {
             if (!toBuffer) {
                 //Scanner s = new Scanner(proc.getInputStream()).useDelimiter("\\Z");
                 //System.out.println(s.next());
+            } else if (guiConsole != null) {
+                ConsoleManager.getInstance().updateGUIConsole(guiConsole, msg, ConsoleManager.TEXT_ORANGE);
+                writeToGUIConsole(msg, proc.getInputStream(), guiConsole, proc);
             } else {
                 Scanner s = new Scanner(proc.getInputStream()).useDelimiter("\\Z");
                 BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
@@ -97,7 +105,7 @@ public class Command {
         }
     }
 
-    static void writeToGUIConsole(InputStream in, Object console, Process proc) throws IOException, InterruptedException {
+    synchronized static void writeToGUIConsole(String cmd, InputStream in, Object console, Process proc) throws IOException, InterruptedException {
         try {
             InputStreamReader isr = new InputStreamReader(in);
             BufferedReader br = new BufferedReader(isr);
@@ -126,7 +134,7 @@ public class Command {
         }
     }
 
-    public boolean copyFolder(File src, File dest) {
+    public boolean copyFolder(File src, File dest, Object console) {
         try {
             if (src.isDirectory()) {
 
@@ -137,14 +145,14 @@ public class Command {
                 }
 
                 //list all the directory contents
-                String files[] = src.list();
+                String files[] = src.list(new FileFilterBuild());
 
                 for (String file : files) {
                     //construct the src and dest file structure
                     File srcFile = new File(src, file);
                     File destFile = new File(dest, file);
                     //recursive copy
-                    copyFolder(srcFile, destFile);
+                    copyFolder(srcFile, destFile, console);
                 }
 
             } else {
@@ -164,6 +172,13 @@ public class Command {
                 in.close();
                 out.close();
                 //System.out.println("File copied from " + src + " to " + dest);
+                String msg = "File copied to " + dest;
+                if (console != null) {
+                    ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_BLACK);
+                } else {
+                    System.out.println(msg);
+                }
+                
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -195,5 +210,13 @@ public class Command {
     public void setBtnInvoker(JButton btnInvoker) {
         this.btnInvoker = btnInvoker;
     }
+/*
+    public JProgressBar getPrbCurrWork() {
+        return prbCurrWork;
+    }
 
+    public void setPrbCurrWork(JProgressBar prbCurrWork) {
+        this.prbCurrWork = prbCurrWork;
+    }
+*/
 }

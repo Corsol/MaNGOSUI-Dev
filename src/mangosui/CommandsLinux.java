@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
+import javax.swing.JProgressBar;
 
 /**
  *
@@ -34,13 +35,13 @@ public class CommandsLinux extends Command {
      * @throws IOException
      * @throws InterruptedException
      */
-    public boolean executeShell(String command, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer) throws IOException, InterruptedException, ExecutionException {
-        if (super.getDebugLevel() > 0) {
+    public boolean executeShell(String command, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer, final JProgressBar prbCurrWork) throws IOException, InterruptedException, ExecutionException {
+        if (super.getDebugLevel() > 1) {
             System.out.println("\nDEBUG - command:" + command + "\n");
             if (guiConsole != null) {
             }
         }
-        return execute(new String[]{"bash", "-c", command}, guiConsole, rawConsole, toBuffer);
+        return execute(new String[]{"bash", "-c", command}, guiConsole, rawConsole, toBuffer, prbCurrWork);
     }
 
     /**
@@ -53,10 +54,10 @@ public class CommandsLinux extends Command {
      * @throws IOException
      * @throws InterruptedException
      */
-    public boolean executeShell(ArrayList<String> commands, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer) throws IOException, InterruptedException, ExecutionException {
+    public boolean executeShell(ArrayList<String> commands, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer, final JProgressBar prbCurrWork) throws IOException, InterruptedException, ExecutionException {
         ArrayList<String> command = new ArrayList<String>();
         command.addAll(commands);
-        if (super.getDebugLevel() > 0) {
+        if (super.getDebugLevel() > 1) {
             System.out.print("\nDEBUG - command:");
             for (String cmd : commands) {
                 System.out.print("\n" + cmd);
@@ -65,7 +66,7 @@ public class CommandsLinux extends Command {
             if (guiConsole != null) {
             }
         }
-        return execute(command.toArray(new String[command.size()]), guiConsole, rawConsole, toBuffer);
+        return execute(command.toArray(new String[command.size()]), guiConsole, rawConsole, toBuffer, prbCurrWork);
     }
 
     /**
@@ -205,19 +206,19 @@ public class CommandsLinux extends Command {
     boolean gitOperation(String gitCommand, Object console, boolean toBuffer) throws InterruptedException, IOException, ExecutionException { //String url, String folder, String branch, String proxyServer, String proxyPort, String winPath){
         StringBuilder sb = new StringBuilder();
         if (console != null) {
-            //ConsoleManager.getInstance().updateGUIConsole(console, gitCommand, ConsoleManager.getInstance().TEXT_ORANGE);
+            ConsoleManager.getInstance().updateGUIConsole(console, gitCommand, ConsoleManager.getInstance().TEXT_ORANGE);
         } else if (!toBuffer) {
             System.out.println(gitCommand);
         }
         //String command = "& \"" + gitPath + "\\shell.ps1\" \n " + gitCommand;
-        return executeShell(gitCommand, console, sb, toBuffer);
+        return executeShell(gitCommand, console, sb, toBuffer, null);
     }
 
     //@Override
     boolean isRepoUpToDate(String pathToRepo) throws InterruptedException, IOException, ExecutionException {
         StringBuilder sb = new StringBuilder();
         String command = "git status";
-        executeShell(command, null, sb, true);
+        executeShell(command, null, sb, true, null);
         return sb.toString().contains("Your branch is up-to-date");
     }
 
@@ -260,7 +261,7 @@ public class CommandsLinux extends Command {
         commands += " " + serverFolder;
         command.add(commands);
         //command.add(cmd);
-        return executeShell(command, console, sb, false);
+        return executeShell(command, console, sb, false, null);
     }
 
     /**
@@ -282,9 +283,12 @@ public class CommandsLinux extends Command {
         //ArrayList<String> command = new ArrayList<>();
 
         String command = "cd " + buildFolder + " ; make install";
+        if (Runtime.getRuntime().availableProcessors() > 1) {
+            command += " -j " + Runtime.getRuntime().availableProcessors();
+        }
 
         //command.add(cmd);
-        return executeShell(command, console, sb, false);
+        return executeShell(command, console, sb, false, null);
     }
 
 }

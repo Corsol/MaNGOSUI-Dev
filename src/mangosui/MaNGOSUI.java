@@ -88,7 +88,7 @@ public class MaNGOSUI extends WorkExecutor {
                 if ("y".equalsIgnoreCase(input)) {
                     System.out.println("Checking Git installation... ");
 
-                    gitOk = checkGit(confLoader.getWinGitPath(), cmdManager, null, null);
+                    gitOk = checkGit(confLoader.getWinGitHubPath(), confLoader.getWinGitExtPath(), cmdManager, null, null);
 
                     if (gitOk) {
                         System.out.println("\n\nProxy configuration:");
@@ -463,7 +463,7 @@ public class MaNGOSUI extends WorkExecutor {
                             if ("y".equalsIgnoreCase(input)) {
                                 mysqlLoadDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
                                         databaseFolder, confLoader.getRealmFolder(), confLoader.getRealmLoadDBName(), confLoader.getRealmDBName(),
-                                        confLoader.getDatabaseSetupFolder(), cmdManager, null, null);
+                                        confLoader.getDatabaseSetupFolder(), cmdManager, null, null, null);
                                 // Installing Realm database
                                 /*String setupPath = databaseFolder + File.separator
                                  + confLoader.getRealmFolder() + File.separator
@@ -481,7 +481,7 @@ public class MaNGOSUI extends WorkExecutor {
                                 Collections.sort(updFolders);
                                 mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
                                         databaseFolder, confLoader.getRealmFolder(), updFolders, null, confLoader.getRealmLoadDBName(),
-                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
+                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null, null);
                                 /*for (String updFolderKey : mapKey) {
                                  String updFolder = confLoader.getRealmUpdRel().get(updFolderKey);
                                  if (!updFolder.isEmpty()) {
@@ -507,7 +507,7 @@ public class MaNGOSUI extends WorkExecutor {
                                 // Installing Character database
                                 mysqlLoadDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
                                         databaseFolder, confLoader.getCharFolder(), confLoader.getCharLoadDBName(), confLoader.getCharDBName(),
-                                        confLoader.getDatabaseSetupFolder(), cmdManager, null, null);
+                                        confLoader.getDatabaseSetupFolder(), cmdManager, null, null, null);
 
                                 /*String setupPath = databaseFolder + File.separator
                                  + confLoader.getCharFolder() + File.separator
@@ -526,7 +526,7 @@ public class MaNGOSUI extends WorkExecutor {
                                 Collections.sort(updFolders);
                                 mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
                                         databaseFolder, confLoader.getCharFolder(), updFolders, null, confLoader.getCharLoadDBName(),
-                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
+                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null, null);
                                 /*for (String updFolderKey : mapKey) {
                                  String updFolder = confLoader.getCharUpdRel().get(updFolderKey);
                                  if (!updFolder.isEmpty()) {
@@ -551,7 +551,7 @@ public class MaNGOSUI extends WorkExecutor {
                                 // Installing World database
                                 mysqlLoadDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
                                         databaseFolder, confLoader.getWorldFolder(), confLoader.getWorldLoadDBName(), confLoader.getWorldDBName(),
-                                        confLoader.getDatabaseSetupFolder(), cmdManager, null, null);
+                                        confLoader.getDatabaseSetupFolder(), cmdManager, null, null, null);
                                 /*String setupPath = databaseFolder + File.separator
                                  + confLoader.getWorldFolder() + File.separator
                                  + confLoader.getDatabaseSetupFolder() + File.separator
@@ -567,7 +567,7 @@ public class MaNGOSUI extends WorkExecutor {
                                 loadFolder.add(confLoader.getWorldFullDB());
                                 mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
                                         databaseFolder, confLoader.getWorldFolder(), loadFolder, null, confLoader.getWorldLoadDBName(),
-                                        confLoader.getDatabaseSetupFolder(), cmdManager, null, null);
+                                        confLoader.getDatabaseSetupFolder(), cmdManager, null, null, null);
                                 /*String updatePath = databaseFolder + File.separator
                                  + confLoader.getWorldFolder() + File.separator
                                  + confLoader.getDatabaseSetupFolder() + File.separator
@@ -583,7 +583,7 @@ public class MaNGOSUI extends WorkExecutor {
                                 Collections.sort(updFolders);
                                 mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
                                         databaseFolder, confLoader.getWorldFolder(), updFolders, null, confLoader.getWorldLoadDBName(),
-                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
+                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null, null);
                                 /*for (String updFolderKey : mapKey) {
                                  String updFolder = confLoader.getWorldUpdRel().get(updFolderKey);
                                  if (!updFolder.isEmpty()) {
@@ -609,7 +609,7 @@ public class MaNGOSUI extends WorkExecutor {
                                 Collections.sort(updFolders);
                                 mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
                                         databaseFolder, confLoader.getRealmFolder(), updFolders, null, confLoader.getRealmLoadDBName(),
-                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
+                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null, null);
                                 /*boolean dbRet = true;
                                  ArrayList<String> mapKey = new ArrayList<>(confLoader.getRealmUpdRel().keySet());
                                  Collections.sort(mapKey);
@@ -638,7 +638,7 @@ public class MaNGOSUI extends WorkExecutor {
                                 Collections.sort(updFolders);
                                 mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
                                         databaseFolder, confLoader.getCharFolder(), updFolders, null, confLoader.getCharLoadDBName(),
-                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
+                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null, null);
                                 /*boolean dbRet = true;
                                  ArrayList<String> mapKey = new ArrayList<>(confLoader.getCharUpdRel().keySet());
                                  Collections.sort(mapKey);
@@ -667,7 +667,7 @@ public class MaNGOSUI extends WorkExecutor {
                                 Collections.sort(updFolders);
                                 mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
                                         databaseFolder, confLoader.getWorldFolder(), updFolders, null, confLoader.getWorldLoadDBName(),
-                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
+                                        confLoader.getDatabaseUpdateFolder(), cmdManager, null, null, null);
                                 /*boolean dbRet = true;
                                  ArrayList<String> mapKey = new ArrayList<>(confLoader.getWorldUpdRel().keySet());
                                  Collections.sort(mapKey);
@@ -701,7 +701,8 @@ public class MaNGOSUI extends WorkExecutor {
                 input = System.console().readLine();
                 if ("y".equalsIgnoreCase(input)) {
                     System.out.println("Checking Cmake installation... ");
-                    if (!cmdManager.checkCMAKE(null)) {
+                    cmakeOk = checkCMake(confLoader.getWin32PathCMake(), confLoader.getWin64PathCMake(), cmdManager, null, null);
+                    /*if (!cmdManager.checkCMAKE(null)) {
                         System.out.println("INFO: CMAKE is not installed into PATH/shell environment... checking for cmake.exe installation folder.");
                         String cmake32Path = confLoader.getWin32PathCMake();
                         String cmake64Path = confLoader.getWin64PathCMake();
@@ -718,7 +719,7 @@ public class MaNGOSUI extends WorkExecutor {
                         // cmakePath =
                         cmakeOk = true;
                         System.out.println("INFO: Founded CMAKE commands.");
-                    }
+                    }*/
                     if (cmakeOk) {
                         if (cmdManager.checkMySQLLib("", null).isEmpty() || cmdManager.checkMySQLInclude("", null).isEmpty()) {
                             System.out.println("ERROR: MySQL library for CMAKE was not found on system. Do you want to use portable version?");
@@ -854,8 +855,8 @@ public class MaNGOSUI extends WorkExecutor {
                         String setupPath = elunaFolder + File.separator + "sql";
                         System.out.println("Update database for LUA Script from: " + setupPath);
                         mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
-                                databaseFolder, confLoader.getWorldFolder(), null, setupPath, confLoader.getWorldLoadDBName(),
-                                confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
+                                databaseFolder, null, null, setupPath, confLoader.getWorldLoadDBName(),
+                                null, cmdManager, null, null, null);
                         /*boolean dbRet = cmdManager.loadDBUpdate(confLoader, confLoader.getWorldDBName(), setupPath, null);
                          if (dbRet) {
                          System.out.println("Done");
@@ -867,7 +868,7 @@ public class MaNGOSUI extends WorkExecutor {
                                 + File.separator + "lua_scripts";
                         String luaDst = confLoader.getCMakeRunFolder() + File.separator + "lua_scripts";
                         System.out.println("Update LUA script from: " + setupPath);
-                        boolean cpRet = cmdManager.copyFolder(luaSrc, luaDst);
+                        boolean cpRet = cmdManager.copyFolder(luaSrc, luaDst, null);
                         if (cpRet) {
                             System.out.println("Done");
                         } else {

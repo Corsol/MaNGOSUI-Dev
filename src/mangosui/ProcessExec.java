@@ -12,7 +12,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.concurrent.ExecutionException;
 import javax.swing.JButton;
-import javax.swing.JTextField;
+import javax.swing.JProgressBar;
 
 /**
  *
@@ -20,15 +20,19 @@ import javax.swing.JTextField;
  */
 public class ProcessExec extends javax.swing.SwingWorker {
 
-    String line;
-    String[] commands;
-    Object guiConsole;
-    JButton btnInvoker;
+    private int debugLevel = 0;
+    private String line;
+    private final String[] commands;
+    private final Object guiConsole;
+    private final JButton btnInvoker;
+    private final JProgressBar prbCurrWork;
 
-    public ProcessExec(String[] commands, Object guiConsole, JButton btnInvoker) {
+    public ProcessExec(String[] commands, Object guiConsole, int debugLevel, JButton btnInvoker, JProgressBar prbCurrWork) {
         this.commands = commands;
         this.guiConsole = guiConsole;
         this.btnInvoker = btnInvoker;
+        this.prbCurrWork = prbCurrWork;
+        this.debugLevel = debugLevel;
     }
 
     //implements a method in the swingworker
@@ -38,11 +42,14 @@ public class ProcessExec extends javax.swing.SwingWorker {
         int exitValue = 0;
         ProcessBuilder builder = new ProcessBuilder(commands);
         builder.redirectErrorStream(true);
-        System.out.print("EXECUTING:");
-        for (String cmd : commands) {
-            System.out.print(" " + cmd);
+        String msg = "";
+        if (debugLevel > 0) {
+            msg = "EXECUTING:";
+            for (String cmd : commands) {
+                msg += " " + cmd;
+            }
+            System.out.println(msg);
         }
-        //System.out.print("\n");
         //builder.inheritIO();
         Process proc = builder.start();
         while (!done) {
@@ -51,11 +58,14 @@ public class ProcessExec extends javax.swing.SwingWorker {
                 BufferedReader is = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 
                 while ((line = is.readLine()) != null) {
+                    if (prbCurrWork != null) {
+                        ConsoleManager.getInstance().updateGUIConsole(guiConsole, msg, ConsoleManager.TEXT_ORANGE);
+                    }
                     ConsoleManager.getInstance().updateGUIConsole(guiConsole, line, ConsoleManager.TEXT_BLACK);
                     //publish((line + "\n"));
                 }
                 //if (guiConsole != null) {
-                    //ConsoleManager.getInstance().updateGUIConsole(guiConsole, proc.getInputStream(), ConsoleManager.TEXT_BLACK);
+                //ConsoleManager.getInstance().updateGUIConsole(guiConsole, proc.getInputStream(), ConsoleManager.TEXT_BLACK);
                 //    writeToGUIConsole(proc.getInputStream(), guiConsole, proc);
                 //}
                 exitValue = proc.exitValue();
@@ -81,7 +91,7 @@ public class ProcessExec extends javax.swing.SwingWorker {
          publish((line + "\n"));
          }
          System.out.flush();*/
-         //return null;
+        //return null;
     }
 
     //This will happen on the UI Thread.
@@ -111,6 +121,8 @@ public class ProcessExec extends javax.swing.SwingWorker {
                     btnInvoker.setText("ERROR");
                 }
                 btnInvoker.setEnabled(true);
+            } else if (prbCurrWork != null) {
+                prbCurrWork.setValue(prbCurrWork.getValue() + 1);
             }
             //You will get here if everything was OK.  So show a popup or something to signal done.
         } catch (InterruptedException | ExecutionException ex) {

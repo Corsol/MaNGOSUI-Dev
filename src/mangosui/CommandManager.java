@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import javax.swing.JButton;
+import javax.swing.JProgressBar;
 
 /**
  *
@@ -58,6 +59,7 @@ public class CommandManager {
     //private String OpenSSLPath = "";
     //private String MySQLWinPath = "";
     private JButton btnInvoker;
+    //private JProgressBar prbCurrWork;
 
     /**
      *
@@ -78,6 +80,191 @@ public class CommandManager {
             //macCmd = new CommandsMacOS();
         } else {
         }
+    }
+
+    /*
+
+     ########################
+     # Debian Based Install #
+     ########################
+     sudofile="/etc/sudoers"
+     if [ -f "$sudofile" ]; then
+     echo -e ""
+     echo -e "${BGre}Sudoers is installed." 
+     echo -e "${BGre}Updating User..."  
+     echo "$user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+     sleep 1
+     echo ""
+     echo -e "${BGre}User '$user' has been added to sudoers." 
+     echo -e "" 
+     else
+     echo ""
+     echo -e "${BWhi}-------------------------" 
+     echo -e "${BGre}Sudoers is NOT installed." 
+     echo -e "${BGre}Attempting to install..." 
+     echo -e "${BWhi}-------------------------" 
+     apt-get -y -qq install sudo
+     sleep 1
+     echo -e ""
+     echo -e "${BGre}Making sure sudo exists..." 
+     echo -e ""
+     if [ -f "$sudofile" ]; then
+     echo "$user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+     sleep 1
+     echo -e ""
+     echo -e "${BGre}Sudo exists" 
+     echo -e "${BGre}User '$user' has been added to sudoers." 
+     echo -e ""
+     else
+     echo -e "${BRed}Still unable to locate sudo." 
+     echo -e "${BGre}Please make sure /etc/sudoers exists" 
+     echo -e "${BGre}Or contact the coder, (faded@getmangos.eu)." 
+     fi
+     fi
+     ######
+     #MaNGOS Prepare
+     ######
+     echo -e ""
+     echo -e "${BWhi}---------------------------" 
+     echo -e "${BGre}Preparing Dependencies" 
+     echo -e "${BWhi}---------------------------" 
+     echo -e ""
+     sleep 2
+     echo -e "${BWhi}-------------------------" 
+     echo -e "${BGre}Installing cmake tools..." 
+     echo -e "${BWhi}-------------------------" 
+     sleep 1
+     apt-get -y -qq install cmake 
+     apt-get -y -qq install cmake-qt-gui
+     echo -e "${BCya}Done" 
+     echo -e ""
+     echo -e "${BWhi}-------------------------" 
+     echo -e "${BGre}Installing git and compilers..." 
+     echo -e "${BWhi}-------------------------"
+     sleep 1
+     apt-get -y -qq install git
+     apt-get -y -qq install g++
+     apt-get -y -qq install gcc
+     apt-get -y -qq install make
+     apt-get -y -qq install autoconf
+     echo -e "${BCya}Done" 
+     echo -e ""
+     echo -e "${BWhi}-------------------------" 
+     echo -e "${BGre}Installing required libraries..." 
+     echo -e "${BWhi}-------------------------"
+     sleep 1
+     apt-get -y -qq install libace-ssl-dev
+     apt-get -y -qq install libace-dev
+     apt-get -y -qq install libbz2-dev
+     apt-get -y -qq install libmysql++-dev
+     apt-get -y -qq install libmysqlclient-dev
+     apt-get -y -qq install libssl-dev
+     apt-get -y -qq install zlib1g-dev
+     apt-get -y -qq install libtool
+     echo -e "${BCya}Done" 
+     echo -e ""
+     echo -e "${BWhi}-------------------------" 
+     echo -e "${BGre}Installing mysql..." 
+     echo -e "${BWhi}-------------------------" 
+     sleep 1
+     apt-get -y -qq install mysql-client
+     apt-get -y -qq install mysql-common
+     apt-get -y -qq install mysql-server
+     echo -e "${BCya}Done" 
+     echo -e ""
+     echo -e "${BWhi}-------------------------" 
+     echo -e "${BGre}Finishing up..." 
+     echo -e "${BWhi}-------------------------" 
+     sleep 1
+     apt-get -y -qq install bash
+     apt-get -y -qq install screen
+     apt-get -y -qq install wget
+     echo -e "${BCya}Done" 
+     echo -e ""
+     mangos_install 
+     fi
+     */
+    public boolean checkRootConsole(Object console) {
+        StringBuilder sb = new StringBuilder();
+        String command;
+        boolean ret_val = false;
+        try {
+            switch (CURR_OS) {
+                case 1: // Windows
+                    // Set toBuffer param to true to avoid console text
+                    ret_val = true;//winCmd.gitOperation(command, console, true);
+                    break;
+                case 2: // Unix
+                    command = "id -u";
+                    // Set toBuffer param to true to avoid console text
+                    unixCmd.executeShell(command, console, sb, true, null);
+                    ret_val = sb.toString() != null && "0".equals(sb.toString().trim());
+                    break;
+                case 3: // MAC OS
+                    break;
+                default:
+                    ret_val = false;
+                    break;
+            }
+        } catch (InterruptedException | ExecutionException | IOException ex) {
+            return false;
+        }
+        return ret_val;
+
+    }
+
+    public boolean checkSudoConf(Object console) {
+        StringBuilder sb = new StringBuilder();
+        String command;
+        boolean ret_val = false;
+        try {
+            switch (CURR_OS) {
+                case 1: // Windows
+                    // Set toBuffer param to true to avoid console text
+                    ret_val = true;//winCmd.gitOperation(command, console, true);
+                    break;
+                case 2: // Unix
+                    command = "find /etc/sudoers";
+                    // Set toBuffer param to true to avoid console text
+                    ret_val = unixCmd.executeShell(command, console, sb, true, null);
+                    break;
+                case 3: // MAC OS
+                    break;
+                default:
+                    ret_val = false;
+                    break;
+            }
+        } catch (InterruptedException | ExecutionException | IOException ex) {
+            return false;
+        }
+        return ret_val;
+    }
+
+    public boolean addSudoUser(String user, Object console) {
+        StringBuilder sb = new StringBuilder();
+        String command;
+        boolean ret_val = false;
+        try {
+            switch (CURR_OS) {
+                case 1: // Windows
+                    // Set toBuffer param to true to avoid console text
+                    ret_val = true;//winCmd.gitOperation(command, console, true);
+                    break;
+                case 2: // Unix
+                    command = "echo \"" + user + " ALL=(ALL) NOPASSWD: ALL\" >> /etc/sudoers";
+                    // Set toBuffer param to true to avoid console text
+                    ret_val = unixCmd.executeShell(command, console, sb, true, null);
+                    break;
+                case 3: // MAC OS
+                    break;
+                default:
+                    ret_val = false;
+                    break;
+            }
+        } catch (InterruptedException | ExecutionException | IOException ex) {
+            return false;
+        }
+        return ret_val;
     }
 
     /**
@@ -110,6 +297,57 @@ public class CommandManager {
         return ret_val;
     }
 
+    public boolean checkGit(String winPath, Object console) {
+        String command = "git --version";
+        boolean ret_val = false;
+        try {
+            switch (CURR_OS) {
+                case 1: // Windows
+                    winCmd.setGitPath(winPath);
+                    // Set toBuffer param to true to avoid console text
+                    ret_val = winCmd.gitOperation(command, console, true);
+                    break;
+                case 2: // Unix
+                    // Set toBuffer param to true to avoid console text
+                    ret_val = unixCmd.gitOperation(command, console, true);
+                    break;
+                case 3: // MAC OS
+                    break;
+                default:
+                    ret_val = false;
+                    break;
+            }
+        } catch (InterruptedException | ExecutionException | IOException ex) {
+            return false;
+        }
+        return ret_val;
+    }
+
+    public boolean setupGit(Object console, final JProgressBar prbCurrWork) {
+        StringBuilder sb = new StringBuilder();
+        String command;
+        boolean ret_val = false;
+        try {
+            switch (CURR_OS) {
+                case 1: // Windows
+                    ret_val = true;
+                    break;
+                case 2: // Unix
+                    command = "apt-get -y -qq install git";
+                    ret_val = unixCmd.executeShell(command, console, sb, true, null);
+                    break;
+                case 3: // MAC OS
+                    break;
+                default:
+                    ret_val = false;
+                    break;
+            }
+        } catch (InterruptedException | ExecutionException | IOException ex) {
+            return false;
+        }
+        return ret_val;
+    }
+
     /**
      *
      * @param console
@@ -119,7 +357,7 @@ public class CommandManager {
         StringBuilder sb = new StringBuilder();
         String command = "cmake --help";
         // Set toBuffer param to true to avoid console text
-        return runOSCommand(command, console, sb, true);
+        return runOSCommand(command, console, sb, true, null);
     }
 
     /**
@@ -132,7 +370,7 @@ public class CommandManager {
         StringBuilder sb = new StringBuilder();
         String command = "\"" + pathToCMake + File.separator + "cmake.exe\" --help";
         // Set toBuffer param to true to avoid console text
-        boolean ret = runOSCommand(command, console, sb, true);
+        boolean ret = runOSCommand(command, console, sb, true, null);
         if (ret) {
             this.setWinCmakePath(pathToCMake + File.separator);
         }
@@ -148,7 +386,32 @@ public class CommandManager {
         StringBuilder sb = new StringBuilder();
         String command = "mysql --help";
         // Set toBuffer param to true to avoid console text
-        return runOSCommand(command, console, sb, true);
+        return runOSCommand(command, console, sb, true, null);
+    }
+
+    public boolean setupCMake(Object console, final JProgressBar prbCurrWork) {
+        StringBuilder sb = new StringBuilder();
+        String command;
+        boolean ret_val = false;
+        try {
+            switch (CURR_OS) {
+                case 1: // Windows
+                    ret_val = true;
+                    break;
+                case 2: // Unix
+                    command = "apt-get -y -qq install cmake cmake-qt-gui g++ gcc make autoconf libace-ssl-dev libace-dev libbz2-dev libssl-dev zlib1g-dev libtool";
+                    ret_val = unixCmd.executeShell(command, console, sb, true, null);
+                    break;
+                case 3: // MAC OS
+                    break;
+                default:
+                    ret_val = false;
+                    break;
+            }
+        } catch (InterruptedException | ExecutionException | IOException ex) {
+            return false;
+        }
+        return ret_val;
     }
 
     /**
@@ -161,7 +424,7 @@ public class CommandManager {
         StringBuilder sb = new StringBuilder();
         String command = "." + File.separator + pathToMySQL + File.separator + "mysql.exe --help";
         // Set toBuffer param to true to avoid console text
-        boolean ret = runOSCommand(command, console, sb, true);
+        boolean ret = runOSCommand(command, console, sb, true, null);
         if (ret) {
             MySQLPath = pathToMySQL + File.separator;
         }
@@ -402,6 +665,31 @@ public class CommandManager {
         return ret_val;
     }
 
+    public boolean setupMySQL(Object console, final JProgressBar prbCurrWork) {
+        StringBuilder sb = new StringBuilder();
+        String command;
+        boolean ret_val = false;
+        try {
+            switch (CURR_OS) {
+                case 1: // Windows
+                    ret_val = true;
+                    break;
+                case 2: // Unix
+                    command = "apt-get -y -qq install mysql-server mysql-common mysql-client libmysql++-dev libmysqlclient-dev";
+                    ret_val = unixCmd.executeShell(command, console, sb, true, null);
+                    break;
+                case 3: // MAC OS
+                    break;
+                default:
+                    ret_val = false;
+                    break;
+            }
+        } catch (InterruptedException | ExecutionException | IOException ex) {
+            return false;
+        }
+        return ret_val;
+    }
+
     public boolean checkDBUser(String dbServer, String dbPort, String username, String password, Object console) {
         StringBuilder sb = new StringBuilder();
         String command = MySQLPath + "mysql.exe -q -s --host=" + dbServer + " --port=" + dbPort + " --user=" + username + " --password=" + password;
@@ -412,13 +700,13 @@ public class CommandManager {
             switch (CURR_OS) {
                 case 1: // Windows
                     // Set toBuffer param to true to avoid console text
-                    ret_val = runOSCommand(command + sqlCommand, null, sb, true);
+                    ret_val = runOSCommand(command + sqlCommand, null, sb, true, null);
                     break;
                 case 2: // Unix
                     //ArrayList<String> commands = new ArrayList(Arrays.asList(command.replace(".exe", "").split(" ")));
                     //commands.add(sqlCommand);
                     // Set toBuffer param to true to avoid console text
-                    ret_val = runOSCommand(command.replace(".exe", "") + sqlCommand, null, sb, true);
+                    ret_val = runOSCommand(command.replace(".exe", "") + sqlCommand, null, sb, true, null);
                     break;
                 case 3: // MAC OS
                     break;
@@ -456,13 +744,13 @@ public class CommandManager {
             switch (CURR_OS) {
                 case 1: // Windows
                     // Set toBuffer param to true to avoid console text
-                    ret_val = runOSCommand(command + sqlCommand, null, sb, true);
+                    ret_val = runOSCommand(command + sqlCommand, null, sb, true, null);
                     break;
                 case 2: // Unix
                     //ArrayList<String> commands = new ArrayList(Arrays.asList(command.replace(".exe", "").split(" ")));
                     //commands.add(sqlCommand);
                     // Set toBuffer param to true to avoid console text
-                    ret_val = runOSCommand(command.replace(".exe", "") + sqlCommand, null, sb, true);
+                    ret_val = runOSCommand(command.replace(".exe", "") + sqlCommand, null, sb, true, null);
                     break;
                 case 3: // MAC OS
                     break;
@@ -531,13 +819,13 @@ public class CommandManager {
             switch (CURR_OS) {
                 case 1: // Windows
                     // Set toBuffer param to true to avoid console text
-                    ret_val = runOSCommand(command + sqlCommand, console, sb, false);
+                    ret_val = runOSCommand(command + sqlCommand, console, sb, false, null);
                     break;
                 case 2: // Unix
                     //ArrayList<String> commands = new ArrayList(Arrays.asList(command.replace(".exe", "").split(" ")));
                     //commands.add(sqlCommand);
                     // Set toBuffer param to true to avoid console text
-                    ret_val = runOSCommand(command.replace(".exe", "") + sqlCommand, console, sb, false);
+                    ret_val = runOSCommand(command.replace(".exe", "") + sqlCommand, console, sb, false, null);
                     break;
                 case 3: // MAC OS
                     break;
@@ -560,24 +848,29 @@ public class CommandManager {
      * @return
      */
     //public boolean loadDB(ConfLoader config, String Database, String setupFolder, Object console) {
-    public boolean loadDB(String dbServer, String dbPort, String dbAdmin, String dbAdminPwd, String Database, String setupFolder, Object console) {
+    public boolean loadDB(String dbServer, String dbPort, String dbAdmin, String dbAdminPwd, String Database, String setupFolder, Object console, final JProgressBar prbCurrWork) {
         StringBuilder sb = new StringBuilder();
+        boolean toBuffer = false;
         //String command = "";
         String command = MySQLPath + "mysql.exe -q -s --host=" + dbServer + " --port=" + dbPort + " --user=" + dbAdmin + " --password=" + dbAdminPwd;
         String sqlCommand = " " + Database + " < " + setupFolder;
         //return runOSCommand(command, console, sb, false);
+        if (prbCurrWork != null) {
+            prbCurrWork.setMaximum(1);
+            toBuffer = true;
+        }
         boolean ret_val = false;
         try {
             switch (CURR_OS) {
                 case 1: // Windows
                     // Set toBuffer param to true to avoid console text
-                    ret_val = runOSCommand(command + sqlCommand, console, sb, false);
+                    ret_val = runOSCommand(command + sqlCommand, console, sb, toBuffer, prbCurrWork);
                     break;
                 case 2: // Unix
                     //ArrayList<String> commands = new ArrayList(Arrays.asList(command.replace(".exe", "").split(" ")));
                     //commands.add(sqlCommand);
                     // Set toBuffer param to true to avoid console text
-                    ret_val = runOSCommand(command.replace(".exe", "") + sqlCommand, console, sb, false);
+                    ret_val = runOSCommand(command.replace(".exe", "") + sqlCommand, console, sb, toBuffer, prbCurrWork);
                     break;
                 case 3: // MAC OS
                     break;
@@ -586,7 +879,11 @@ public class CommandManager {
                     break;
             }
         } catch (Exception ex) {
-            return false;
+            ret_val = false;
+        }
+        if (prbCurrWork != null) {
+            prbCurrWork.setValue(prbCurrWork.getMaximum());
+            //ConsoleManager.getInstance().updateGUIConsole(guiConsole, msg, ConsoleManager.TEXT_ORANGE);
         }
         return ret_val;
     }
@@ -600,13 +897,18 @@ public class CommandManager {
      * @return
      */
     //public boolean loadDBUpdate(ConfLoader config, String Database, String updateFolder, Object console) {
-    public boolean loadDBUpdate(String dbServer, String dbPort, String dbAdmin, String dbAdminPwd, String Database, String updateFolder, Object console) {
+    public boolean loadDBUpdate(String dbServer, String dbPort, String dbAdmin, String dbAdminPwd, String Database, String updateFolder, Object console, final JProgressBar prbCurrWork) {
         StringBuilder sb = new StringBuilder();
         String command;
         boolean ret_val = true;
+        boolean toBuffer = false;
         File file = new File(updateFolder);
         if (file.isDirectory() && file.list().length > 0) {
-            for (File subFile : file.listFiles(new SQLFileFilter())) {
+            if (prbCurrWork != null) {
+                prbCurrWork.setMaximum(file.list().length);
+                toBuffer = true;
+            }
+            for (File subFile : file.listFiles(new FileFilterSQL())) {
                 if (!subFile.isDirectory()) {
                     command = MySQLPath + "mysql.exe -q -s --host=" + dbServer + " --port=" + dbPort + " --user=" + dbAdmin + " --password=" + dbAdminPwd;
                     String sqlCommand = " " + Database + " < " + updateFolder + File.separator + subFile.getName();
@@ -615,24 +917,37 @@ public class CommandManager {
                         switch (CURR_OS) {
                             case 1: // Windows
                                 // Set toBuffer param to true to avoid console text
-                                ret_val &= runOSCommand(command + sqlCommand, console, sb, false);
+                                ret_val &= runOSCommand(command + sqlCommand, console, sb, toBuffer, prbCurrWork);
                                 break;
                             case 2: // Unix
                                 //ArrayList<String> commands = new ArrayList(Arrays.asList(command.replace(".exe", "").split(" ")));
                                 //commands.add(sqlCommand);
                                 // Set toBuffer param to true to avoid console text
-                                ret_val &= runOSCommand(command.replace(".exe", "") + sqlCommand, console, sb, false);
+                                ret_val &= runOSCommand(command.replace(".exe", "") + sqlCommand, console, sb, toBuffer, prbCurrWork);
                                 break;
                             case 3: // MAC OS
                                 break;
                             default:
-                                ret_val = false;
+                                ret_val &= false;
                                 break;
                         }
                     } catch (Exception ex) {
-                        return ret_val &= false;
+                        ret_val &= false;
+                    }
+                    /*if (toBuffer && !ret_val) {
+                     System.out.println(sb.toString());
+                     ConsoleManager.getInstance().updateGUIConsole(console, sb.toString(), ConsoleManager.TEXT_RED);
+                     }*/
+                    if (prbCurrWork != null) {
+                        prbCurrWork.setValue(prbCurrWork.getValue() + 1);
+                        //ConsoleManager.getInstance().updateGUIConsole(guiConsole, msg, ConsoleManager.TEXT_ORANGE);
                     }
                 }
+            }
+        } else {
+            if (prbCurrWork != null) {
+                prbCurrWork.setValue(prbCurrWork.getValue() + 1);
+                //ConsoleManager.getInstance().updateGUIConsole(guiConsole, msg, ConsoleManager.TEXT_ORANGE);
             }
         }
         return ret_val;
@@ -881,7 +1196,107 @@ public class CommandManager {
     public boolean gitCheckout(Object console) {
         StringBuilder sb = new StringBuilder();
         String command = "git pull";
-        return runOSCommand(command, console, sb, false);
+        return runOSCommand(command, console, sb, false, null);
+    }
+
+    public boolean mapExtraction(String toolFolder, String clientFolder, String serverFolder, int step, Object console, final JProgressBar prbCurrWork) {
+        StringBuilder sb = new StringBuilder();
+        boolean ret_val = false;
+        if (checkFolder(toolFolder)) {
+            if (!checkFolder(serverFolder)) {
+                File instFld = new File(serverFolder);
+                instFld.mkdirs();
+            }
+            String command = "";
+            switch (step) {
+                case 1:
+                    if (checkFolder(clientFolder)) {
+                    command = "\"\"" + toolFolder + File.separator + "map-extractor.exe\" -i \"" + clientFolder + "\" -o \"" + serverFolder + "\"\"";
+                } else {
+                    String msg = "\nERROR: WoW client folder did not exist.";
+                    if (console != null) {
+                        ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                    } else {
+                        System.out.println(msg);
+                    }
+                }
+                    break;
+                case 2:
+                    if (checkFolder(clientFolder)) {
+                    command = "\"\"" + toolFolder + File.separator + "vmap-extractor.exe\" -d \"" + clientFolder + "\"\"";
+                } else {
+                    String msg = "\nERROR: WoW client folder did not exist.";
+                    if (console != null) {
+                        ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                    } else {
+                        System.out.println(msg);
+                    }
+                }
+                    break;
+                case 3:
+                    if (checkFolder(serverFolder + File.separator + "buildings")) {
+                    if (CURR_OS == 1) {
+                        String acedll = toolFolder.substring(0, toolFolder.lastIndexOf(File.separator)) + File.separator + "ace.dll";
+                        copyFolder(acedll, toolFolder, console);
+                    }
+                    command = "\"\"" + toolFolder + File.separator + "vmap-assembler.exe\" \"" + serverFolder + File.separator + "buildings" + "\" \"" + serverFolder + File.separator + "vmaps" + "\" \"";
+                } else {
+                    String msg = "\nERROR: Buildings folder did not exist.";
+                    if (console != null) {
+                        ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                    } else {
+                        System.out.println(msg);
+                    }
+                }
+                    break;
+                case 4:
+                    if (checkFolder(serverFolder + File.separator + "buildings")) {
+                        String mmap = toolFolder + File.separator + "movemap-generator.exe";
+                        copyFolder(mmap, serverFolder, console);
+                    command = "\"\"" + serverFolder + File.separator + "movemap-generator.exe\" \"";
+                } else {
+                    String msg = "\nERROR: Buildings folder did not exist.";
+                    if (console != null) {
+                        ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                    } else {
+                        System.out.println(msg);
+                    }
+                }
+                    break;
+                default:
+                    break;
+            }
+            //String 
+            //return runOSCommand(String command, Object console, final StringBuilder sb, boolean toBuffer, final JProgressBar prbCurrWork)
+            try {
+                switch (CURR_OS) {
+                    case 1: // Windows
+                        ret_val = winCmd.executeCmd(command, console, sb, false, prbCurrWork);
+                        break;
+                    case 2: // Unix
+                        command = "";
+                        ret_val = unixCmd.executeShell(command.replace(".exe", ""), console, sb, false, prbCurrWork);
+                        //ret_val = runOSCommand(command, console, sb, false);
+                        break;
+                    case 3: // MAC OS
+                        break;
+                    default:
+                        ret_val = false;
+                        break;
+                }
+            } catch (IOException | InterruptedException | ExecutionException ex) {
+                return false;
+            }
+        } else {
+            String msg = "\nERROR: Tools forlder did not exist.";
+            if (console != null) {
+                ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+            } else {
+                System.out.println(msg);
+            }
+        }
+
+        return ret_val;
     }
 
     /**
@@ -920,58 +1335,64 @@ public class CommandManager {
         }
     }
 
-    private boolean runOSCommand(String command, Object console, final StringBuilder sb, boolean toBuffer) {
+    private boolean runOSCommand(String command, Object console, final StringBuilder sb, boolean toBuffer, final JProgressBar prbCurrWork) {
         boolean ret_val = false;
         try {
             switch (CURR_OS) {
                 case 1: // Windows
-                    ret_val = winCmd.executeCmd(command, console, sb, toBuffer);
+                    ret_val = winCmd.executeCmd(command, console, sb, toBuffer, prbCurrWork);
                     break;
                 case 2: // Unix
-                    ret_val = unixCmd.executeShell(command, console, sb, toBuffer);
+                    ret_val = unixCmd.executeShell(command, console, sb, toBuffer, prbCurrWork);
                     break;
                 case 3: // MAC OS
                     break;
                 default:
                     ret_val = false;
                     break;
+
             }
         } catch (IOException | ExecutionException | InterruptedException ex) {
-            Logger.getLogger(CommandManager.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CommandManager.class
+                    .getName()).log(Level.SEVERE, null, ex);
             System.out.println(ex.getLocalizedMessage());
             ex.printStackTrace();
+
             return false;
         }
         return ret_val;
     }
 
-    private boolean runOSCommand(ArrayList<String> command, Object console, final StringBuilder sb, boolean toBuffer) {
+    private boolean runOSCommand(ArrayList<String> command, Object console, final StringBuilder sb, boolean toBuffer, final JProgressBar prbCurrWork) {
         boolean ret_val = false;
         try {
             switch (CURR_OS) {
                 case 1: // Windows
-                    ret_val = winCmd.executeCmd(command, console, sb, toBuffer);
+                    ret_val = winCmd.executeCmd(command, console, sb, toBuffer, prbCurrWork);
                     break;
                 case 2: // Unix
-                    ret_val = unixCmd.executeShell(command, console, sb, toBuffer);
+                    ret_val = unixCmd.executeShell(command, console, sb, toBuffer, prbCurrWork);
                     break;
                 case 3: // MAC OS
                     break;
                 default:
                     ret_val = false;
                     break;
+
             }
         } catch (IOException | ExecutionException | InterruptedException ex) {
-            Logger.getLogger(CommandManager.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CommandManager.class
+                    .getName()).log(Level.SEVERE, null, ex);
             System.out.println(ex.getLocalizedMessage());
             ex.printStackTrace();
+
             return false;
         }
         return ret_val;
     }
 
-    public boolean copyFolder(String source, String dest) {
-        return Command.getInstance().copyFolder(new File(source), new File(dest));
+    public boolean copyFolder(String source, String dest, Object console) {
+        return Command.getInstance().copyFolder(new File(source), new File(dest), console);
     }
 
     /**
@@ -1065,14 +1486,14 @@ public class CommandManager {
     }
 
     public void setBtnInvoker(JButton btnInvoker) {
-        //this.btnInvoker = btnInvoker;
+        this.btnInvoker = btnInvoker;
         try {
             switch (CURR_OS) {
                 case 1: // Windows
                     winCmd.setBtnInvoker(btnInvoker);
                     break;
                 case 2: // Unix
-                    winCmd.setBtnInvoker(btnInvoker);
+                    unixCmd.setBtnInvoker(btnInvoker);
                     break;
                 case 3: // MAC OS
                     break;
@@ -1082,6 +1503,30 @@ public class CommandManager {
         } catch (Exception ex) {
         }
     }
+    /*
+     public JProgressBar getPrbCurrWork() {
+     return prbCurrWork;
+     }
+
+     public void setPrbCurrWork(JProgressBar prbCurrWork) {
+     this.prbCurrWork = prbCurrWork;
+     try {
+     switch (CURR_OS) {
+     case 1: // Windows
+     winCmd.setPrbCurrWork(prbCurrWork);
+     break;
+     case 2: // Unix
+     unixCmd.setPrbCurrWork(prbCurrWork);
+     break;
+     case 3: // MAC OS
+     break;
+     default:
+     break;
+     }
+     } catch (Exception ex) {
+     }
+     }*/
+
 }
 
 /* Default check structure
