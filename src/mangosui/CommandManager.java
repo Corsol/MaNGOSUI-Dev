@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.Object;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
@@ -906,7 +907,9 @@ public class CommandManager {
                 prbCurrWork.setMaximum(file.list().length);
                 toBuffer = true;
             }
-            for (File subFile : file.listFiles(new FileFilterSQL())) {
+            File[] listFiles = file.listFiles(new FileFilterSQL());
+            Arrays.sort(listFiles);
+            for (File subFile : listFiles) {
                 if (!subFile.isDirectory()) {
                     command = MySQLPath + "mysql.exe -q -s --host=" + dbServer + " --port=" + dbPort + " --user=" + dbAdmin + " --password=" + dbAdminPwd;
                     String sqlCommand = " " + Database + " < " + updateFolder + File.separator + subFile.getName();
