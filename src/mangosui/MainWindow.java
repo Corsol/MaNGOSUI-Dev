@@ -68,9 +68,6 @@ public class MainWindow extends WorkExecutor {
         } else {
             pnlDownloadDeps.setVisible(false);
         }
-
-        txtMapTools.setText(getRunFolder() + File.separator + "tools");
-        txtMapServer.setText(getRunFolder() + File.separator + "data");
     }
 
     private void doAllChecks() {
@@ -310,6 +307,10 @@ public class MainWindow extends WorkExecutor {
         }
         Collections.sort(cmakeOptions);
         lstCMakeOptions.setListData(cmakeOptions.toArray(new String[cmakeOptions.size()]));
+
+        txtMapTools.setText(getRunFolder() + File.separator + "tools");
+        txtMapServer.setText(getRunFolder() + File.separator + "data");
+
     }
 
     private ArrayList<String> getListItems(JList jList) {
@@ -2786,8 +2787,14 @@ public class MainWindow extends WorkExecutor {
     }//GEN-LAST:event_btnMapExtractorKeyPressed
 
     private void btnMapExtractorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnMapExtractorMouseClicked
-        //disableComponentCascade(pnlMapExtraction);
+        disableComponentCascade(pnlMapExtraction);
         btnWorkList = new LinkedList<>();
+        chkMapExtracted.setSelected(false);
+        chkVMapExtracted.setSelected(false);
+        chkVMapAssmbled.setSelected(false);
+        chkMMapGenerated.setSelected(false);
+        chkMapCleaning.setSelected(false);
+        prbMapExtraction.setValue(0);
 
         final JButton btnClean = new JButton("Clean");
         PropertyChangeListener btnCleanPropertyChange = new PropertyChangeListener() {
@@ -2795,7 +2802,9 @@ public class MainWindow extends WorkExecutor {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
                 if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
-                    chkMapCleaning.setSelected(true);
+                    if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
+                        chkMapCleaning.setSelected(true);
+                    }
                     prbMapExtraction.setValue(prbMapExtraction.getValue() + 1);
                     btnMapExtractor.setText((String) evt.getNewValue());
                 }
@@ -2809,8 +2818,13 @@ public class MainWindow extends WorkExecutor {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
                 if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
-                    chkMMapGenerated.setSelected(true);
+                    if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
+                        chkMMapGenerated.setSelected(true);
+                    }
                     prbMapExtraction.setValue(prbMapExtraction.getValue() + 1);
+                    if (cmdManager.checkFolder(txtMapServer.getText() + File.separator + "Buildings")) {
+                        cmdManager.deleteFolder(txtMapServer.getText() + File.separator + "Buildings");
+                    }
                     btnClean.setText((String) evt.getNewValue());
                 }
             }
@@ -2823,7 +2837,9 @@ public class MainWindow extends WorkExecutor {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
                 if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
-                    chkVMapAssmbled.setSelected(true);
+                    if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
+                        chkVMapAssmbled.setSelected(true);
+                    }
                     prbMapExtraction.setValue(prbMapExtraction.getValue() + 1);
                     cmdManager.setBtnInvoker(btnMMapGenerator);
                     cmdManager.mapExtraction(txtMapTools.getText(), txtMapClient.getText(), txtMapServer.getText(), 4, txpConsole, null);
@@ -2838,7 +2854,9 @@ public class MainWindow extends WorkExecutor {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
                 if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
-                    chkVMapExtracted.setSelected(true);
+                    if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
+                        chkVMapExtracted.setSelected(true);
+                    }
                     prbMapExtraction.setValue(prbMapExtraction.getValue() + 1);
                     cmdManager.setBtnInvoker(btnVMapAssembler);
                     cmdManager.mapExtraction(txtMapTools.getText(), txtMapClient.getText(), txtMapServer.getText(), 3, txpConsole, null);

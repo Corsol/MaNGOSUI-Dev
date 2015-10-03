@@ -731,14 +731,12 @@ public class CommandManager {
     public boolean checkDBStructure(String dbServer, String dbPort, String dbAdmin, String dbAdminPwd, String worldDBName, String charDBName, String realmDBName, Object console) {
         StringBuilder sb = new StringBuilder();
         String command = MySQLPath + "mysql.exe -q -s --host=" + dbServer + " --port=" + dbPort + " --user=" + dbAdmin + " --password=" + dbAdminPwd;
-        /* This will be implemented better!!!!! */
-        String sqlCommand = " -e \"CREATE TABLE `" + worldDBName + "`.dbcheck(test bit(1)) engine = MEMORY;"
-                + "DROP TABLE `" + worldDBName + "`.dbcheck;"
-                + "CREATE TABLE `" + charDBName + "`.dbcheck(test bit(1)) engine = MEMORY;"
-                + "DROP TABLE `" + charDBName + "`.dbcheck;"
-                + "CREATE TABLE `" + realmDBName + "`.dbcheck(test bit(1)) engine = MEMORY;"
-                + "DROP TABLE `" + realmDBName + "`.dbcheck;\"";
-        // Set toBuffer param to true to avoid console text
+        String sqlCommand = " -e \"CREATE TABLE " + worldDBName + ".dbcheck(test bit(1)) engine = MEMORY;"
+                + "DROP TABLE " + worldDBName + ".dbcheck;"
+                + "CREATE TABLE " + charDBName + ".dbcheck(test bit(1)) engine = MEMORY;"
+                + "DROP TABLE " + charDBName + ".dbcheck;"
+                + "CREATE TABLE " + realmDBName + ".dbcheck(test bit(1)) engine = MEMORY;"
+                + "DROP TABLE " + realmDBName + ".dbcheck;\"";
         boolean ret_val = false;
         try {
             switch (CURR_OS) {
@@ -1211,57 +1209,70 @@ public class CommandManager {
             switch (step) {
                 case 1:
                     if (checkFolder(clientFolder)) {
-                    command = "\"\"" + toolFolder + File.separator + "map-extractor.exe\" -i \"" + clientFolder + "\" -o \"" + serverFolder + "\"\"";
-                } else {
-                    String msg = "\nERROR: WoW client folder did not exist.";
-                    if (console != null) {
-                        ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                        command = "\"\"" + toolFolder + File.separator + "map-extractor.exe\" -i \"" + clientFolder + "\" -o \"" + serverFolder + "\"\"";
                     } else {
-                        System.out.println(msg);
+                        String msg = "\nERROR: WoW client folder does not exist.";
+                        if (console != null) {
+                            ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                        } else {
+                            System.out.println(msg);
+                        }
                     }
-                }
                     break;
                 case 2:
                     if (checkFolder(clientFolder)) {
-                    command = "\"\"" + toolFolder + File.separator + "vmap-extractor.exe\" -d \"" + clientFolder + "\"\"";
-                } else {
-                    String msg = "\nERROR: WoW client folder did not exist.";
-                    if (console != null) {
-                        ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                        if (checkFolder(serverFolder + File.separator + "Buildings")) {
+                            String msg = "\nWARNING: Cleaning Buildings folder of a previus execution.";
+                            if (console != null) {
+                                ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_ORANGE);
+                            } else {
+                                System.out.println(msg);
+                            }
+                            deleteFolder(serverFolder + File.separator + "Buildings");
+                        }
+                        String vmap = toolFolder + File.separator + "vmap-extractor.exe";
+                        copyFolder(vmap, serverFolder + File.separator + "vmap-extractor.exe", console);
+                        command = "cd \"" + serverFolder + "\" & vmap-extractor.exe -d \"" + clientFolder + "\"";
                     } else {
-                        System.out.println(msg);
+                        String msg = "\nERROR: WoW client folder does not exist.";
+                        if (console != null) {
+                            ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                        } else {
+                            System.out.println(msg);
+                        }
                     }
-                }
                     break;
                 case 3:
-                    if (checkFolder(serverFolder + File.separator + "buildings")) {
-                    if (CURR_OS == 1) {
-                        String acedll = toolFolder.substring(0, toolFolder.lastIndexOf(File.separator)) + File.separator + "ace.dll";
-                        copyFolder(acedll, toolFolder, console);
-                    }
-                    command = "\"\"" + toolFolder + File.separator + "vmap-assembler.exe\" \"" + serverFolder + File.separator + "buildings" + "\" \"" + serverFolder + File.separator + "vmaps" + "\" \"";
-                } else {
-                    String msg = "\nERROR: Buildings folder did not exist.";
-                    if (console != null) {
-                        ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                    if (checkFolder(serverFolder + File.separator + "Buildings")) {
+                        if (CURR_OS == 1) {
+                            String acedll = toolFolder.substring(0, toolFolder.lastIndexOf(File.separator)) + File.separator + "ace.dll";
+                            copyFolder(acedll, serverFolder + File.separator + "ace.dll", console);
+                            String vmap = toolFolder + File.separator + "vmap-assembler.exe";
+                            copyFolder(vmap, serverFolder + File.separator + "vmap-assembler.exe", console);
+                        }
+                        command = "cd \"" + serverFolder + "\" & vmap-assembler.exe Buildings vmaps";
                     } else {
-                        System.out.println(msg);
+                        String msg = "\nERROR: Buildings folder does not exist.";
+                        if (console != null) {
+                            ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                        } else {
+                            System.out.println(msg);
+                        }
                     }
-                }
                     break;
                 case 4:
-                    if (checkFolder(serverFolder + File.separator + "buildings")) {
+                    if (checkFolder(serverFolder + File.separator + "vmaps")) {
                         String mmap = toolFolder + File.separator + "movemap-generator.exe";
-                        copyFolder(mmap, serverFolder, console);
-                    command = "\"\"" + serverFolder + File.separator + "movemap-generator.exe\" \"";
-                } else {
-                    String msg = "\nERROR: Buildings folder did not exist.";
-                    if (console != null) {
-                        ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                        copyFolder(mmap, serverFolder + File.separator + "movemap-generator.exe", console);
+                        command = "cd \"" + serverFolder + "\" & movemap-generator.exe ";
                     } else {
-                        System.out.println(msg);
+                        String msg = "\nERROR: vmaps folder does not exist.";
+                        if (console != null) {
+                            ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                        } else {
+                            System.out.println(msg);
+                        }
                     }
-                }
                     break;
                 default:
                     break;
