@@ -26,7 +26,7 @@ public class MaNGOSUI extends WorkExecutor {
     public static void main(String[] args) {
 
         if (args.length > 0 && args[0].equalsIgnoreCase("-c")) {
-            System.out.println("MaNGOS Universal Installer: console mode.\n");
+            System.out.println("MaNGOS Universal Installer: console mode.\nCredit to: Antz (for MySQL and OpenSSL checks) and Faded (for unix dependecy setup)\n");
 
             System.out.print("Loading configuration file...");
             ConfLoader confLoader = new ConfLoader();
@@ -703,23 +703,23 @@ public class MaNGOSUI extends WorkExecutor {
                     System.out.println("Checking Cmake installation... ");
                     cmakeOk = checkCMake(confLoader.getWin32PathCMake(), confLoader.getWin64PathCMake(), cmdManager, null, null);
                     /*if (!cmdManager.checkCMAKE(null)) {
-                        System.out.println("INFO: CMAKE is not installed into PATH/shell environment... checking for cmake.exe installation folder.");
-                        String cmake32Path = confLoader.getWin32PathCMake();
-                        String cmake64Path = confLoader.getWin64PathCMake();
-                        if (cmdManager.checkCMAKE(cmake32Path, null)) {
-                            cmakeOk = true;
-                            System.out.println("INFO: Founded CMAKE commands on x86 system.");
-                        } else if (cmdManager.checkCMAKE(cmake64Path, null)) {
-                            cmakeOk = true;
-                            System.out.println("INFO: Founded CMAKE commands on x64 system.");
-                        } else {
-                            System.out.println("ERROR: CMAKE commands not found on system. Check CMAKE installation!.");
-                        }
-                    } else {
-                        // cmakePath =
-                        cmakeOk = true;
-                        System.out.println("INFO: Founded CMAKE commands.");
-                    }*/
+                     System.out.println("INFO: CMAKE is not installed into PATH/shell environment... checking for cmake.exe installation folder.");
+                     String cmake32Path = confLoader.getWin32PathCMake();
+                     String cmake64Path = confLoader.getWin64PathCMake();
+                     if (cmdManager.checkCMAKE(cmake32Path, null)) {
+                     cmakeOk = true;
+                     System.out.println("INFO: Founded CMAKE commands on x86 system.");
+                     } else if (cmdManager.checkCMAKE(cmake64Path, null)) {
+                     cmakeOk = true;
+                     System.out.println("INFO: Founded CMAKE commands on x64 system.");
+                     } else {
+                     System.out.println("ERROR: CMAKE commands not found on system. Check CMAKE installation!.");
+                     }
+                     } else {
+                     // cmakePath =
+                     cmakeOk = true;
+                     System.out.println("INFO: Founded CMAKE commands.");
+                     }*/
                     if (cmakeOk) {
                         if (cmdManager.checkMySQLLib("", null).isEmpty() || cmdManager.checkMySQLInclude("", null).isEmpty()) {
                             System.out.println("ERROR: MySQL library for CMAKE was not found on system. Do you want to use portable version?");
@@ -780,7 +780,7 @@ public class MaNGOSUI extends WorkExecutor {
                         System.out.print("\nDo you want to compile and install built source (into folder '" + confLoader.getCMakeRunFolder().replace("\"", "") + "')? [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
-                            cmdManager.cmakeInstall(confLoader.getCMakeBuildFolder(), confLoader.getCMakeRunFolder(), null);
+                            cmdManager.cmakeInstall(confLoader.getCMakeBuildFolder(), confLoader.getCMakeRunFolder(), confLoader.getCMakeBuildType(), null);
                         }
                     } else {
                         System.out.println("\n*** Compiling operation skipped. CMAKE command not ready.");

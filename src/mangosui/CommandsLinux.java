@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JProgressBar;
 
 /**
@@ -19,10 +21,20 @@ import javax.swing.JProgressBar;
 public class CommandsLinux extends Command {
 //public class CommandsLinux {
 
+    private String catalogCommand = "";
+
     /**
      *
      */
     public CommandsLinux() {
+        String osName = getOSDistroName();
+        if (!osName.isEmpty()) {
+            if (osName.contains("Debian") || osName.contains("buntu")) {
+                catalogCommand = "apt-get -y -qq";
+            } else if (osName.contains("RedHat")) {
+                catalogCommand = "yum -y -qq";
+            }
+        }
     }
 
     /**
@@ -67,6 +79,23 @@ public class CommandsLinux extends Command {
             }
         }
         return execute(command.toArray(new String[command.size()]), guiConsole, rawConsole, toBuffer, prbCurrWork);
+    }
+
+    private String getOSDistroName() {
+        StringBuilder sb = new StringBuilder();
+        String command = "cat /etc/*-release";
+        try {
+            if (executeShell(command, null, sb, true, null) && sb.toString().contains("NAME")) {
+                int start = sb.toString().indexOf("NAME");
+                String partSub = sb.toString().substring(start);
+                start = partSub.indexOf("=");
+                int end = partSub.indexOf("\n");
+                return partSub.substring(start, end);
+            }
+        } catch (IOException | InterruptedException | ExecutionException ex) {
+            Logger.getLogger(CommandsLinux.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return "";
     }
 
     /**
@@ -289,6 +318,10 @@ public class CommandsLinux extends Command {
 
         //command.add(cmd);
         return executeShell(command, console, sb, false, null);
+    }
+
+    public String getCatalogCommand() {
+        return catalogCommand;
     }
 
 }

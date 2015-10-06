@@ -82,7 +82,7 @@ public class ConsoleManager {
      * @param text
      * @param textColor
      */
-    public void updateGUIConsole(Object console, String text, int textColor) {
+    public void updateGUIConsole(final Object console, String text, int textColor) {
         try {
             StyledDocument doc = ((JTextPane) console).getStyledDocument();
             Style style;
@@ -123,5 +123,6 @@ public class ConsoleManager {
             System.out.println("Unable to write to GUI console: " + ex.getLocalizedMessage());
             ex.printStackTrace();
         }
+        ((JTextPane) console).setCaretPosition(((JTextPane) console).getDocument().getLength());
     }
 }

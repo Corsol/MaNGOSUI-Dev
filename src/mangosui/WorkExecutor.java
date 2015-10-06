@@ -261,6 +261,19 @@ public class WorkExecutor extends javax.swing.JFrame {
 
     }
 
+    public static boolean checkOpenSSL(CommandManager cmdManager, ConsoleManager console, Object txpConsole) {
+        String outMsg;
+        if (cmdManager.checkOpenSSLInclude("", null).isEmpty() || cmdManager.checkOpenSSLLib("", null).isEmpty()) {
+            outMsg = "ERROR: OpenSSL libraries not found on system. Check OpenSSL installation!.";
+            sendOutput(outMsg, console, txpConsole, ConsoleManager.TEXT_RED);
+            return false;
+        } else {
+            outMsg = "INFO: Founded OpenSSL libraries.";
+            sendOutput(outMsg, console, txpConsole, ConsoleManager.TEXT_BLUE);
+            return true;
+        }
+    }
+
     /*    public static boolean checkCMakeBuild(String buildFolder, CommandManager cmdManager, ConsoleManager console, Object txpConsole) {
      String outMsg;
      if (cmdManager.checkFolder(buildFolder)){

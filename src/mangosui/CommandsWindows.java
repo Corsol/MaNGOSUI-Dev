@@ -346,7 +346,7 @@ public class CommandsWindows extends Command {
      * @throws InterruptedException
      */
     //@Override
-    public boolean cmakeInstall(String buildFolder, String runFolder, Object console) throws IOException, InterruptedException, ExecutionException {
+    public boolean cmakeInstall(String buildFolder, String runFolder, String buildType, Object console) throws IOException, InterruptedException, ExecutionException {
         StringBuilder sb = new StringBuilder();
         runFolder = runFolder.replace("\"", "");
         File folder = new File(runFolder);
@@ -365,7 +365,7 @@ public class CommandsWindows extends Command {
         }
         System.out.println(txtCopy);
         if (ret) {
-            super.copyFolder(new File(buildFolder + File.separator + "bin" + File.separator + "Debug"), folder, console);
+            super.copyFolder(new File(buildFolder + File.separator + "bin" + File.separator + buildType), folder, console);
         }
         return ret;
     }
@@ -384,7 +384,7 @@ public class CommandsWindows extends Command {
         if (gitPath.isEmpty()) {
             command = pre + " & " + command;
             /*cmdCommand.add(pre);
-            cmdCommand.add(command);*/
+             cmdCommand.add(command);*/
             return executeCmd(command, null, sb, true, null);
         } else {
             String psCommand = pre + " & \"" + gitPath + File.separator + "shell.ps1\" \n " + command;

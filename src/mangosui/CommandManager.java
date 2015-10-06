@@ -334,8 +334,8 @@ public class CommandManager {
                     ret_val = true;
                     break;
                 case 2: // Unix
-                    command = "apt-get -y -qq install git";
-                    ret_val = unixCmd.executeShell(command, console, sb, true, null);
+                    command = unixCmd.getCatalogCommand() + " install git";
+                    ret_val = unixCmd.executeShell(command, console, sb, true, prbCurrWork);
                     break;
                 case 3: // MAC OS
                     break;
@@ -378,18 +378,6 @@ public class CommandManager {
         return ret;
     }
 
-    /**
-     *
-     * @param console
-     * @return
-     */
-    public boolean checkMySQL(Object console) {
-        StringBuilder sb = new StringBuilder();
-        String command = "mysql --help";
-        // Set toBuffer param to true to avoid console text
-        return runOSCommand(command, console, sb, true, null);
-    }
-
     public boolean setupCMake(Object console, final JProgressBar prbCurrWork) {
         StringBuilder sb = new StringBuilder();
         String command;
@@ -400,8 +388,8 @@ public class CommandManager {
                     ret_val = true;
                     break;
                 case 2: // Unix
-                    command = "apt-get -y -qq install cmake cmake-qt-gui g++ gcc make autoconf libace-ssl-dev libace-dev libbz2-dev libssl-dev zlib1g-dev libtool";
-                    ret_val = unixCmd.executeShell(command, console, sb, true, null);
+                    command = unixCmd.getCatalogCommand() + " install cmake cmake-qt-gui g++ gcc make autoconf libace-ssl-dev libace-dev libbz2-dev zlib1g-dev libtool";
+                    ret_val = unixCmd.executeShell(command, console, sb, true, prbCurrWork);
                     break;
                 case 3: // MAC OS
                     break;
@@ -413,6 +401,43 @@ public class CommandManager {
             return false;
         }
         return ret_val;
+    }
+
+    public boolean setupOpenSSL(Object console, final JProgressBar prbCurrWork) {
+        StringBuilder sb = new StringBuilder();
+        String command;
+        boolean ret_val = false;
+        try {
+            switch (CURR_OS) {
+                case 1: // Windows
+                    ret_val = true;
+                    break;
+                case 2: // Unix
+                    command = unixCmd.getCatalogCommand() + " install libssl-dev";
+                    ret_val = unixCmd.executeShell(command, console, sb, true, prbCurrWork);
+                    break;
+                case 3: // MAC OS
+                    break;
+                default:
+                    ret_val = false;
+                    break;
+            }
+        } catch (InterruptedException | ExecutionException | IOException ex) {
+            return false;
+        }
+        return ret_val;
+    }
+
+    /**
+     *
+     * @param console
+     * @return
+     */
+    public boolean checkMySQL(Object console) {
+        StringBuilder sb = new StringBuilder();
+        String command = "mysql --help";
+        // Set toBuffer param to true to avoid console text
+        return runOSCommand(command, console, sb, true, null);
     }
 
     /**
@@ -676,8 +701,8 @@ public class CommandManager {
                     ret_val = true;
                     break;
                 case 2: // Unix
-                    command = "apt-get -y -qq install mysql-server mysql-common mysql-client libmysql++-dev libmysqlclient-dev";
-                    ret_val = unixCmd.executeShell(command, console, sb, true, null);
+                    command = unixCmd.getCatalogCommand() + " install mysql-server mysql-common mysql-client libmysql++-dev libmysqlclient-dev";
+                    ret_val = unixCmd.executeShell(command, console, sb, true, prbCurrWork);
                     break;
                 case 3: // MAC OS
                     break;
@@ -780,16 +805,6 @@ public class CommandManager {
         }
 
     }
-    /*public boolean checkOpenSSL(String pathToOpenSSL, Object console){
-     StringBuilder sb = new StringBuilder();
-     File file = new File(pathToOpenSSL);
-     // Set toBuffer param to true to avoid console text
-     boolean ret = file.exists();
-     if (ret) {
-     MySQLPath = pathToOpenSSL + File.separator;
-     }
-     return ret;
-     }*/
 
     /**
      *
@@ -994,12 +1009,12 @@ public class CommandManager {
      * @param console
      * @return
      */
-    public boolean cmakeInstall(String buildFolder, String runFolder, Object console) {
+    public boolean cmakeInstall(String buildFolder, String runFolder, String buildType, Object console) {
         boolean ret_val = false;
         try {
             switch (CURR_OS) {
                 case 1: // Windows
-                    ret_val = winCmd.cmakeInstall(buildFolder, runFolder, console);
+                    ret_val = winCmd.cmakeInstall(buildFolder, runFolder, buildType, console);
                     break;
                 case 2: // Unix
                     ret_val = unixCmd.cmakeInstall(buildFolder, runFolder, console);
@@ -1153,7 +1168,6 @@ public class CommandManager {
      * @return
      */
     public boolean gitDownload(String url, String folder, String branch, String proxyServer, String proxyPort, Object console) {
-        StringBuilder sb = new StringBuilder();
         String command = "git clone --recursive";
         if (!branch.isEmpty()) {
             command += " -b " + branch;
@@ -1212,70 +1226,104 @@ public class CommandManager {
             switch (step) {
                 case 1:
                     if (checkFolder(clientFolder)) {
-                        command = "\"\"" + toolFolder + File.separator + "map-extractor.exe\" -i \"" + clientFolder + "\" -o \"" + serverFolder + "\"\"";
-                    } else {
-                        String msg = "\nERROR: WoW client folder does not exist.";
-                        if (console != null) {
-                            ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
-                        } else {
-                            System.out.println(msg);
-                        }
+                    command = "\"\"" + toolFolder + File.separator + "map-extractor.exe\" -i \"" + clientFolder + "\" -o \"" + serverFolder + "\"\"";
+                    if (CURR_OS == 2) {
+                        command = command.substring(1, command.length() - 1);
                     }
+                } else {
+                    String msg = "\nERROR: WoW client folder does not exist.";
+                    if (console != null) {
+                        ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                    } else {
+                        System.out.println(msg);
+                    }
+                    btnInvoker.setText("ERROR");
+                }
                     break;
                 case 2:
                     if (checkFolder(clientFolder)) {
-                        if (checkFolder(serverFolder + File.separator + "Buildings")) {
-                            String msg = "\nWARNING: Cleaning Buildings folder of a previus execution.";
-                            if (console != null) {
-                                ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_ORANGE);
-                            } else {
-                                System.out.println(msg);
-                            }
-                            deleteFolder(serverFolder + File.separator + "Buildings");
-                        }
-                        String vmap = toolFolder + File.separator + "vmap-extractor.exe";
-                        copyFolder(vmap, serverFolder + File.separator + "vmap-extractor.exe", console);
-                        command = "cd \"" + serverFolder + "\" & vmap-extractor.exe -d \"" + clientFolder + "\"";
-                    } else {
-                        String msg = "\nERROR: WoW client folder does not exist.";
+                    if (checkFolder(serverFolder + File.separator + "Buildings")) {
+                        String msg = "\nWARNING: Cleaning Buildings folder of a previus execution.";
                         if (console != null) {
-                            ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                            ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_ORANGE);
                         } else {
                             System.out.println(msg);
                         }
+                        deleteFolder(serverFolder + File.separator + "Buildings");
                     }
+                    String vmap = toolFolder + File.separator + "vmap-extractor.exe";
+                    String dst = serverFolder + File.separator + "vmap-extractor.exe";
+                    if (CURR_OS == 2) {
+                        vmap = vmap.replace(".exe", "");
+                        dst = dst.replace(".exe", "");
+                    }
+                    copyFolder(vmap, dst, console);
+                    String fixPermission = "";
+                    if (CURR_OS == 2) {
+                        fixPermission = "; chmod 755 vmap-extractor ";
+                    }
+                    command = "cd \"" + serverFolder + "\" " + fixPermission + " & ." + File.separator + "vmap-extractor.exe -d \"" + clientFolder + "\"";
+                } else {
+                    String msg = "\nERROR: WoW client folder does not exist.";
+                    if (console != null) {
+                        ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                    } else {
+                        System.out.println(msg);
+                    }
+                    btnInvoker.setText("ERROR");
+                }
                     break;
                 case 3:
                     if (checkFolder(serverFolder + File.separator + "Buildings")) {
-                        if (CURR_OS == 1) {
-                            String acedll = toolFolder.substring(0, toolFolder.lastIndexOf(File.separator)) + File.separator + "ace.dll";
-                            copyFolder(acedll, serverFolder + File.separator + "ace.dll", console);
-                            String vmap = toolFolder + File.separator + "vmap-assembler.exe";
-                            copyFolder(vmap, serverFolder + File.separator + "vmap-assembler.exe", console);
-                        }
-                        command = "cd \"" + serverFolder + "\" & vmap-assembler.exe Buildings vmaps";
-                    } else {
-                        String msg = "\nERROR: Buildings folder does not exist.";
-                        if (console != null) {
-                            ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
-                        } else {
-                            System.out.println(msg);
-                        }
+                    if (CURR_OS == 1) {
+                        String acedll = toolFolder.substring(0, toolFolder.lastIndexOf(File.separator)) + File.separator + "ace.dll";
+                        copyFolder(acedll, serverFolder + File.separator + "ace.dll", console);
                     }
+                    String vmap = toolFolder + File.separator + "vmap-assembler.exe";
+                    String dst = serverFolder + File.separator + "vmap-assembler.exe";
+                    if (CURR_OS == 2) {
+                        vmap = vmap.replace(".exe", "");
+                        dst = dst.replace(".exe", "");
+                    }
+                    copyFolder(vmap, dst, console);
+                    String fixPermission = "";
+                    if (CURR_OS == 2) {
+                        fixPermission = "; chmod 755 vmap-assembler ";
+                    }
+                    command = "cd \"" + serverFolder + "\" " + fixPermission + " & ." + File.separator + "vmap-assembler.exe Buildings vmaps";
+                } else {
+                    String msg = "\nERROR: Buildings folder does not exist.";
+                    if (console != null) {
+                        ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                    } else {
+                        System.out.println(msg);
+                    }
+                    btnInvoker.setText("ERROR");
+                }
                     break;
                 case 4:
                     if (checkFolder(serverFolder + File.separator + "vmaps")) {
-                        String mmap = toolFolder + File.separator + "movemap-generator.exe";
-                        copyFolder(mmap, serverFolder + File.separator + "movemap-generator.exe", console);
-                        command = "cd \"" + serverFolder + "\" & movemap-generator.exe ";
-                    } else {
-                        String msg = "\nERROR: vmaps folder does not exist.";
-                        if (console != null) {
-                            ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
-                        } else {
-                            System.out.println(msg);
-                        }
+                    String mmap = toolFolder + File.separator + "movemap-generator.exe";
+                    String dst = serverFolder + File.separator + "movemap-generator.exe";
+                    if (CURR_OS == 2) {
+                        mmap = mmap.replace(".exe", "");
+                        dst = dst.replace(".exe", "");
                     }
+                    copyFolder(mmap, dst, console);
+                    String fixPermission = "";
+                    if (CURR_OS == 2) {
+                        fixPermission = "; chmod 755 movemap-generator ";
+                    }
+                    command = "cd \"" + serverFolder + "\" " + fixPermission + " & ." + File.separator + "movemap-generator.exe ";
+                } else {
+                    String msg = "\nERROR: vmaps folder does not exist.";
+                    if (console != null) {
+                        ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
+                    } else {
+                        System.out.println(msg);
+                    }
+                    btnInvoker.setText("ERROR");
+                }
                     break;
                 default:
                     break;
@@ -1288,8 +1336,7 @@ public class CommandManager {
                         ret_val = winCmd.executeCmd(command, console, sb, false, prbCurrWork);
                         break;
                     case 2: // Unix
-                        command = "";
-                        ret_val = unixCmd.executeShell(command.replace(".exe", ""), console, sb, false, prbCurrWork);
+                        ret_val = unixCmd.executeShell(command.replace(".exe", "").replace("&", ";"), console, sb, false, prbCurrWork);
                         //ret_val = runOSCommand(command, console, sb, false);
                         break;
                     case 3: // MAC OS
@@ -1308,6 +1355,8 @@ public class CommandManager {
             } else {
                 System.out.println(msg);
             }
+            btnInvoker.setText("ERROR");
+            ret_val = false;
         }
 
         return ret_val;

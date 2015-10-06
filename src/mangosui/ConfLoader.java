@@ -57,6 +57,7 @@ public class ConfLoader {
     private HashMap<String, String> cmakeOptions;
     private String CMakeBuildFolder = "";
     private String CMakeRunFolder = "";
+    private String CMakeBuildType = "";
     private String OPENSSL_LIBRARIES = "";
     private String OPENSSL_INCLUDE_DIR = "";
 
@@ -66,6 +67,10 @@ public class ConfLoader {
     private String WinGitExtPath = "";
     private String Win32PathCMake = "";
     private String Win64PathCMake = "";
+    private String URLGit = "";
+    private String URLMySQL = "";
+    private String URLCMake = "";
+    private String URLOpenSSL = "";
 
     private boolean confLoaded = false;
 
@@ -120,6 +125,7 @@ public class ConfLoader {
             cmakeOptions = prop.getPropertyArray("cmake");
             CMakeBuildFolder = prop.getProperty("CMakeBuildFolder", "");
             CMakeRunFolder = prop.getProperty("cmake.CMAKE_INSTALL_PREFIX", "");
+            CMakeBuildType = prop.getProperty("cmake.CMAKE_BUILD_TYPE", "");
             OPENSSL_LIBRARIES = prop.getProperty("cmake.OPENSSL_LIBRARIES", "");
             OPENSSL_INCLUDE_DIR = prop.getProperty("cmake.OPENSSL_INCLUDE_DIR", "");
 
@@ -129,6 +135,10 @@ public class ConfLoader {
             WinGitExtPath = prop.getProperty("WinGitExtPath", "");
             Win32PathCMake = prop.getProperty("Win32PathCMake", "");
             Win64PathCMake = prop.getProperty("Win64PathCMake", "");
+            URLGit = prop.getProperty("URLGit", "");
+            URLMySQL = prop.getProperty("URLMySQL", "");
+            URLCMake = prop.getProperty("URLCMake", "");
+            URLOpenSSL = prop.getProperty("URLOpenSSL", "");
 
             confLoaded = true;
         } catch (IOException ex) {
@@ -841,6 +851,14 @@ public class ConfLoader {
         this.CMakeRunFolder = CMakeRunFolder;
     }
 
+    public String getCMakeBuildType() {
+        return CMakeBuildType;
+    }
+
+    public void setCMakeBuildType(String CMakeBuildType) {
+        this.CMakeBuildType = CMakeBuildType;
+    }
+
     /**
      * @return the OPENSSL_LIBRARIES
      */
@@ -878,6 +896,38 @@ public class ConfLoader {
 
     public void setMaNGOSVersions(HashMap<String, String> MaNGOSVersions) {
         this.MaNGOSVersions = MaNGOSVersions;
+    }
+
+    public String getURLGit() {
+        return URLGit;
+    }
+
+    public void setURLGit(String URLGit) {
+        this.URLGit = URLGit;
+    }
+
+    public String getURLMySQL() {
+        return URLMySQL;
+    }
+
+    public void setURLMySQL(String URLMySQL) {
+        this.URLMySQL = URLMySQL;
+    }
+
+    public String getURLCMake() {
+        return URLCMake;
+    }
+
+    public void setURLCMake(String URLCMake) {
+        this.URLCMake = URLCMake;
+    }
+
+    public String getURLOpenSSL() {
+        return URLOpenSSL;
+    }
+
+    public void setURLOpenSSL(String URLOpenSSL) {
+        this.URLOpenSSL = URLOpenSSL;
     }
 
 }
