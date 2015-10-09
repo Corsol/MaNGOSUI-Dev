@@ -12,7 +12,7 @@ import javax.swing.JTextPane;
  *
  * @author Simone
  */
-public abstract class MacOSCommand extends Command{
+public abstract class MacOSCommand extends Command {
 
     /**
      *
@@ -20,5 +20,4 @@ public abstract class MacOSCommand extends Command{
     public MacOSCommand() {
     }
 
-    
 }

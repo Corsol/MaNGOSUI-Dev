@@ -84,7 +84,7 @@ public class PropertiesEx extends Properties {
         Collections.sort(mapKey);
         for (String prop : mapKey) {
             if (prop.contains(keyPart)) {
-                //System.out.println("Adding: " + prop);
+                //System.console().printf("%s", "Adding: " + prop);
                 props.put(prop, this.getProperty(prop));
             }
         }

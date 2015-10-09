@@ -15,13 +15,32 @@ import javax.swing.JProgressBar;
  */
 public class WorkExecutor extends javax.swing.JFrame {
 
+    /**
+     *
+     */
     public static final int CONSOLE = 1;
+
+    /**
+     *
+     */
     public static final int JTEXT = 2;
     //private static ConsoleManager consColor;
 
+    /**
+     *
+     */
     public WorkExecutor() {
     }
 
+    /**
+     *
+     * @param winPSPath
+     * @param winCMDPath
+     * @param cmdManager
+     * @param console
+     * @param txpConsole
+     * @return
+     */
     public static boolean checkGit(String winPSPath, String winCMDPath, CommandManager cmdManager, ConsoleManager console, Object txpConsole) {
         /*
          if (!cmdManager.checkCMAKE(null)) {
@@ -72,6 +91,19 @@ public class WorkExecutor extends javax.swing.JFrame {
         }
     }
 
+    /**
+     *
+     * @param action
+     * @param gitURL
+     * @param destFolder
+     * @param gitBranch
+     * @param gitProxyServer
+     * @param gitProxyPort
+     * @param cmdManager
+     * @param console
+     * @param txpConsole
+     * @return
+     */
     public static boolean gitDownload(String action, String gitURL, String destFolder, String gitBranch, String gitProxyServer, String gitProxyPort, CommandManager cmdManager, ConsoleManager console, Object txpConsole) {
         String outMsg;
         if (action.equalsIgnoreCase("N")) {
@@ -130,12 +162,27 @@ public class WorkExecutor extends javax.swing.JFrame {
 
     }
 
+    /**
+     *
+     * @param txtBox
+     * @param gitUrl
+     * @return
+     */
     public static String setGitFolder(String txtBox, String gitUrl) {
         return txtBox.isEmpty() && !gitUrl.isEmpty()
                 ? gitUrl.substring(gitUrl.lastIndexOf("/") + 1, gitUrl.length() - 4)
                 : txtBox;
     }
 
+    /**
+     *
+     * @param dbFolder
+     * @param pathToMySQL
+     * @param cmdManager
+     * @param console
+     * @param txpConsole
+     * @return
+     */
     public static boolean checkMySQL(String dbFolder, String pathToMySQL, CommandManager cmdManager, ConsoleManager console, Object txpConsole) {
         String outMsg;
         if (!cmdManager.checkMySQL(null)) {
@@ -158,6 +205,22 @@ public class WorkExecutor extends javax.swing.JFrame {
         }
     }
 
+    /**
+     *
+     * @param dbServer
+     * @param dbPort
+     * @param dbAdmin
+     * @param dbAdminPwd
+     * @param dbUser
+     * @param dbUserPwd
+     * @param worldDBName
+     * @param charDBName
+     * @param realmDBName
+     * @param cmdManager
+     * @param console
+     * @param txpConsole
+     * @return
+     */
     public static boolean checkDBExistance(String dbServer, String dbPort, String dbAdmin, String dbAdminPwd, String dbUser, String dbUserPwd, String worldDBName, String charDBName, String realmDBName, CommandManager cmdManager, ConsoleManager console, Object txpConsole) {
         String outMsg;
         if (cmdManager.checkDBUser(dbServer, dbPort, dbAdmin, dbAdminPwd, txpConsole)
@@ -173,12 +236,45 @@ public class WorkExecutor extends javax.swing.JFrame {
         }
     }
 
+    /**
+     *
+     * @param dbServer
+     * @param dbPort
+     * @param dbAdmin
+     * @param dbAdminPwd
+     * @param dbUser
+     * @param dbUserPwd
+     * @param worldDBName
+     * @param charDBName
+     * @param realmDBName
+     * @param cmdManager
+     * @param console
+     * @param txpConsole
+     * @return
+     */
     public static boolean mysqlCreateDB(String dbServer, String dbPort, String dbAdmin, String dbAdminPwd, String dbUser, String dbUserPwd, String worldDBName, String charDBName, String realmDBName, CommandManager cmdManager, ConsoleManager console, Object txpConsole) {
         String outMsg = "Installing new database...";
         sendOutput(outMsg, console, txpConsole, ConsoleManager.TEXT_BLUE);
         return cmdManager.createDB(dbServer, dbPort, dbAdmin, dbAdminPwd, dbUser, dbUserPwd, worldDBName, charDBName, realmDBName, txpConsole);
     }
 
+    /**
+     *
+     * @param dbServer
+     * @param dbPort
+     * @param dbAdmin
+     * @param dbAdminPwd
+     * @param baseFolder
+     * @param dbFolder
+     * @param loadScript
+     * @param dbName
+     * @param dbSetupFolder
+     * @param cmdManager
+     * @param console
+     * @param txpConsole
+     * @param prbCurrWork
+     * @return
+     */
     public static boolean mysqlLoadDB(String dbServer, String dbPort, String dbAdmin, String dbAdminPwd, String baseFolder, String dbFolder, String loadScript, String dbName, String dbSetupFolder, CommandManager cmdManager, ConsoleManager console, Object txpConsole, final JProgressBar prbCurrWork) {
         String outMsg;
         String setupPath = baseFolder + File.separator
@@ -198,6 +294,24 @@ public class WorkExecutor extends javax.swing.JFrame {
         }
     }
 
+    /**
+     *
+     * @param dbServer
+     * @param dbPort
+     * @param dbAdmin
+     * @param dbAdminPwd
+     * @param baseFolder
+     * @param dbFolder
+     * @param updFolders
+     * @param fullUpdPath
+     * @param dbName
+     * @param dbUpdateFolder
+     * @param cmdManager
+     * @param console
+     * @param txpConsole
+     * @param prbCurrWork
+     * @return
+     */
     public static boolean mysqlUpdateDB(String dbServer, String dbPort, String dbAdmin, String dbAdminPwd, String baseFolder, String dbFolder, ArrayList<String> updFolders, String fullUpdPath, String dbName, String dbUpdateFolder, CommandManager cmdManager, ConsoleManager console, Object txpConsole, final JProgressBar prbCurrWork) {
         String outMsg;
         boolean dbRet = true;
@@ -231,6 +345,15 @@ public class WorkExecutor extends javax.swing.JFrame {
         }
     }
 
+    /**
+     *
+     * @param cmake32Path
+     * @param cmake64Path
+     * @param cmdManager
+     * @param console
+     * @param txpConsole
+     * @return
+     */
     public static boolean checkCMake(String cmake32Path, String cmake64Path, CommandManager cmdManager, ConsoleManager console, Object txpConsole) {
         String outMsg;
         if (!cmdManager.checkCMAKE(null)) {
@@ -261,6 +384,13 @@ public class WorkExecutor extends javax.swing.JFrame {
 
     }
 
+    /**
+     *
+     * @param cmdManager
+     * @param console
+     * @param txpConsole
+     * @return
+     */
     public static boolean checkOpenSSL(CommandManager cmdManager, ConsoleManager console, Object txpConsole) {
         String outMsg;
         if (cmdManager.checkOpenSSLInclude("", null).isEmpty() || cmdManager.checkOpenSSLLib("", null).isEmpty()) {
@@ -284,7 +414,7 @@ public class WorkExecutor extends javax.swing.JFrame {
         if (console != null && txpConsole != null) {
             console.updateGUIConsole(txpConsole, outMsg, consoleColor);
         } else {
-            System.out.println(outMsg);
+            System.console().printf("%s", outMsg + "\n");
         }
 
     }

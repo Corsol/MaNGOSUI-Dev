@@ -120,7 +120,7 @@ public class ConsoleManager {
                 ((JTextPane) console).setText(currText + "\n" + text);
             }
         } catch (Exception ex) {
-            System.out.println("Unable to write to GUI console: " + ex.getLocalizedMessage());
+            System.console().printf("%s", "Unable to write to GUI console: " + ex.getLocalizedMessage());
             ex.printStackTrace();
         }
         ((JTextPane) console).setCaretPosition(((JTextPane) console).getDocument().getLength());

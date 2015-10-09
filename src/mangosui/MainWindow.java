@@ -350,7 +350,11 @@ public class MainWindow extends WorkExecutor {
         Collections.sort(cmakeOptions);
         lstCMakeOptions.setListData(cmakeOptions.toArray(new String[cmakeOptions.size()]));
 
-        txtMapTools.setText(getRunFolder() + File.separator + "tools");
+        String unixRun = "";
+        if (cmdManager.getCURR_OS() == cmdManager.UNIX) {
+            unixRun = "bin" + File.separator;
+        }
+        txtMapTools.setText(getRunFolder() + File.separator + unixRun + "tools");
         txtMapServer.setText(getRunFolder() + File.separator + "data");
 
     }
@@ -2465,7 +2469,7 @@ public class MainWindow extends WorkExecutor {
     private void chkProxyItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkProxyItemStateChanged
         // TODO add your handling code here:
         if (chkProxy.isSelected()) {
-            // Ensable components
+            // Enable components
             txtProxyServer.setText(confLoader.getProxyServer());
             txtProxyServer.setEnabled(true);
             txtProxyPort.setText(confLoader.getProxyPort());
@@ -2495,12 +2499,15 @@ public class MainWindow extends WorkExecutor {
         if (btnGrpGitServer.getSelection() != null) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
             setCursor(cursor);
+            if (chkProxy.isSelected()) {
+                cmdManager.setGitProxy(txtProxyServer.getText(), txtProxyPort.getText(), console);
+            }
             btnServerDownload.setEnabled(false);
             btnDatabaseDownload.setEnabled(false);
             btnLUADownload.setEnabled(false);
             cmdManager.setBtnInvoker(btnServerDownload);
             serverFolder = setGitFolder(txtFolderServer.getText(), txtGitServer.getText());
-            gitDownload(btnGrpGitServer.getSelection().getActionCommand(), txtGitServer.getText(), serverFolder, txtBranchServer.getText(), txtProxyServer.getText(), txtProxyPort.getText(), cmdManager, console, txpConsole);
+            gitDownload(btnGrpGitServer.getSelection().getActionCommand(), txtGitServer.getText(), serverFolder, txtBranchServer.getText(), "", "", cmdManager, console, txpConsole);
         }
 
     }//GEN-LAST:event_btnServerDownloadMouseClicked
@@ -2513,12 +2520,15 @@ public class MainWindow extends WorkExecutor {
         if (btnGrpGitDatabase.getSelection() != null) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
             setCursor(cursor);
+            if (chkProxy.isSelected()) {
+                cmdManager.setGitProxy(txtProxyServer.getText(), txtProxyPort.getText(), console);
+            }
             btnServerDownload.setEnabled(false);
             btnDatabaseDownload.setEnabled(false);
             btnLUADownload.setEnabled(false);
             cmdManager.setBtnInvoker(btnDatabaseDownload);
             databaseFolder = setGitFolder(txtFolderDatabase.getText(), txtGitDatabase.getText());
-            gitDownload(btnGrpGitDatabase.getSelection().getActionCommand(), txtGitDatabase.getText(), databaseFolder, txtBranchDatabase.getText(), txtProxyServer.getText(), txtProxyPort.getText(), cmdManager, console, txpConsole);
+            gitDownload(btnGrpGitDatabase.getSelection().getActionCommand(), txtGitDatabase.getText(), databaseFolder, txtBranchDatabase.getText(), "", "", cmdManager, console, txpConsole);
         }
     }//GEN-LAST:event_btnDatabaseDownloadMouseClicked
 
@@ -2530,12 +2540,15 @@ public class MainWindow extends WorkExecutor {
         if (btnGrpGitLUA.getSelection() != null) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
             setCursor(cursor);
+            if (chkProxy.isSelected()) {
+                cmdManager.setGitProxy(txtProxyServer.getText(), txtProxyPort.getText(), console);
+            }
             btnServerDownload.setEnabled(false);
             btnDatabaseDownload.setEnabled(false);
             btnLUADownload.setEnabled(false);
             cmdManager.setBtnInvoker(btnLUADownload);
             elunaFolder = setGitFolder(txtFolderLUA.getText(), txtGitLUA.getText());
-            gitDownload(btnGrpGitLUA.getSelection().getActionCommand(), txtGitLUA.getText(), elunaFolder, txtBranchLUA.getText(), txtProxyServer.getText(), txtProxyPort.getText(), cmdManager, console, txpConsole);
+            gitDownload(btnGrpGitLUA.getSelection().getActionCommand(), txtGitLUA.getText(), elunaFolder, txtBranchLUA.getText(), "", "", cmdManager, console, txpConsole);
         }
     }//GEN-LAST:event_btnLUADownloadMouseClicked
 

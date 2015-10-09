@@ -27,6 +27,14 @@ public class ProcessExec extends javax.swing.SwingWorker {
     private final JButton btnInvoker;
     private final JProgressBar prbCurrWork;
 
+    /**
+     *
+     * @param commands
+     * @param guiConsole
+     * @param debugLevel
+     * @param btnInvoker
+     * @param prbCurrWork
+     */
     public ProcessExec(String[] commands, Object guiConsole, int debugLevel, JButton btnInvoker, JProgressBar prbCurrWork) {
         this.commands = commands;
         this.guiConsole = guiConsole;
@@ -48,7 +56,7 @@ public class ProcessExec extends javax.swing.SwingWorker {
             for (String cmd : commands) {
                 msg += " " + cmd;
             }
-            System.out.println(msg);
+            System.console().printf("%s", msg);
         }
         //builder.inheritIO();
         Process proc = builder.start();
@@ -79,7 +87,7 @@ public class ProcessExec extends javax.swing.SwingWorker {
         return exitValue;
         //publish();
         //proc.waitFor();
-        //System.out.println(command + "\n " + sb.toString() + proc.exitValue());
+        //System.console().printf("%s", command + "\n " + sb.toString() + proc.exitValue());
         //return Boolean.valueOf(exitValue <= 0);
 
         /*
@@ -138,7 +146,7 @@ public class ProcessExec extends javax.swing.SwingWorker {
             while ((line = br.readLine()) != null) {
                 ConsoleManager.getInstance().updateGUIConsole(console, line, ConsoleManager.TEXT_BLACK);
                 //proc.wait(500);
-                //System.out.println(line);
+                //System.console().printf("%s", line);
             }
         } catch (IOException ioe) {
             ioe.printStackTrace();

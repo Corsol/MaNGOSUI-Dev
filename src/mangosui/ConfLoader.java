@@ -178,10 +178,18 @@ public class ConfLoader {
         GitBranchDatabase = prop.getProperty("GitBranchDatabase." + version);
     }
 
+    /**
+     *
+     * @param version
+     */
     public void getGitURLEluna(String version) {
         GitURLEluna = prop.getProperty("GitURLEluna." + version);
     }
 
+    /**
+     *
+     * @param version
+     */
     public void getGitBranchEluna(String version) {
         GitBranchEluna = prop.getProperty("GitBranchEluna." + version);
     }
@@ -293,16 +301,24 @@ public class ConfLoader {
     }
 
     /**
-     * @param WinGitHubPath the WinGitHubPath to set
+     * @param WinPathGit
      */
     public void setWinGitHubPath(String WinPathGit) {
         this.WinGitHubPath = WinPathGit;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getWinGitExtPath() {
         return WinGitExtPath;
     }
 
+    /**
+     *
+     * @param WinGitExtPath
+     */
     public void setWinGitExtPath(String WinGitExtPath) {
         this.WinGitExtPath = WinGitExtPath;
     }
@@ -851,10 +867,18 @@ public class ConfLoader {
         this.CMakeRunFolder = CMakeRunFolder;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getCMakeBuildType() {
         return CMakeBuildType;
     }
 
+    /**
+     *
+     * @param CMakeBuildType
+     */
     public void setCMakeBuildType(String CMakeBuildType) {
         this.CMakeBuildType = CMakeBuildType;
     }
@@ -890,42 +914,82 @@ public class ConfLoader {
         this.OPENSSL_INCLUDE_DIR = OPENSSL_INCLUDE_DIR;
     }
 
+    /**
+     *
+     * @return
+     */
     public HashMap<String, String> getMaNGOSVersions() {
         return MaNGOSVersions;
     }
 
+    /**
+     *
+     * @param MaNGOSVersions
+     */
     public void setMaNGOSVersions(HashMap<String, String> MaNGOSVersions) {
         this.MaNGOSVersions = MaNGOSVersions;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getURLGit() {
         return URLGit;
     }
 
+    /**
+     *
+     * @param URLGit
+     */
     public void setURLGit(String URLGit) {
         this.URLGit = URLGit;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getURLMySQL() {
         return URLMySQL;
     }
 
+    /**
+     *
+     * @param URLMySQL
+     */
     public void setURLMySQL(String URLMySQL) {
         this.URLMySQL = URLMySQL;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getURLCMake() {
         return URLCMake;
     }
 
+    /**
+     *
+     * @param URLCMake
+     */
     public void setURLCMake(String URLCMake) {
         this.URLCMake = URLCMake;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getURLOpenSSL() {
         return URLOpenSSL;
     }
 
+    /**
+     *
+     * @param URLOpenSSL
+     */
     public void setURLOpenSSL(String URLOpenSSL) {
         this.URLOpenSSL = URLOpenSSL;
     }

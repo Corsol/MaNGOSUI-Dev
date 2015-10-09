@@ -43,13 +43,15 @@ public class CommandsLinux extends Command {
      * @param guiConsole
      * @param rawConsole
      * @param toBuffer
+     * @param prbCurrWork
      * @return
      * @throws IOException
      * @throws InterruptedException
+     * @throws java.util.concurrent.ExecutionException
      */
     public boolean executeShell(String command, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer, final JProgressBar prbCurrWork) throws IOException, InterruptedException, ExecutionException {
         if (super.getDebugLevel() > 1) {
-            System.out.println("\nDEBUG - command:" + command + "\n");
+            System.console().printf("\nDEBUG - command:" + command + "\n\n");
             if (guiConsole != null) {
             }
         }
@@ -62,19 +64,21 @@ public class CommandsLinux extends Command {
      * @param guiConsole
      * @param rawConsole
      * @param toBuffer
+     * @param prbCurrWork
      * @return
      * @throws IOException
      * @throws InterruptedException
+     * @throws java.util.concurrent.ExecutionException
      */
     public boolean executeShell(ArrayList<String> commands, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer, final JProgressBar prbCurrWork) throws IOException, InterruptedException, ExecutionException {
         ArrayList<String> command = new ArrayList<String>();
         command.addAll(commands);
         if (super.getDebugLevel() > 1) {
-            System.out.print("\nDEBUG - command:");
+            System.console().printf("\nDEBUG - command:");
             for (String cmd : commands) {
-                System.out.print("\n" + cmd);
+                System.console().printf("%s", "\n" + cmd);
             }
-            System.out.println("");
+            System.console().printf("");
             if (guiConsole != null) {
             }
         }
@@ -237,7 +241,7 @@ public class CommandsLinux extends Command {
         if (console != null) {
             ConsoleManager.getInstance().updateGUIConsole(console, gitCommand, ConsoleManager.getInstance().TEXT_ORANGE);
         } else if (!toBuffer) {
-            System.out.println(gitCommand);
+            System.console().printf("%s", gitCommand);
         }
         //String command = "& \"" + gitPath + "\\shell.ps1\" \n " + gitCommand;
         return executeShell(gitCommand, console, sb, toBuffer, null);
@@ -260,6 +264,7 @@ public class CommandsLinux extends Command {
      * @return
      * @throws IOException
      * @throws InterruptedException
+     * @throws java.util.concurrent.ExecutionException
      */
     //@Override
     public boolean cmakeConfig(String serverFolder, String buildFolder, HashMap<String, String> options, Object console) throws IOException, InterruptedException, ExecutionException {
@@ -301,6 +306,7 @@ public class CommandsLinux extends Command {
      * @return
      * @throws IOException
      * @throws InterruptedException
+     * @throws java.util.concurrent.ExecutionException
      */
     //@Override
     public boolean cmakeInstall(String buildFolder, String runFolder, Object console) throws IOException, InterruptedException, ExecutionException {
@@ -320,6 +326,10 @@ public class CommandsLinux extends Command {
         return executeShell(command, console, sb, false, null);
     }
 
+    /**
+     *
+     * @return
+     */
     public String getCatalogCommand() {
         return catalogCommand;
     }
