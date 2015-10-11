@@ -105,7 +105,7 @@ public class CommandsLinux extends Command {
     /**
      *
      * @param pathToMySQL
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     //@Override
@@ -140,7 +140,7 @@ public class CommandsLinux extends Command {
     /**
      *
      * @param pathToMySQL
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     //@Override
@@ -173,7 +173,7 @@ public class CommandsLinux extends Command {
     /**
      *
      * @param pathToOpenSSL
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     //@Override
@@ -207,7 +207,7 @@ public class CommandsLinux extends Command {
     /**
      *
      * @param pathToOpenSSL
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     //@Override
@@ -260,7 +260,7 @@ public class CommandsLinux extends Command {
      * @param serverFolder
      * @param buildFolder
      * @param options
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      * @throws IOException
      * @throws InterruptedException
@@ -302,7 +302,7 @@ public class CommandsLinux extends Command {
      *
      * @param buildFolder
      * @param runFolder
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      * @throws IOException
      * @throws InterruptedException

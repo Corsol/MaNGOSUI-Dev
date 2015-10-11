@@ -37,7 +37,7 @@ public class WorkExecutor extends javax.swing.JFrame {
      * @param winPSPath
      * @param winCMDPath
      * @param cmdManager
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param txpConsole
      * @return
      */
@@ -100,7 +100,7 @@ public class WorkExecutor extends javax.swing.JFrame {
      * @param gitProxyServer
      * @param gitProxyPort
      * @param cmdManager
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param txpConsole
      * @return
      */
@@ -179,7 +179,7 @@ public class WorkExecutor extends javax.swing.JFrame {
      * @param dbFolder
      * @param pathToMySQL
      * @param cmdManager
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param txpConsole
      * @return
      */
@@ -217,7 +217,7 @@ public class WorkExecutor extends javax.swing.JFrame {
      * @param charDBName
      * @param realmDBName
      * @param cmdManager
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param txpConsole
      * @return
      */
@@ -248,7 +248,7 @@ public class WorkExecutor extends javax.swing.JFrame {
      * @param charDBName
      * @param realmDBName
      * @param cmdManager
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param txpConsole
      * @return
      */
@@ -270,7 +270,7 @@ public class WorkExecutor extends javax.swing.JFrame {
      * @param dbName
      * @param dbSetupFolder
      * @param cmdManager
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param txpConsole
      * @param prbCurrWork
      * @return
@@ -307,7 +307,7 @@ public class WorkExecutor extends javax.swing.JFrame {
      * @param dbName
      * @param dbUpdateFolder
      * @param cmdManager
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param txpConsole
      * @param prbCurrWork
      * @return
@@ -350,7 +350,7 @@ public class WorkExecutor extends javax.swing.JFrame {
      * @param cmake32Path
      * @param cmake64Path
      * @param cmdManager
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param txpConsole
      * @return
      */
@@ -387,7 +387,7 @@ public class WorkExecutor extends javax.swing.JFrame {
     /**
      *
      * @param cmdManager
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param txpConsole
      * @return
      */

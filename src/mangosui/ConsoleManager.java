@@ -69,7 +69,7 @@ public class ConsoleManager {
 
     /**
      *
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param text
      */
     public void updateGUIConsole(Object console, String text) {
@@ -78,7 +78,7 @@ public class ConsoleManager {
 
     /**
      *
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param text
      * @param textColor
      */

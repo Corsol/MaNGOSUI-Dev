@@ -95,9 +95,11 @@ public class CommandManager {
     }
 
     /**
-     *
-     * @param console
-     * @return
+     * Check if current console session is with root privileges. This condition is required for dependecies installations.<br />
+     * On Windowns system return always true.
+     * 
+     * @param console The JTextPane object to be used for output in swing GUI
+     * @return True if console is with root privileges, false otherwise
      */
     public boolean checkRootConsole(Object console) {
         StringBuilder sb = new StringBuilder();
@@ -131,7 +133,7 @@ public class CommandManager {
      * Check if current Linux OS has sudo installed<br />
      * On Windowns system return always true.
      *
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean checkSudoConf(Object console) {
@@ -165,7 +167,7 @@ public class CommandManager {
      * On Windowns system return always true.
      *
      * @param user The String value of user to enable
-     * @param console The JTextPane object used for output
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return True if user configuration is done, false otherwise
      */
     public boolean addSudoUser(String user, Object console) {
@@ -195,9 +197,11 @@ public class CommandManager {
     }
 
     /**
+     * Check if git is currently installed. <br />
+     * Windows note: this method check only if git is installed and install path is present in PATH environment. Some installation did not set this environment, so this function may return false also if git is installed.
      *
-     * @param console
-     * @return
+     * @param console The JTextPane object to be used for output in swing GUI
+     * @return True if git command is present in console's commands, false otherwise
      */
     public boolean checkGit(Object console) {
         String command = "git --version";
@@ -225,10 +229,12 @@ public class CommandManager {
     }
 
     /**
+     * Check if git is currently installed in the specified path. <br />
+     * NOTE: this function is explicity designed for windows system where git installation did not set the PATH environment and git installation need to be founded explicity
      *
-     * @param winPath
-     * @param console
-     * @return
+     * @param winPath The String path to git.exe file
+     * @param console The JTextPane object to be used for output in swing GUI
+     * @return True if git command is founded in specified path, false otherwise
      */
     public boolean checkGit(String winPath, Object console) {
         String command = "git --version";
@@ -236,6 +242,7 @@ public class CommandManager {
         try {
             switch (this.CURR_OS) {
                 case WINDOWS:
+                    // Set path for next uses and for check
                     this.winCmd.setGitPath(winPath);
                     // Set toBuffer param to true to avoid console text
                     ret_val = this.winCmd.gitOperation(command, console, true);
@@ -257,10 +264,14 @@ public class CommandManager {
     }
 
     /**
+     * Install git from catalog with OS predefined method.<br />
+     * NOTE: this function works only for Linux system that has a catalog with software to download and install.<br /><br />
+     * TODO: Check installation procedure Linux distro that don't use "apt-get" or "yum" catalog. Implement also Windows installations.
+     * 
      *
-     * @param console
-     * @param prbCurrWork
-     * @return
+     * @param console The JTextPane object to be used for output in swing GUI
+     * @param prbCurrWork The JProgressBar object to be used for long and multi-step installations
+     * @return True if installation is done correctly, false for multi-step or otherwise
      */
     public boolean setupGit(Object console, final JProgressBar prbCurrWork) {
         StringBuilder sb = new StringBuilder();
@@ -289,7 +300,7 @@ public class CommandManager {
 
     /**
      *
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean checkCMAKE(Object console) {
@@ -302,7 +313,7 @@ public class CommandManager {
     /**
      *
      * @param pathToCMake
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean checkCMAKE(String pathToCMake, Object console) {
@@ -318,7 +329,7 @@ public class CommandManager {
 
     /**
      *
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param prbCurrWork
      * @return
      */
@@ -349,7 +360,7 @@ public class CommandManager {
 
     /**
      *
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param prbCurrWork
      * @return
      */
@@ -380,7 +391,7 @@ public class CommandManager {
 
     /**
      *
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean checkMySQL(Object console) {
@@ -393,7 +404,7 @@ public class CommandManager {
     /**
      *
      * @param pathToMySQL
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean checkMySQL(String pathToMySQL, Object console) {
@@ -410,7 +421,7 @@ public class CommandManager {
     /**
      *
      * @param pathToMySQL
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public String checkMySQLLib(String pathToMySQL, Object console) {
@@ -438,7 +449,7 @@ public class CommandManager {
     /**
      *
      * @param pathToMySQL
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public String checkMySQLInclude(String pathToMySQL, Object console) {
@@ -466,7 +477,7 @@ public class CommandManager {
     /**
      *
      * @param pathToOpenSSL
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public String checkOpenSSLLib(String pathToOpenSSL, Object console) {
@@ -494,7 +505,7 @@ public class CommandManager {
     /**
      *
      * @param pathToOpenSSL
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public String checkOpenSSLInclude(String pathToOpenSSL, Object console) {
@@ -521,7 +532,7 @@ public class CommandManager {
 
     /**
      *
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean installMySQLPortable(Object console) {
@@ -582,7 +593,7 @@ public class CommandManager {
 
     /**
      *
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean installOpenSSLPortable(Object console) {
@@ -643,7 +654,7 @@ public class CommandManager {
 
     /**
      *
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param prbCurrWork
      * @return
      */
@@ -678,7 +689,7 @@ public class CommandManager {
      * @param dbPort
      * @param username
      * @param password
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean checkDBUser(String dbServer, String dbPort, String username, String password, Object console) {
@@ -728,7 +739,7 @@ public class CommandManager {
      * @param worldDBName
      * @param charDBName
      * @param realmDBName
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean checkDBStructure(String dbServer, String dbPort, String dbAdmin, String dbAdminPwd, String worldDBName, String charDBName, String realmDBName, Object console) {
@@ -789,7 +800,7 @@ public class CommandManager {
      * @param dbPort
      * @param dbAdminPwd
      * @param dbAdmin
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param dbUserPwd
      * @param dbUser
      * @param charDBName
@@ -846,7 +857,7 @@ public class CommandManager {
      * @param Database
      * @param setupFolder
      * @param dbAdminPwd
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param prbCurrWork
      * @return
      */
@@ -898,7 +909,7 @@ public class CommandManager {
      * @param dbPort
      * @param updateFolder
      * @param dbAdmin
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param dbAdminPwd
      * @param prbCurrWork
      * @return
@@ -967,7 +978,7 @@ public class CommandManager {
      * @param serverFolder
      * @param buildFolder
      * @param options
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean cmakeConfig(String serverFolder, String buildFolder, HashMap<String, String> options, Object console) {
@@ -1000,7 +1011,7 @@ public class CommandManager {
      * @param buildFolder
      * @param runFolder
      * @param buildType
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean cmakeInstall(String buildFolder, String runFolder, String buildType, Object console) {
@@ -1093,7 +1104,7 @@ public class CommandManager {
      *
      * @param proxyServer
      * @param proxyPort
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean setGitProxy(String proxyServer, String proxyPort, Object console) {
@@ -1123,7 +1134,7 @@ public class CommandManager {
 
     /**
      *
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean remGitProxy(Object console) {
@@ -1156,7 +1167,7 @@ public class CommandManager {
      * @param url
      * @param folder
      * @param branch
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean gitDownload(String url, String folder, String branch, Object console) {
@@ -1170,7 +1181,7 @@ public class CommandManager {
      * @param branch
      * @param proxyServer
      * @param proxyPort
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean gitDownload(String url, String folder, String branch, String proxyServer, String proxyPort, Object console) {
@@ -1211,7 +1222,7 @@ public class CommandManager {
 
     /**
      *
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean gitCheckout(Object console) {
@@ -1226,7 +1237,7 @@ public class CommandManager {
      * @param clientFolder
      * @param serverFolder
      * @param step
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @param prbCurrWork
      * @return
      */
@@ -1474,7 +1485,7 @@ public class CommandManager {
      *
      * @param source
      * @param dest
-     * @param console
+     * @param console The JTextPane object to be used for output in swing GUI
      * @return
      */
     public boolean copyFolder(String source, String dest, Object console) {
