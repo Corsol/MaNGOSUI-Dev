@@ -1,7 +1,19 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2015 Boni Simone <simo.boni@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package mangosui;
 
@@ -22,21 +34,21 @@ import java.util.Set;
 
 /**
  * This class allows to handle Netbeans properties file. It is based on the work
- * of :
- * http://stackoverflow.com/questions/6233532/reading-java-properties-file-without-escaping-values.
+ * of: http://stackoverflow.com/questions/6233532/reading-java-properties-file-without-escaping-values.
  * It overrides both load methods in order to load a netbeans property file,
  * taking into account the \ that were escaped by java properties original load
  * methods.
  *
- * @author stephane
+ * @author stephane and adaption of Boni Simone <simo.boni@gmail.com>
  */
 public class PropertiesEx extends Properties {
 
     private static final long serialVersionUID = 1L;
 
     /**
+     * Load data from property file
      *
-     * @param fis
+     * @param fis The FileInputStream object that represent property file
      * @throws IOException
      */
     public synchronized void load(FileInputStream fis) throws IOException {
@@ -69,13 +81,14 @@ public class PropertiesEx extends Properties {
 
     @Override
     public void load(InputStream is) throws IOException {
-        load(new InputStreamReader(is));
+        this.load(new InputStreamReader(is));
     }
 
     /**
+     * Read a list of property with similar root (like and array) and store it into an HashMap
      *
-     * @param keyPart
-     * @return
+     * @param keyPart The String value of root that identify multiple properties
+     * @return an HashMap with properties found with key and relative value, empty HashMap if no root property found
      */
     public synchronized HashMap<String, String> getPropertyArray(String keyPart) {
         HashMap<String, String> props = new HashMap<>();
@@ -84,7 +97,6 @@ public class PropertiesEx extends Properties {
         Collections.sort(mapKey);
         for (String prop : mapKey) {
             if (prop.contains(keyPart)) {
-                //System.console().printf("%s", "Adding: " + prop);
                 props.put(prop, this.getProperty(prop));
             }
         }

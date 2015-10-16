@@ -1,7 +1,19 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2015 Boni Simone <simo.boni@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package mangosui;
 
@@ -33,7 +45,7 @@ import static mangosui.WorkExecutor.mysqlUpdateDB;
 
 /**
  *
- * @author Simone
+ * @author Boni Simone <simo.boni@gmail.com>
  */
 public class MainWindow extends WorkExecutor {
 
@@ -47,193 +59,190 @@ public class MainWindow extends WorkExecutor {
     private String serverFolder = "";
     private String databaseFolder = "";
     private String elunaFolder = "";
-    private LinkedList<JButton> btnWorkList = new LinkedList<JButton>();
+    private LinkedList<JButton> btnWorkList = new LinkedList<>();
     private JButton btnInvoker;
+    private static final Logger LOG = Logger.getLogger(MainWindow.class.getName());
 
     /**
-     * Creates new form MainWindow
+     * Default constructor that creates new form with all components
      */
     public MainWindow() {
         cmdManager = new CommandManager();
         if (confLoader.isConfLoaded()) {
             cmdManager.setDebugLevel(confLoader.getDebugLevel());
         }
-        initComponents();
-        lblNextStep.setVisible(false);
-        DefaultCaret caret = (DefaultCaret) txpConsole.getCaret();
-        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-        //pnlSysDeps.setVisible(false);
-        disableComponentCascade(pnlDatabase);
-        //disableComponentCascade(pnlSetupDeps);
-        //disableComponentCascade(pnlDownloadDeps);
-        //pnlSetupDeps.setVisible(false);
-        //pnlDownloadDeps.setVisible(false);
+        this.initComponents();
+        this.lblNextStep.setVisible(false);
+        this.disableComponentCascade(this.pnlDatabase);
         if (cmdManager.getCURR_OS() == cmdManager.WINDOWS) {
-            pnlSetupDeps.setVisible(false);
-            pnlDownloadDeps.setEnabled(true);
+            this.pnlSetupDeps.setVisible(false);
+            this.pnlDownloadDeps.setEnabled(true);
         } else {
-            pnlDownloadDeps.setVisible(false);
-            pnlSetupDeps.setEnabled(true);
+            this.pnlDownloadDeps.setVisible(false);
+            this.pnlSetupDeps.setEnabled(true);
         }
     }
 
+    /**
+     * Execute all checks for missing dependencies like git, mysql, cmake
+     */
     private void doAllChecks() {
         Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-        setCursor(cursor);
+        this.setCursor(cursor);
         if (!confLoader.isConfLoaded()) {
-            console.updateGUIConsole(txpConsole, "ERROR: Configuration file NOT loaded. Check it.", ConsoleManager.TEXT_RED);
+            console.updateGUIConsole(this.txpConsole, "ERROR: Configuration file NOT loaded. Check it.", ConsoleManager.TEXT_RED);
         } else {
             HashMap<String, String> mangosVers = confLoader.getMaNGOSVersions();
-            ArrayList<String> keysMap = new ArrayList<String>(mangosVers.keySet());
+            ArrayList<String> keysMap = new ArrayList<>(mangosVers.keySet());
             Collections.sort(keysMap);
             for (String keyMap : keysMap) {
-                cmbCores.addItem(mangosVers.get(keyMap) + " - MaNGOS " + keyMap.substring(keyMap.lastIndexOf(".") + 1));
+                this.cmbCores.addItem(mangosVers.get(keyMap) + " - MaNGOS " + keyMap.substring(keyMap.lastIndexOf('.') + 1));
             }
-            loadCmbCores();
+            this.loadCmbCores();
         }
 
         if (cmdManager.getCURR_OS() > 0) {
-            btnSetupMissingDeps.setEnabled(false);
-            lblDownloadGit.setEnabled(false);
-            chkSetupGit.setEnabled(false);
-            chkSetupGit.setSelected(false);
-            lblDownloadMySQL.setEnabled(false);
-            chkSetupMySQL.setEnabled(false);
-            chkSetupMySQL.setSelected(false);
-            lblDownloadCMake.setEnabled(false);
-            chkSetupCMake.setEnabled(false);
-            chkSetupCMake.setSelected(false);
-            lblDownloadOpenSSL.setEnabled(false);
-            chkSetupOpenSSL.setEnabled(false);
-            chkSetupOpenSSL.setSelected(false);
-            prbSetupProgress.setMaximum(0);
-            prbSetupProgress.setValue(0);
+            this.btnSetupMissingDeps.setEnabled(false);
+            this.lblDownloadGit.setEnabled(false);
+            this.chkSetupGit.setEnabled(false);
+            this.chkSetupGit.setSelected(false);
+            this.lblDownloadMySQL.setEnabled(false);
+            this.chkSetupMySQL.setEnabled(false);
+            this.chkSetupMySQL.setSelected(false);
+            this.lblDownloadCMake.setEnabled(false);
+            this.chkSetupCMake.setEnabled(false);
+            this.chkSetupCMake.setSelected(false);
+            this.lblDownloadOpenSSL.setEnabled(false);
+            this.chkSetupOpenSSL.setEnabled(false);
+            this.chkSetupOpenSSL.setSelected(false);
+            this.prbSetupProgress.setMaximum(0);
+            this.prbSetupProgress.setValue(0);
 
-            console.updateGUIConsole(txpConsole, "INFO: Your OS is: " + cmdManager.getOsName() + " version " + cmdManager.getOsVersion() + " with java architecture: " + cmdManager.getOsArch(), ConsoleManager.TEXT_BLUE);
+            console.updateGUIConsole(this.txpConsole, "INFO: Your OS is: " + cmdManager.getOsName() + " version " + cmdManager.getOsVersion() + " with java architecture: " + cmdManager.getOsArch(), ConsoleManager.TEXT_BLUE);
 
-            gitOk = checkGit(confLoader.getWinGitHubPath(), confLoader.getWinGitExtPath(), cmdManager, console, txpConsole);
+            gitOk = checkGit(confLoader.getWinGitHubPath(), confLoader.getWinGitExtPath(), cmdManager, this.txpConsole);
             if (!gitOk) {
-                lblDownloadGit.setEnabled(true);
-                chkSetupGit.setEnabled(true);
-                chkSetupGit.setSelected(true);
-                btnSetupMissingDeps.setEnabled(true);
-                disableComponentCascade(pnlDownload);
+                this.lblDownloadGit.setEnabled(true);
+                this.chkSetupGit.setEnabled(true);
+                this.chkSetupGit.setSelected(true);
+                this.btnSetupMissingDeps.setEnabled(true);
+                this.disableComponentCascade(this.pnlDownload);
             } else {
-                enableComponentCascade(pnlDownload);
-                btnDatabaseDownload.setEnabled(true);
-                btnServerDownload.setEnabled(true);
-                btnLUADownload.setEnabled(true);
+                this.enableComponentCascade(this.pnlDownload);
+                this.btnDatabaseDownload.setEnabled(true);
+                this.btnServerDownload.setEnabled(true);
+                this.btnLUADownload.setEnabled(true);
             }
-            checkGitConf();
+            this.checkGitConf();
 
-            mysqlOk = checkMySQL(databaseFolder, confLoader.getPathToMySQL(), cmdManager, console, txpConsole);
+            mysqlOk = checkMySQL(this.databaseFolder, confLoader.getPathToMySQL(), cmdManager, this.txpConsole);
             if (!mysqlOk) {
-                lblDownloadMySQL.setEnabled(true);
-                chkSetupMySQL.setEnabled(true);
-                chkSetupMySQL.setSelected(true);
-                btnSetupMissingDeps.setEnabled(true);
-                disableComponentCascade(pnlDatabase);
+                this.lblDownloadMySQL.setEnabled(true);
+                this.chkSetupMySQL.setEnabled(true);
+                this.chkSetupMySQL.setSelected(true);
+                this.btnSetupMissingDeps.setEnabled(true);
+                this.disableComponentCascade(this.pnlDatabase);
             } else {
-                pnlDatabase.setEnabled(true);
-                enableComponentCascade(pnlDatabaseConfig);
-                checkMySQLConf(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
+                this.pnlDatabase.setEnabled(true);
+                this.enableComponentCascade(this.pnlDatabaseConfig);
+                this.checkMySQLConf(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
                         confLoader.getDatabaseUser(), confLoader.getDatabaseUserPass(), confLoader.getWorldDBName(), confLoader.getCharDBName(), confLoader.getRealmDBName());
             }
 
-            cmakeOk = checkCMake(confLoader.getWin32PathCMake(), confLoader.getWin64PathCMake(), cmdManager, console, txpConsole);
+            cmakeOk = checkCMake(confLoader.getWin32PathCMake(), confLoader.getWin64PathCMake(), cmdManager, this.txpConsole);
             if (!cmakeOk) {
-                lblDownloadCMake.setEnabled(true);
-                chkSetupCMake.setEnabled(true);
-                chkSetupCMake.setSelected(true);
-                btnSetupMissingDeps.setEnabled(true);
-                disableComponentCascade(pnlBuildInstall);
+                this.lblDownloadCMake.setEnabled(true);
+                this.chkSetupCMake.setEnabled(true);
+                this.chkSetupCMake.setSelected(true);
+                this.btnSetupMissingDeps.setEnabled(true);
+                this.disableComponentCascade(this.pnlBuildInstall);
             } else {
-                enableComponentCascade(pnlBuildInstall);
-                checkCMakeConf(confLoader.getCMakeBuildFolder());
+                this.enableComponentCascade(this.pnlBuildInstall);
+                this.checkCMakeConf(confLoader.getCMakeBuildFolder());
             }
 
-            if (!checkOpenSSL(cmdManager, console, txpConsole)) {
-                lblDownloadOpenSSL.setEnabled(true);
-                chkSetupOpenSSL.setEnabled(true);
-                chkSetupOpenSSL.setSelected(true);
-                btnSetupMissingDeps.setEnabled(true);
+            if (!checkOpenSSL(cmdManager, this.txpConsole)) {
+                this.lblDownloadOpenSSL.setEnabled(true);
+                this.chkSetupOpenSSL.setEnabled(true);
+                this.chkSetupOpenSSL.setSelected(true);
+                this.btnSetupMissingDeps.setEnabled(true);
             }
 
         } else {
-            console.updateGUIConsole(txpConsole, "CRITICAL: Operatig system not supported.", ConsoleManager.TEXT_RED);
-            disableComponentCascade(tabOperations);
+            console.updateGUIConsole(this.txpConsole, "CRITICAL: Operatig system not supported.", ConsoleManager.TEXT_RED);
+            this.disableComponentCascade(this.tabOperations);
         }
         cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-        setCursor(cursor);
+        this.setCursor(cursor);
     }
 
     private void checkGitConf(/*String serverFolder, String databaseFolder, String elunaFolder*/) {
-        serverFolder = setGitFolder(txtFolderServer.getText(), txtGitServer.getText());
+        this.serverFolder = setGitFolder(this.txtFolderServer.getText(), this.txtGitServer.getText());
 
-        rdbGitServerWipe.setEnabled(false);
-        rdbGitServerUpdate.setEnabled(false);
-        rdbGitServerNew.setEnabled(false);
-        if (cmdManager.checkFolder(serverFolder)) {
+        this.rdbGitServerWipe.setEnabled(false);
+        this.rdbGitServerUpdate.setEnabled(false);
+        this.rdbGitServerNew.setEnabled(false);
+        if (cmdManager.checkFolder(this.serverFolder)) {
             //optGitSrvWipe = true;
-            rdbGitServerWipe.setEnabled(true);
+            this.rdbGitServerWipe.setEnabled(true);
             // Check server version for update
-            if (!cmdManager.isRepoUpToDate(serverFolder)) {
-                rdbGitServerUpdate.setEnabled(true);
+            if (!cmdManager.isRepoUpToDate(this.serverFolder)) {
+                this.rdbGitServerUpdate.setEnabled(true);
             }
         } else {
-            rdbGitServerNew.setEnabled(true);
+            this.rdbGitServerNew.setEnabled(true);
         }
 
-        databaseFolder = setGitFolder(txtFolderDatabase.getText(), txtGitDatabase.getText());
+        this.databaseFolder = setGitFolder(this.txtFolderDatabase.getText(), this.txtGitDatabase.getText());
 
-        rdbGitDatabaseWipe.setEnabled(false);
-        rdbGitDatabaseUpdate.setEnabled(false);
-        rdbGitDatabaseNew.setEnabled(false);
-        if (cmdManager.checkFolder(databaseFolder)) {
+        this.rdbGitDatabaseWipe.setEnabled(false);
+        this.rdbGitDatabaseUpdate.setEnabled(false);
+        this.rdbGitDatabaseNew.setEnabled(false);
+        if (cmdManager.checkFolder(this.databaseFolder)) {
             //optGitSrvWipe = true;
-            rdbGitDatabaseWipe.setEnabled(true);
+            this.rdbGitDatabaseWipe.setEnabled(true);
             // Check server version for update
-            if (!cmdManager.isRepoUpToDate(databaseFolder)) {
-                rdbGitDatabaseUpdate.setEnabled(true);
+            if (!cmdManager.isRepoUpToDate(this.databaseFolder)) {
+                this.rdbGitDatabaseUpdate.setEnabled(true);
             }
         } else {
-            rdbGitDatabaseNew.setEnabled(true);
+            this.rdbGitDatabaseNew.setEnabled(true);
         }
 
-        elunaFolder = setGitFolder(txtFolderLUA.getText(), txtGitLUA.getText());
+        this.elunaFolder = setGitFolder(this.txtFolderLUA.getText(), this.txtGitLUA.getText());
 
-        rdbGitLUAWipe.setEnabled(false);
-        rdbGitLUAUpdate.setEnabled(false);
-        rdbGitLUAUpdate.setEnabled(false);
-        if (cmdManager.checkFolder(elunaFolder)) {
+        this.rdbGitLUAWipe.setEnabled(false);
+        this.rdbGitLUAUpdate.setEnabled(false);
+        this.rdbGitLUAUpdate.setEnabled(false);
+        if (cmdManager.checkFolder(this.elunaFolder)) {
             //optGitSrvWipe = true;
-            rdbGitLUAWipe.setEnabled(true);
+            this.rdbGitLUAWipe.setEnabled(true);
             // Check server version for update
-            if (!cmdManager.isRepoUpToDate(elunaFolder)) {
-                rdbGitLUAUpdate.setEnabled(true);
+            if (!cmdManager.isRepoUpToDate(this.elunaFolder)) {
+                this.rdbGitLUAUpdate.setEnabled(true);
             }
         } else {
-            rdbGitLUANew.setEnabled(true);
+            this.rdbGitLUANew.setEnabled(true);
         }
     }
 
     private void checkMySQLConf(String dbServer, String dbPort, String dbAdmin, String dbAdminPass, String dbUser, String dbUserPass, String dbWorld, String dbCharacter, String dbRealm) {
-        if (!checkDBExistance(dbServer, dbPort, dbAdmin, dbAdminPass, dbUser, dbUserPass, dbWorld, dbCharacter, dbRealm, cmdManager, console, txpConsole)) {
-            enableComponentCascade(pnlDBFirstInstall);
+        if (!checkDBExistance(dbServer, dbPort, dbAdmin, dbAdminPass, dbUser, dbUserPass, dbWorld, dbCharacter, dbRealm, cmdManager, this.txpConsole)) {
+            this.enableComponentCascade(this.pnlDBFirstInstall);
         } else {
-            enableComponentCascade(pnlDBWorld);
-            enableComponentCascade(pnlDBCharacter);
-            enableComponentCascade(pnlDBRealm);
-            disableComponentCascade(pnlDBFirstInstall);
+            this.enableComponentCascade(this.pnlDBWorld);
+            this.enableComponentCascade(this.pnlDBCharacter);
+            this.enableComponentCascade(this.pnlDBRealm);
+            this.disableComponentCascade(this.pnlDBFirstInstall);
         }
     }
 
     private void checkCMakeConf(String buildFolder) {
         buildFolder += File.separator + "CMakeFiles";
         if (!cmdManager.checkFolder(buildFolder)) {
-            btnInstall.setEnabled(false);
+            this.btnInstall.setEnabled(false);
         } else {
-            btnInstall.setEnabled(true);
+            this.btnInstall.setEnabled(true);
         }
     }
 
@@ -244,7 +253,7 @@ public class MainWindow extends WorkExecutor {
                 if (component instanceof Container) {
                     Container componentAsContainer = (Container) component;
                     for (Component c : componentAsContainer.getComponents()) {
-                        disableComponentCascade(c);
+                        this.disableComponentCascade(c);
                     }
                 }
             }
@@ -259,7 +268,7 @@ public class MainWindow extends WorkExecutor {
                 if (component instanceof Container) {
                     Container componentAsContainer = (Container) component;
                     for (Component c : componentAsContainer.getComponents()) {
-                        enableComponentCascade(c);
+                        this.enableComponentCascade(c);
                     }
                 }
             }
@@ -270,7 +279,7 @@ public class MainWindow extends WorkExecutor {
     private void loadCmbCores() {
         String input = "0";
         try {
-            input = cmbCores.getSelectedItem().toString().substring(0, 1);
+            input = this.cmbCores.getSelectedItem().toString().substring(0, 1);
         } catch (Exception ex) {
         }
         confLoader.getGitURLServer(input);
@@ -279,68 +288,68 @@ public class MainWindow extends WorkExecutor {
         confLoader.getGitBranchServer(input);
         confLoader.getGitBranchDatabase(input);
         confLoader.getGitBranchEluna(input);
-        applyConfLoaded();
-        checkGitConf();
+        this.applyConfLoaded();
+        this.checkGitConf();
     }
 
     private void applyConfLoaded() {
-        lblDownloadGit.setText("<html>Git: <a href=\"" + confLoader.getURLGit() + "\">" + confLoader.getURLGit() + "</a></html>");
-        lblDownloadMySQL.setText("<html>MySQL: <a href=\"" + confLoader.getURLMySQL() + "\">" + confLoader.getURLMySQL() + "</a></html>");
-        lblDownloadMySQL.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        lblDownloadCMake.setText("<html>CMake: <a href=\"" + confLoader.getURLCMake() + "\">" + confLoader.getURLCMake() + "</a></html>");
-        lblDownloadOpenSSL.setText("<html>OpenSSL: <a href=\"" + confLoader.getURLOpenSSL() + "\">" + confLoader.getURLOpenSSL() + "</a></html>");
+        this.lblDownloadGit.setText("<html>Git: <a href=\"" + confLoader.getURLGit() + "\">" + confLoader.getURLGit() + "</a></html>");
+        this.lblDownloadMySQL.setText("<html>MySQL: <a href=\"" + confLoader.getURLMySQL() + "\">" + confLoader.getURLMySQL() + "</a></html>");
+        this.lblDownloadMySQL.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        this.lblDownloadCMake.setText("<html>CMake: <a href=\"" + confLoader.getURLCMake() + "\">" + confLoader.getURLCMake() + "</a></html>");
+        this.lblDownloadOpenSSL.setText("<html>OpenSSL: <a href=\"" + confLoader.getURLOpenSSL() + "\">" + confLoader.getURLOpenSSL() + "</a></html>");
 
-        txtGitServer.setText(confLoader.getGitURLServer());
-        txtFolderServer.setText(confLoader.getGitFolderServer());
-        txtBranchServer.setText(confLoader.getGitBranchServer());
+        this.txtGitServer.setText(confLoader.getGitURLServer());
+        this.txtFolderServer.setText(confLoader.getGitFolderServer());
+        this.txtBranchServer.setText(confLoader.getGitBranchServer());
 
-        txtGitDatabase.setText(confLoader.getGitURLDatabase());
-        txtFolderDatabase.setText(confLoader.getGitFolderDatabase());
-        txtBranchDatabase.setText(confLoader.getGitBranchDatabase());
+        this.txtGitDatabase.setText(confLoader.getGitURLDatabase());
+        this.txtFolderDatabase.setText(confLoader.getGitFolderDatabase());
+        this.txtBranchDatabase.setText(confLoader.getGitBranchDatabase());
 
-        txtGitLUA.setText(confLoader.getGitURLEluna());
-        txtFolderLUA.setText(confLoader.getGitFolderEluna());
-        txtBranchLUA.setText(confLoader.getGitBranchEluna());
+        this.txtGitLUA.setText(confLoader.getGitURLEluna());
+        this.txtFolderLUA.setText(confLoader.getGitFolderEluna());
+        this.txtBranchLUA.setText(confLoader.getGitBranchEluna());
 
-        txtDBConfServer.setText(confLoader.getDatabaseServer());
-        txtDBConfPort.setText(confLoader.getDatabasePort());
-        txtDBConfAdmin.setText(confLoader.getDatabaseAdmin());
-        txtDBConfAdminPwd.setText(confLoader.getDatabaseAdminPass());
-        txtDBConfUser.setText(confLoader.getDatabaseUser());
-        txtDBConfUserPwd.setText(confLoader.getDatabaseUserPass());
+        this.txtDBConfServer.setText(confLoader.getDatabaseServer());
+        this.txtDBConfPort.setText(confLoader.getDatabasePort());
+        this.txtDBConfAdmin.setText(confLoader.getDatabaseAdmin());
+        this.txtDBConfAdminPwd.setText(confLoader.getDatabaseAdminPass());
+        this.txtDBConfUser.setText(confLoader.getDatabaseUser());
+        this.txtDBConfUserPwd.setText(confLoader.getDatabaseUserPass());
 
-        txtWorldDBName.setText(confLoader.getWorldDBName());
-        txtWorldFolder.setText(confLoader.getWorldFolder());
-        txtWorldFullDB.setText(confLoader.getWorldFullDB());
-        txtWorldLoadDB.setText(confLoader.getWorldLoadDBName());
+        this.txtWorldDBName.setText(confLoader.getWorldDBName());
+        this.txtWorldFolder.setText(confLoader.getWorldFolder());
+        this.txtWorldFullDB.setText(confLoader.getWorldFullDB());
+        this.txtWorldLoadDB.setText(confLoader.getWorldLoadDBName());
         ArrayList<String> updFolders = new ArrayList<String>();
         for (String updFolder : confLoader.getWorldUpdRel().values()) {
             updFolders.add(updFolder);
         }
         Collections.sort(updFolders);
-        lstWorldUpdFolders.setListData(updFolders.toArray(new String[updFolders.size()]));
+        this.lstWorldUpdFolders.setListData(updFolders.toArray(new String[updFolders.size()]));
 
-        txtCharDBName.setText(confLoader.getCharDBName());
-        txtCharFolder.setText(confLoader.getCharFolder());
-        txtCharLoadDB.setText(confLoader.getCharLoadDBName());
+        this.txtCharDBName.setText(confLoader.getCharDBName());
+        this.txtCharFolder.setText(confLoader.getCharFolder());
+        this.txtCharLoadDB.setText(confLoader.getCharLoadDBName());
         updFolders = new ArrayList<String>();
         for (String updFolder : confLoader.getCharUpdRel().values()) {
             updFolders.add(updFolder);
         }
         Collections.sort(updFolders);
-        lstCharUpdFolders.setListData(updFolders.toArray(new String[updFolders.size()]));
+        this.lstCharUpdFolders.setListData(updFolders.toArray(new String[updFolders.size()]));
 
-        txtRealmDBName.setText(confLoader.getRealmDBName());
-        txtRealmFolder.setText(confLoader.getRealmFolder());
-        txtRealmLoadDB.setText(confLoader.getRealmLoadDBName());
+        this.txtRealmDBName.setText(confLoader.getRealmDBName());
+        this.txtRealmFolder.setText(confLoader.getRealmFolder());
+        this.txtRealmLoadDB.setText(confLoader.getRealmLoadDBName());
         updFolders = new ArrayList<String>();
         for (String updFolder : confLoader.getRealmUpdRel().values()) {
             updFolders.add(updFolder);
         }
         Collections.sort(updFolders);
-        lstRealmUpdFolders.setListData(updFolders.toArray(new String[updFolders.size()]));
+        this.lstRealmUpdFolders.setListData(updFolders.toArray(new String[updFolders.size()]));
 
-        txtBuildFolder.setText(confLoader.getCMakeBuildFolder());
+        this.txtBuildFolder.setText(confLoader.getCMakeBuildFolder());
         ArrayList<String> cmakeOptions = new ArrayList<String>();
         for (String optKey : confLoader.getCmakeOptions().keySet()) {
             String lstItem = optKey.substring(optKey.indexOf(".") + 1);
@@ -348,14 +357,14 @@ public class MainWindow extends WorkExecutor {
             cmakeOptions.add(lstItem);
         }
         Collections.sort(cmakeOptions);
-        lstCMakeOptions.setListData(cmakeOptions.toArray(new String[cmakeOptions.size()]));
+        this.lstCMakeOptions.setListData(cmakeOptions.toArray(new String[cmakeOptions.size()]));
 
         String unixRun = "";
         if (cmdManager.getCURR_OS() == cmdManager.UNIX) {
             unixRun = "bin" + File.separator;
         }
-        txtMapTools.setText(getRunFolder() + File.separator + unixRun + "tools");
-        txtMapServer.setText(getRunFolder() + File.separator + "data");
+        this.txtMapTools.setText(this.getRunFolder() + File.separator + unixRun + "tools");
+        this.txtMapServer.setText(this.getRunFolder() + File.separator + "data");
 
     }
 
@@ -372,7 +381,7 @@ public class MainWindow extends WorkExecutor {
     private void addUpdFolder(JList<String> jList) {
         String newUpdFolder = JOptionPane.showInputDialog(null, "Insert new update folder that can be found inside 'Updates' folder:", "New update folder", JOptionPane.OK_CANCEL_OPTION);
         if (!newUpdFolder.isEmpty()) {
-            ArrayList<String> currFolders = getListItems(jList);
+            ArrayList<String> currFolders = this.getListItems(jList);
             currFolders.add(newUpdFolder);
             Collections.sort(currFolders);
             jList.setListData(currFolders.toArray(new String[currFolders.size()]));
@@ -381,7 +390,7 @@ public class MainWindow extends WorkExecutor {
 
     private void remUpdFolder(JList<String> jList) {
         if (jList.getSelectedIndex() >= 0) {
-            ArrayList<String> currFolders = getListItems(jList);
+            ArrayList<String> currFolders = this.getListItems(jList);
             currFolders.remove(jList.getSelectedIndex());
             Collections.sort(currFolders);
             jList.setListData(currFolders.toArray(new String[currFolders.size()]));
@@ -404,8 +413,7 @@ public class MainWindow extends WorkExecutor {
                         protected Object doInBackground() throws Exception {
                             //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                             //cmdManager.setPrbCurrWork(prbDBCurrWork);
-                            return mysqlLoadDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
-                                    databaseFolder, dbFolder, loadScript, dbName, midUpdFolder, cmdManager, console, txpConsole, prbDBCurrWork);
+                            return mysqlLoadDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(), databaseFolder, dbFolder, loadScript, dbName, midUpdFolder, cmdManager, txpConsole, prbDBCurrWork);
 
                         }
 
@@ -441,9 +449,8 @@ public class MainWindow extends WorkExecutor {
                         protected Object doInBackground() throws Exception {
                             //cmdManager.setPrbCurrWork(prbDBCurrWork);
                             //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                            return mysqlUpdateDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
-                                    databaseFolder, dbFolder, updSubFolders, null, dbName, midUpdFolder,
-                                    cmdManager, console, txpConsole, prbDBCurrWork);
+                            return mysqlUpdateDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(), databaseFolder, dbFolder, updSubFolders, null, dbName, midUpdFolder,
+                                    cmdManager, txpConsole, prbDBCurrWork);
 
                         }
 
@@ -469,42 +476,42 @@ public class MainWindow extends WorkExecutor {
     }
 
     private void dbSetup(JList jList, String dbFolder, String dbName, String loadScript, String fullDB) {
-        btnWorkList = new LinkedList<>();
+        this.btnWorkList = new LinkedList<>();
 
-        JButton btnSetup = dbWorkerSetup(dbFolder, loadScript, confLoader.getDatabaseSetupFolder(), dbName);
-        btnWorkList.add(btnSetup);
+        JButton btnSetup = this.dbWorkerSetup(dbFolder, loadScript, confLoader.getDatabaseSetupFolder(), dbName);
+        this.btnWorkList.add(btnSetup);
 
         if (fullDB != null && !fullDB.isEmpty()) {
             ArrayList<String> updFolders = new ArrayList<>();
             updFolders.add(fullDB);
-            JButton btnLoad = dbWorkersUpdate(dbFolder, updFolders, confLoader.getDatabaseSetupFolder(), dbName);
-            btnWorkList.add(btnLoad);
+            JButton btnLoad = this.dbWorkersUpdate(dbFolder, updFolders, confLoader.getDatabaseSetupFolder(), dbName);
+            this.btnWorkList.add(btnLoad);
         }
-        dbUpdate(jList, dbFolder, dbName);
+        this.dbUpdate(jList, dbFolder, dbName);
 
     }
 
     private void dbUpdate(JList jList, String dbFolder, String dbName) {
-        if (btnWorkList == null || btnWorkList.isEmpty()) {
-            btnWorkList = new LinkedList<>();
+        if (this.btnWorkList == null || this.btnWorkList.isEmpty()) {
+            this.btnWorkList = new LinkedList<>();
         }
         //prbDBCurrWork.setValue();
         //prbDBOverall.setMaximum(getListItems(lstWorldUpdFolders).size()+1);
-        for (String curSubFolder : getListItems(jList)) {
+        for (String curSubFolder : this.getListItems(jList)) {
             ArrayList<String> updFolders = new ArrayList<>();
             updFolders.add(curSubFolder);
-            JButton btnWorker = dbWorkersUpdate(dbFolder, updFolders, confLoader.getDatabaseUpdateFolder(), dbName);
-            btnWorkList.add(btnWorker);
+            JButton btnWorker = this.dbWorkersUpdate(dbFolder, updFolders, confLoader.getDatabaseUpdateFolder(), dbName);
+            this.btnWorkList.add(btnWorker);
             //prbDBCurrWork.setValue(prbDBCurrWork.getValue()+5);
         }
-        prbDBOverall.setMaximum(btnWorkList.size());
+        this.prbDBOverall.setMaximum(this.btnWorkList.size());
         //cmdManager.setPrbCurrWork(prbDBCurrWork);
-        btnWorkList.removeFirst().setText("Run");
+        this.btnWorkList.removeFirst().setText("Run");
 
     }
 
     private String getRunFolder() {
-        ArrayList<String> currOptions = getListItems(lstCMakeOptions);
+        ArrayList<String> currOptions = this.getListItems(this.lstCMakeOptions);
         for (String option : currOptions) {
             if (option.contains("CMAKE_INSTALL_PREFIX")) {
                 return option.split("=")[1].replace("\"", "");
@@ -546,7 +553,7 @@ public class MainWindow extends WorkExecutor {
     }
 
     private JButton depsSetup(final int option) {
-        prbSetupProgress.setMaximum(prbSetupProgress.getMaximum() + 1);
+        this.prbSetupProgress.setMaximum(this.prbSetupProgress.getMaximum() + 1);
         final JButton btnSetupWorker = new JButton("Setup Worker");
         PropertyChangeListener propChangeCreation;
         propChangeCreation = new PropertyChangeListener() {
@@ -579,7 +586,7 @@ public class MainWindow extends WorkExecutor {
                         @Override
                         public void done() {
                             try {
-                                if ((boolean) get()) {
+                                if ((boolean) this.get()) {
                                     //btnDBCheckMouseClicked(null);
                                     console.updateGUIConsole(txpConsole, "Done", ConsoleManager.TEXT_BLUE);
                                 } else {
@@ -2468,139 +2475,138 @@ public class MainWindow extends WorkExecutor {
 
     private void chkProxyItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkProxyItemStateChanged
         // TODO add your handling code here:
-        if (chkProxy.isSelected()) {
+        if (this.chkProxy.isSelected()) {
             // Enable components
-            txtProxyServer.setText(confLoader.getProxyServer());
-            txtProxyServer.setEnabled(true);
-            txtProxyPort.setText(confLoader.getProxyPort());
-            txtProxyPort.setEnabled(true);
+            this.txtProxyServer.setText(confLoader.getProxyServer());
+            this.txtProxyServer.setEnabled(true);
+            this.txtProxyPort.setText(confLoader.getProxyPort());
+            this.txtProxyPort.setEnabled(true);
         } else {
             // Disable components
-            txtProxyServer.setText("");
-            txtProxyServer.setEnabled(false);
-            txtProxyPort.setText("");
-            txtProxyPort.setEnabled(false);
+            this.txtProxyServer.setText("");
+            this.txtProxyServer.setEnabled(false);
+            this.txtProxyPort.setText("");
+            this.txtProxyPort.setEnabled(false);
         }
     }//GEN-LAST:event_chkProxyItemStateChanged
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-        doAllChecks();
+        this.doAllChecks();
     }//GEN-LAST:event_formWindowOpened
 
     private void cmbCoresActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbCoresActionPerformed
-        loadCmbCores();
+        this.loadCmbCores();
     }//GEN-LAST:event_cmbCoresActionPerformed
 
     private void btnServerDownloadKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnServerDownloadKeyPressed
-        btnServerDownloadMouseClicked(null);
+        this.btnServerDownloadMouseClicked(null);
     }//GEN-LAST:event_btnServerDownloadKeyPressed
 
     private void btnServerDownloadMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnServerDownloadMouseClicked
-        if (btnGrpGitServer.getSelection() != null) {
+        if (this.btnGrpGitServer.getSelection() != null) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-            setCursor(cursor);
-            if (chkProxy.isSelected()) {
-                cmdManager.setGitProxy(txtProxyServer.getText(), txtProxyPort.getText(), console);
+            this.setCursor(cursor);
+            if (this.chkProxy.isSelected()) {
+                cmdManager.setGitProxy(this.txtProxyServer.getText(), this.txtProxyPort.getText(), this.txpConsole);
             }
-            btnServerDownload.setEnabled(false);
-            btnDatabaseDownload.setEnabled(false);
-            btnLUADownload.setEnabled(false);
-            cmdManager.setBtnInvoker(btnServerDownload);
-            serverFolder = setGitFolder(txtFolderServer.getText(), txtGitServer.getText());
-            gitDownload(btnGrpGitServer.getSelection().getActionCommand(), txtGitServer.getText(), serverFolder, txtBranchServer.getText(), "", "", cmdManager, console, txpConsole);
+            this.btnServerDownload.setEnabled(false);
+            this.btnDatabaseDownload.setEnabled(false);
+            this.btnLUADownload.setEnabled(false);
+            cmdManager.setBtnInvoker(this.btnServerDownload);
+            this.serverFolder = setGitFolder(this.txtFolderServer.getText(), this.txtGitServer.getText());
+            gitDownload(this.btnGrpGitServer.getSelection().getActionCommand(), this.txtGitServer.getText(), this.serverFolder, this.txtBranchServer.getText(), "", "", cmdManager, this.txpConsole);
         }
-
     }//GEN-LAST:event_btnServerDownloadMouseClicked
 
     private void btnDatabaseDownloadKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnDatabaseDownloadKeyPressed
-        btnDatabaseDownloadMouseClicked(null);
+        this.btnDatabaseDownloadMouseClicked(null);
     }//GEN-LAST:event_btnDatabaseDownloadKeyPressed
 
     private void btnDatabaseDownloadMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnDatabaseDownloadMouseClicked
-        if (btnGrpGitDatabase.getSelection() != null) {
+        if (this.btnGrpGitDatabase.getSelection() != null) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-            setCursor(cursor);
-            if (chkProxy.isSelected()) {
-                cmdManager.setGitProxy(txtProxyServer.getText(), txtProxyPort.getText(), console);
+            this.setCursor(cursor);
+            if (this.chkProxy.isSelected()) {
+                cmdManager.setGitProxy(this.txtProxyServer.getText(), this.txtProxyPort.getText(), this.txpConsole);
             }
-            btnServerDownload.setEnabled(false);
-            btnDatabaseDownload.setEnabled(false);
-            btnLUADownload.setEnabled(false);
-            cmdManager.setBtnInvoker(btnDatabaseDownload);
-            databaseFolder = setGitFolder(txtFolderDatabase.getText(), txtGitDatabase.getText());
-            gitDownload(btnGrpGitDatabase.getSelection().getActionCommand(), txtGitDatabase.getText(), databaseFolder, txtBranchDatabase.getText(), "", "", cmdManager, console, txpConsole);
+            this.btnServerDownload.setEnabled(false);
+            this.btnDatabaseDownload.setEnabled(false);
+            this.btnLUADownload.setEnabled(false);
+            cmdManager.setBtnInvoker(this.btnDatabaseDownload);
+            this.databaseFolder = setGitFolder(this.txtFolderDatabase.getText(), this.txtGitDatabase.getText());
+            gitDownload(this.btnGrpGitDatabase.getSelection().getActionCommand(), this.txtGitDatabase.getText(), this.databaseFolder, this.txtBranchDatabase.getText(), "", "", cmdManager, this.txpConsole);
         }
     }//GEN-LAST:event_btnDatabaseDownloadMouseClicked
 
     private void btnLUADownloadKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnLUADownloadKeyPressed
-        btnLUADownloadMouseClicked(null);
+        this.btnLUADownloadMouseClicked(null);
     }//GEN-LAST:event_btnLUADownloadKeyPressed
 
     private void btnLUADownloadMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnLUADownloadMouseClicked
-        if (btnGrpGitLUA.getSelection() != null) {
+        if (this.btnGrpGitLUA.getSelection() != null) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-            setCursor(cursor);
-            if (chkProxy.isSelected()) {
-                cmdManager.setGitProxy(txtProxyServer.getText(), txtProxyPort.getText(), console);
+            this.setCursor(cursor);
+            if (this.chkProxy.isSelected()) {
+                cmdManager.setGitProxy(this.txtProxyServer.getText(), this.txtProxyPort.getText(), this.txpConsole);
             }
-            btnServerDownload.setEnabled(false);
-            btnDatabaseDownload.setEnabled(false);
-            btnLUADownload.setEnabled(false);
-            cmdManager.setBtnInvoker(btnLUADownload);
-            elunaFolder = setGitFolder(txtFolderLUA.getText(), txtGitLUA.getText());
-            gitDownload(btnGrpGitLUA.getSelection().getActionCommand(), txtGitLUA.getText(), elunaFolder, txtBranchLUA.getText(), "", "", cmdManager, console, txpConsole);
+            this.btnServerDownload.setEnabled(false);
+            this.btnDatabaseDownload.setEnabled(false);
+            this.btnLUADownload.setEnabled(false);
+            cmdManager.setBtnInvoker(this.btnLUADownload);
+            this.elunaFolder = setGitFolder(this.txtFolderLUA.getText(), this.txtGitLUA.getText());
+            gitDownload(this.btnGrpGitLUA.getSelection().getActionCommand(), this.txtGitLUA.getText(), this.elunaFolder, this.txtBranchLUA.getText(), "", "", cmdManager, this.txpConsole);
         }
     }//GEN-LAST:event_btnLUADownloadMouseClicked
 
     private void btnServerDownloadPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnServerDownloadPropertyChange
         if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
             if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
-                console.updateGUIConsole(txpConsole, "Done", ConsoleManager.TEXT_BLUE);
+                console.updateGUIConsole(this.txpConsole, "Done", ConsoleManager.TEXT_BLUE);
             } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
-                console.updateGUIConsole(txpConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
+                console.updateGUIConsole(this.txpConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
             }
-            btnDatabaseDownload.setEnabled(true);
+            this.btnDatabaseDownload.setEnabled(true);
             //btnServerDownload.setEnabled(true);
-            btnLUADownload.setEnabled(true);
+            this.btnLUADownload.setEnabled(true);
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-            setCursor(cursor);
+            this.setCursor(cursor);
         }
     }//GEN-LAST:event_btnServerDownloadPropertyChange
 
     private void btnDatabaseDownloadPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnDatabaseDownloadPropertyChange
         if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
             if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
-                mysqlOk = checkMySQL(databaseFolder, confLoader.getPathToMySQL(), cmdManager, console, txpConsole);
+                mysqlOk = checkMySQL(this.databaseFolder, confLoader.getPathToMySQL(), cmdManager, this.txpConsole);
                 if (!mysqlOk) {
-                    disableComponentCascade(pnlDatabase);
+                    this.disableComponentCascade(this.pnlDatabase);
                 } else {
-                    pnlDatabase.setEnabled(true);
-                    enableComponentCascade(pnlDatabaseConfig);
+                    this.pnlDatabase.setEnabled(true);
+                    this.enableComponentCascade(this.pnlDatabaseConfig);
                 }
-                console.updateGUIConsole(txpConsole, "Done", ConsoleManager.TEXT_BLUE);
+                console.updateGUIConsole(this.txpConsole, "Done", ConsoleManager.TEXT_BLUE);
             } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
-                console.updateGUIConsole(txpConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
+                console.updateGUIConsole(this.txpConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
             }
             //btnDatabaseDownload.setEnabled(true);
-            btnServerDownload.setEnabled(true);
-            btnLUADownload.setEnabled(true);
+            this.btnServerDownload.setEnabled(true);
+            this.btnLUADownload.setEnabled(true);
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-            setCursor(cursor);
+            this.setCursor(cursor);
         }
     }//GEN-LAST:event_btnDatabaseDownloadPropertyChange
 
     private void btnLUADownloadPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnLUADownloadPropertyChange
         if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
             if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
-                console.updateGUIConsole(txpConsole, "Done", ConsoleManager.TEXT_BLUE);
+                console.updateGUIConsole(this.txpConsole, "Done", ConsoleManager.TEXT_BLUE);
             } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
-                console.updateGUIConsole(txpConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
+                console.updateGUIConsole(this.txpConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
             }
-            btnDatabaseDownload.setEnabled(true);
-            btnServerDownload.setEnabled(true);
+            this.btnDatabaseDownload.setEnabled(true);
+            this.btnServerDownload.setEnabled(true);
             //btnLUADownload.setEnabled(true);
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-            setCursor(cursor);
+            this.setCursor(cursor);
         }
     }//GEN-LAST:event_btnLUADownloadPropertyChange
 
@@ -2608,124 +2614,124 @@ public class MainWindow extends WorkExecutor {
         //cmdManager.setBtnInvoker(btnDBCheck);
         if (evt == null || evt.getComponent().isEnabled()) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-            setCursor(cursor);
-            checkMySQLConf(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
-                    txtDBConfUser.getText(), txtDBConfUserPwd.getText(), confLoader.getWorldDBName(), confLoader.getCharDBName(), confLoader.getRealmDBName());
+            this.setCursor(cursor);
+            this.checkMySQLConf(this.txtDBConfServer.getText(), this.txtDBConfPort.getText(), this.txtDBConfAdmin.getText(), this.txtDBConfAdminPwd.getText(),
+                    this.txtDBConfUser.getText(), this.txtDBConfUserPwd.getText(), confLoader.getWorldDBName(), confLoader.getCharDBName(), confLoader.getRealmDBName());
             cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-            setCursor(cursor);
+            this.setCursor(cursor);
         }
     }//GEN-LAST:event_btnDBCheckMouseClicked
 
     private void btnDBCheckKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnDBCheckKeyPressed
-        btnDBCheckMouseClicked(null);
+        this.btnDBCheckMouseClicked(null);
     }//GEN-LAST:event_btnDBCheckKeyPressed
 
     private void btnDBFirstInstallKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnDBFirstInstallKeyPressed
-        btnDBFirstInstallMouseClicked(null);
+        this.btnDBFirstInstallMouseClicked(null);
     }//GEN-LAST:event_btnDBFirstInstallKeyPressed
 
     private void btnDBFirstInstallMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnDBFirstInstallMouseClicked
         if (evt.getComponent().isEnabled()) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-            setCursor(cursor);
-            cmdManager.setBtnInvoker(btnDBFirstInstall);
-            mysqlCreateDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
-                    txtDBConfUser.getText(), txtDBConfUserPwd.getText(), txtWorldDBName.getText(), txtCharDBName.getText(), txtRealmDBName.getText(),
-                    cmdManager, console, txpConsole);
+            this.setCursor(cursor);
+            cmdManager.setBtnInvoker(this.btnDBFirstInstall);
+            mysqlCreateDB(this.txtDBConfServer.getText(), this.txtDBConfPort.getText(), this.txtDBConfAdmin.getText(), this.txtDBConfAdminPwd.getText(),
+                    this.txtDBConfUser.getText(), this.txtDBConfUserPwd.getText(), this.txtWorldDBName.getText(), this.txtCharDBName.getText(), this.txtRealmDBName.getText(),
+                    cmdManager, this.txpConsole);
         }
     }//GEN-LAST:event_btnDBFirstInstallMouseClicked
 
     private void btnDBFirstInstallPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_btnDBFirstInstallPropertyChange
         if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
             if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
-                btnDBCheckMouseClicked(null);
+                this.btnDBCheckMouseClicked(null);
                 //console.updateGUIConsole(txpGitConsole, "Done", ConsoleManager.TEXT_BLUE);
             } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
                 //console.updateGUIConsole(txpGitConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
             }
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-            setCursor(cursor);
+            this.setCursor(cursor);
         }
     }//GEN-LAST:event_btnDBFirstInstallPropertyChange
 
     private void btnWorldAddUpdFolderKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnWorldAddUpdFolderKeyPressed
-        btnWorldAddUpdFolderMouseClicked(null);
+        this.btnWorldAddUpdFolderMouseClicked(null);
     }//GEN-LAST:event_btnWorldAddUpdFolderKeyPressed
 
     private void btnWorldAddUpdFolderMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnWorldAddUpdFolderMouseClicked
         if (evt.getComponent().isEnabled()) {
-            addUpdFolder(lstWorldUpdFolders);
+            this.addUpdFolder(this.lstWorldUpdFolders);
         }
     }//GEN-LAST:event_btnWorldAddUpdFolderMouseClicked
 
     private void btnWorldDelUpdFolderKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnWorldDelUpdFolderKeyPressed
-        btnWorldDelUpdFolderMouseClicked(null);
+        this.btnWorldDelUpdFolderMouseClicked(null);
     }//GEN-LAST:event_btnWorldDelUpdFolderKeyPressed
 
     private void btnWorldDelUpdFolderMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnWorldDelUpdFolderMouseClicked
         if (evt.getComponent().isEnabled()) {
-            remUpdFolder(lstWorldUpdFolders);
+            this.remUpdFolder(this.lstWorldUpdFolders);
         }
     }//GEN-LAST:event_btnWorldDelUpdFolderMouseClicked
 
     private void btnCharAddUpdFolderKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnCharAddUpdFolderKeyPressed
-        btnCharAddUpdFolderMouseClicked(null);
+        this.btnCharAddUpdFolderMouseClicked(null);
     }//GEN-LAST:event_btnCharAddUpdFolderKeyPressed
 
     private void btnCharAddUpdFolderMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCharAddUpdFolderMouseClicked
         if (evt.getComponent().isEnabled()) {
-            addUpdFolder(lstCharUpdFolders);
+            this.addUpdFolder(this.lstCharUpdFolders);
         }
     }//GEN-LAST:event_btnCharAddUpdFolderMouseClicked
 
     private void btnCharDelUpdFolderKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnCharDelUpdFolderKeyPressed
-        btnCharDelUpdFolderMouseClicked(null);
+        this.btnCharDelUpdFolderMouseClicked(null);
     }//GEN-LAST:event_btnCharDelUpdFolderKeyPressed
 
     private void btnCharDelUpdFolderMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCharDelUpdFolderMouseClicked
-        remUpdFolder(lstCharUpdFolders);
+        this.remUpdFolder(this.lstCharUpdFolders);
     }//GEN-LAST:event_btnCharDelUpdFolderMouseClicked
 
     private void btnRealmAddUpdFolderKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnRealmAddUpdFolderKeyPressed
-        btnRealmAddUpdFolderMouseClicked(null);
+        this.btnRealmAddUpdFolderMouseClicked(null);
     }//GEN-LAST:event_btnRealmAddUpdFolderKeyPressed
 
     private void btnRealmAddUpdFolderMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnRealmAddUpdFolderMouseClicked
         if (evt.getComponent().isEnabled()) {
-            addUpdFolder(lstRealmUpdFolders);
+            this.addUpdFolder(this.lstRealmUpdFolders);
         }
     }//GEN-LAST:event_btnRealmAddUpdFolderMouseClicked
 
     private void btnRealmDelUpdFolderKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnRealmDelUpdFolderKeyPressed
-        btnRealmDelUpdFolderMouseClicked(null);
+        this.btnRealmDelUpdFolderMouseClicked(null);
     }//GEN-LAST:event_btnRealmDelUpdFolderKeyPressed
 
     private void btnRealmDelUpdFolderMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnRealmDelUpdFolderMouseClicked
-        remUpdFolder(lstRealmUpdFolders);
+        this.remUpdFolder(this.lstRealmUpdFolders);
     }//GEN-LAST:event_btnRealmDelUpdFolderMouseClicked
 
     private void btnDBWorldSetupKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnDBWorldSetupKeyPressed
-        btnDBWorldSetupMouseClicked(null);
+        this.btnDBWorldSetupMouseClicked(null);
     }//GEN-LAST:event_btnDBWorldSetupKeyPressed
 
     private void btnDBWorldSetupMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnDBWorldSetupMouseClicked
-        if (btnGrpDBWorld.getSelection() != null) {
+        if (this.btnGrpDBWorld.getSelection() != null) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-            setCursor(cursor);
-            btnInvoker = btnDBWorldSetup;
+            this.setCursor(cursor);
+            this.btnInvoker = this.btnDBWorldSetup;
             //cmdManager.setPrbCurrWork(prbDBCurrWork);
-            disableComponentCascade(pnlDBWorld);
-            disableComponentCascade(pnlDBCharacter);
-            disableComponentCascade(pnlDBRealm);
-            disableComponentCascade(pnlDatabaseConfig);
-            enableComponentCascade(pnlDBStatus);
-            prbDBCurrWork.setValue(0);
-            prbDBOverall.setValue(0);
+            this.disableComponentCascade(this.pnlDBWorld);
+            this.disableComponentCascade(this.pnlDBCharacter);
+            this.disableComponentCascade(this.pnlDBRealm);
+            this.disableComponentCascade(this.pnlDatabaseConfig);
+            this.enableComponentCascade(this.pnlDBStatus);
+            this.prbDBCurrWork.setValue(0);
+            this.prbDBOverall.setValue(0);
 
-            if ("W".equalsIgnoreCase(btnGrpDBWorld.getSelection().getActionCommand())) {
-                dbSetup(lstWorldUpdFolders, txtWorldFolder.getText(), txtWorldDBName.getText(), txtWorldLoadDB.getText(), txtWorldFullDB.getText());
-            } else if ("U".equalsIgnoreCase(btnGrpDBWorld.getSelection().getActionCommand())) {
-                dbUpdate(lstWorldUpdFolders, txtWorldFolder.getText(), txtWorldDBName.getText());
+            if ("W".equalsIgnoreCase(this.btnGrpDBWorld.getSelection().getActionCommand())) {
+                this.dbSetup(this.lstWorldUpdFolders, this.txtWorldFolder.getText(), this.txtWorldDBName.getText(), this.txtWorldLoadDB.getText(), this.txtWorldFullDB.getText());
+            } else if ("U".equalsIgnoreCase(this.btnGrpDBWorld.getSelection().getActionCommand())) {
+                this.dbUpdate(this.lstWorldUpdFolders, this.txtWorldFolder.getText(), this.txtWorldDBName.getText());
             }
         }
     }//GEN-LAST:event_btnDBWorldSetupMouseClicked
@@ -2735,27 +2741,27 @@ public class MainWindow extends WorkExecutor {
     }//GEN-LAST:event_btnDBWorldSetupPropertyChange
 
     private void btnDBCharSetupKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnDBCharSetupKeyPressed
-        btnDBCharSetupMouseClicked(null);
+        this.btnDBCharSetupMouseClicked(null);
     }//GEN-LAST:event_btnDBCharSetupKeyPressed
 
     private void btnDBCharSetupMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnDBCharSetupMouseClicked
-        if (btnGrpDBCharacter.getSelection() != null) {
+        if (this.btnGrpDBCharacter.getSelection() != null) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-            setCursor(cursor);
-            btnInvoker = btnDBCharSetup;
+            this.setCursor(cursor);
+            this.btnInvoker = this.btnDBCharSetup;
             //cmdManager.setPrbCurrWork(prbDBCurrWork);
-            disableComponentCascade(pnlDBWorld);
-            disableComponentCascade(pnlDBCharacter);
-            disableComponentCascade(pnlDBRealm);
-            disableComponentCascade(pnlDatabaseConfig);
-            enableComponentCascade(pnlDBStatus);
-            prbDBCurrWork.setValue(0);
-            prbDBOverall.setValue(0);
+            this.disableComponentCascade(this.pnlDBWorld);
+            this.disableComponentCascade(this.pnlDBCharacter);
+            this.disableComponentCascade(this.pnlDBRealm);
+            this.disableComponentCascade(this.pnlDatabaseConfig);
+            this.enableComponentCascade(this.pnlDBStatus);
+            this.prbDBCurrWork.setValue(0);
+            this.prbDBOverall.setValue(0);
 
-            if ("W".equalsIgnoreCase(btnGrpDBCharacter.getSelection().getActionCommand())) {
-                dbSetup(lstCharUpdFolders, txtCharFolder.getText(), txtCharDBName.getText(), txtCharLoadDB.getText(), null);
-            } else if ("U".equalsIgnoreCase(btnGrpDBCharacter.getSelection().getActionCommand())) {
-                dbUpdate(lstCharUpdFolders, txtCharFolder.getText(), txtCharDBName.getText());
+            if ("W".equalsIgnoreCase(this.btnGrpDBCharacter.getSelection().getActionCommand())) {
+                this.dbSetup(this.lstCharUpdFolders, this.txtCharFolder.getText(), this.txtCharDBName.getText(), this.txtCharLoadDB.getText(), null);
+            } else if ("U".equalsIgnoreCase(this.btnGrpDBCharacter.getSelection().getActionCommand())) {
+                this.dbUpdate(this.lstCharUpdFolders, this.txtCharFolder.getText(), this.txtCharDBName.getText());
             }
         }
     }//GEN-LAST:event_btnDBCharSetupMouseClicked
@@ -2765,27 +2771,27 @@ public class MainWindow extends WorkExecutor {
     }//GEN-LAST:event_btnDBCharSetupPropertyChange
 
     private void btnDBRealmSetupKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnDBRealmSetupKeyPressed
-        btnDBRealmSetupMouseClicked(null);
+        this.btnDBRealmSetupMouseClicked(null);
     }//GEN-LAST:event_btnDBRealmSetupKeyPressed
 
     private void btnDBRealmSetupMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnDBRealmSetupMouseClicked
-        if (btnGrpDBRealm.getSelection() != null) {
+        if (this.btnGrpDBRealm.getSelection() != null) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-            setCursor(cursor);
-            btnInvoker = btnDBRealmSetup;
+            this.setCursor(cursor);
+            this.btnInvoker = this.btnDBRealmSetup;
             //cmdManager.setPrbCurrWork(prbDBCurrWork);
-            disableComponentCascade(pnlDBWorld);
-            disableComponentCascade(pnlDBCharacter);
-            disableComponentCascade(pnlDBRealm);
-            disableComponentCascade(pnlDatabaseConfig);
-            enableComponentCascade(pnlDBStatus);
-            prbDBCurrWork.setValue(0);
-            prbDBOverall.setValue(0);
+            this.disableComponentCascade(this.pnlDBWorld);
+            this.disableComponentCascade(this.pnlDBCharacter);
+            this.disableComponentCascade(this.pnlDBRealm);
+            this.disableComponentCascade(this.pnlDatabaseConfig);
+            this.enableComponentCascade(this.pnlDBStatus);
+            this.prbDBCurrWork.setValue(0);
+            this.prbDBOverall.setValue(0);
 
-            if ("W".equalsIgnoreCase(btnGrpDBRealm.getSelection().getActionCommand())) {
-                dbSetup(lstRealmUpdFolders, txtRealmFolder.getText(), txtRealmDBName.getText(), txtRealmLoadDB.getText(), null);
-            } else if ("U".equalsIgnoreCase(btnGrpDBRealm.getSelection().getActionCommand())) {
-                dbUpdate(lstRealmUpdFolders, txtRealmFolder.getText(), txtRealmDBName.getText());
+            if ("W".equalsIgnoreCase(this.btnGrpDBRealm.getSelection().getActionCommand())) {
+                this.dbSetup(this.lstRealmUpdFolders, this.txtRealmFolder.getText(), this.txtRealmDBName.getText(), this.txtRealmLoadDB.getText(), null);
+            } else if ("U".equalsIgnoreCase(this.btnGrpDBRealm.getSelection().getActionCommand())) {
+                this.dbUpdate(this.lstRealmUpdFolders, this.txtRealmFolder.getText(), this.txtRealmDBName.getText());
             }
         }
     }//GEN-LAST:event_btnDBRealmSetupMouseClicked
@@ -2795,43 +2801,43 @@ public class MainWindow extends WorkExecutor {
     }//GEN-LAST:event_btnDBRealmSetupPropertyChange
 
     private void prbDBCurrWorkStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_prbDBCurrWorkStateChanged
-        if (prbDBCurrWork.getValue() >= prbDBCurrWork.getMaximum()) {
-            prbDBCurrWork.setValue(0);
-            console.updateGUIConsole(txpConsole, "\nCurrent job done.", ConsoleManager.TEXT_BLUE);
-            if (!btnWorkList.isEmpty()) {
-                btnWorkList.removeFirst().setText("Run");
+        if (this.prbDBCurrWork.getValue() >= this.prbDBCurrWork.getMaximum()) {
+            this.prbDBCurrWork.setValue(0);
+            console.updateGUIConsole(this.txpConsole, "\nCurrent job done.", ConsoleManager.TEXT_BLUE);
+            if (!this.btnWorkList.isEmpty()) {
+                this.btnWorkList.removeFirst().setText("Run");
             }
         }
     }//GEN-LAST:event_prbDBCurrWorkStateChanged
 
     private void prbDBOverallStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_prbDBOverallStateChanged
-        if (prbDBOverall.getValue() >= prbDBOverall.getMaximum()) {
+        if (this.prbDBOverall.getValue() >= this.prbDBOverall.getMaximum()) {
             //cmdManager.setPrbCurrWork(null);
             //prbDBCurrWork.setValue(0);
             //prbDBOverall.setValue(0);
-            console.updateGUIConsole(txpConsole, "\nAll processes done.", ConsoleManager.TEXT_BLUE);
-            enableComponentCascade(pnlDBWorld);
-            enableComponentCascade(pnlDBCharacter);
-            enableComponentCascade(pnlDBRealm);
-            enableComponentCascade(pnlDatabaseConfig);
-            disableComponentCascade(pnlDBStatus);
+            console.updateGUIConsole(this.txpConsole, "\nAll processes done.", ConsoleManager.TEXT_BLUE);
+            this.enableComponentCascade(this.pnlDBWorld);
+            this.enableComponentCascade(this.pnlDBCharacter);
+            this.enableComponentCascade(this.pnlDBRealm);
+            this.enableComponentCascade(this.pnlDatabaseConfig);
+            this.disableComponentCascade(this.pnlDBStatus);
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-            setCursor(cursor);
+            this.setCursor(cursor);
         }
     }//GEN-LAST:event_prbDBOverallStateChanged
 
     private void btnCMakeOptAddKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnCMakeOptAddKeyPressed
-        btnCMakeOptAddMouseClicked(null);
+        this.btnCMakeOptAddMouseClicked(null);
     }//GEN-LAST:event_btnCMakeOptAddKeyPressed
 
     private void btnCMakeOptAddMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCMakeOptAddMouseClicked
         if (evt.getComponent().isEnabled()) {
             String newOption = JOptionPane.showInputDialog(null, "Insert new option for CMake process with format 'OptionName=Value':", "New CMake ption", JOptionPane.OK_CANCEL_OPTION);
             if (newOption != null && !newOption.isEmpty()) {
-                ArrayList<String> currOptions = getListItems(lstCMakeOptions);
+                ArrayList<String> currOptions = this.getListItems(this.lstCMakeOptions);
                 currOptions.add(newOption);
                 Collections.sort(currOptions);
-                lstCMakeOptions.setListData(currOptions.toArray(new String[currOptions.size()]));
+                this.lstCMakeOptions.setListData(currOptions.toArray(new String[currOptions.size()]));
             }
         }
     }//GEN-LAST:event_btnCMakeOptAddMouseClicked
@@ -2841,19 +2847,19 @@ public class MainWindow extends WorkExecutor {
     }//GEN-LAST:event_btnCMakeOptAddPropertyChange
 
     private void btnCMakeOptEditKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnCMakeOptEditKeyPressed
-        btnCMakeOptEditMouseClicked(null);
+        this.btnCMakeOptEditMouseClicked(null);
     }//GEN-LAST:event_btnCMakeOptEditKeyPressed
 
     private void btnCMakeOptEditMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCMakeOptEditMouseClicked
-        if (evt.getComponent().isEnabled() && lstCMakeOptions.getSelectedIndex() >= 0) {
-            ArrayList<String> currOptions = getListItems(lstCMakeOptions);
+        if (evt.getComponent().isEnabled() && this.lstCMakeOptions.getSelectedIndex() >= 0) {
+            ArrayList<String> currOptions = this.getListItems(this.lstCMakeOptions);
 //            String lstItem = currOptions.get(lstCMakeOptions.getSelectedIndex());
-            String newlstItem = (String) JOptionPane.showInputDialog(null, "Edit selected option for CMake process with format 'OptionName=Value':", "Edit CMake option", JOptionPane.OK_CANCEL_OPTION, null, null, currOptions.get(lstCMakeOptions.getSelectedIndex()));
+            String newlstItem = (String) JOptionPane.showInputDialog(null, "Edit selected option for CMake process with format 'OptionName=Value':", "Edit CMake option", JOptionPane.OK_CANCEL_OPTION, null, null, currOptions.get(this.lstCMakeOptions.getSelectedIndex()));
             if (newlstItem != null && !newlstItem.isEmpty()) {
-                currOptions.remove(lstCMakeOptions.getSelectedIndex());
+                currOptions.remove(this.lstCMakeOptions.getSelectedIndex());
                 currOptions.add(newlstItem);
                 Collections.sort(currOptions);
-                lstCMakeOptions.setListData(currOptions.toArray(new String[currOptions.size()]));
+                this.lstCMakeOptions.setListData(currOptions.toArray(new String[currOptions.size()]));
             }
         }
     }//GEN-LAST:event_btnCMakeOptEditMouseClicked
@@ -2863,15 +2869,15 @@ public class MainWindow extends WorkExecutor {
     }//GEN-LAST:event_btnCMakeOptEditPropertyChange
 
     private void btnCMakeOptDelKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnCMakeOptDelKeyPressed
-        btnCMakeOptDelMouseClicked(null);
+        this.btnCMakeOptDelMouseClicked(null);
     }//GEN-LAST:event_btnCMakeOptDelKeyPressed
 
     private void btnCMakeOptDelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCMakeOptDelMouseClicked
-        if (evt.getComponent().isEnabled() && lstCMakeOptions.getSelectedIndex() >= 0) {
-            ArrayList<String> currOptions = getListItems(lstCMakeOptions);
-            currOptions.remove(lstCMakeOptions.getSelectedIndex());
+        if (evt.getComponent().isEnabled() && this.lstCMakeOptions.getSelectedIndex() >= 0) {
+            ArrayList<String> currOptions = this.getListItems(this.lstCMakeOptions);
+            currOptions.remove(this.lstCMakeOptions.getSelectedIndex());
             Collections.sort(currOptions);
-            lstCMakeOptions.setListData(currOptions.toArray(new String[currOptions.size()]));
+            this.lstCMakeOptions.setListData(currOptions.toArray(new String[currOptions.size()]));
         }
     }//GEN-LAST:event_btnCMakeOptDelMouseClicked
 
@@ -2880,18 +2886,18 @@ public class MainWindow extends WorkExecutor {
     }//GEN-LAST:event_btnCMakeOptDelPropertyChange
 
     private void txtBuildFolderFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtBuildFolderFocusLost
-        checkCMakeConf(txtBuildFolder.getText());
+        this.checkCMakeConf(this.txtBuildFolder.getText());
     }//GEN-LAST:event_txtBuildFolderFocusLost
 
     private void btnBuildKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnBuildKeyPressed
-        btnBuildMouseClicked(null);
+        this.btnBuildMouseClicked(null);
     }//GEN-LAST:event_btnBuildKeyPressed
 
     private void btnBuildMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnBuildMouseClicked
         if (evt.getComponent().isEnabled() && JOptionPane.showConfirmDialog(null, "WARNING: This operation may overwrite already built project. Do you want to continue?", "Build confirmation", JOptionPane.OK_CANCEL_OPTION) == 0) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-            setCursor(cursor);
-            ArrayList<String> currOptions = getListItems(lstCMakeOptions);
+            this.setCursor(cursor);
+            ArrayList<String> currOptions = this.getListItems(this.lstCMakeOptions);
             HashMap<String, String> cmakeOptions = new HashMap<>();
             for (String item : currOptions) {
                 String[] option = item.split("=");
@@ -2899,9 +2905,9 @@ public class MainWindow extends WorkExecutor {
                     cmakeOptions.put(option[0], option[1]);
                 }
             }
-            disableComponentCascade(pnlBuildInstall);
-            cmdManager.setBtnInvoker(btnBuild);
-            cmdManager.cmakeConfig(serverFolder, txtBuildFolder.getText(), cmakeOptions, txpConsole);
+            this.disableComponentCascade(this.pnlBuildInstall);
+            cmdManager.setBtnInvoker(this.btnBuild);
+            cmdManager.cmakeConfig(this.serverFolder, this.txtBuildFolder.getText(), cmakeOptions, this.txpConsole);
         }
     }//GEN-LAST:event_btnBuildMouseClicked
 
@@ -2909,28 +2915,28 @@ public class MainWindow extends WorkExecutor {
         if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
             if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
                 //btnDBCheckMouseClicked(null);
-                console.updateGUIConsole(txpConsole, "Done", ConsoleManager.TEXT_BLUE);
+                console.updateGUIConsole(this.txpConsole, "Done", ConsoleManager.TEXT_BLUE);
             } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
                 //console.updateGUIConsole(txpGitConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
             }
-            enableComponentCascade(pnlBuildInstall);
-            btnInstall.setEnabled(true);
+            this.enableComponentCascade(this.pnlBuildInstall);
+            this.btnInstall.setEnabled(true);
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-            setCursor(cursor);
+            this.setCursor(cursor);
         }
     }//GEN-LAST:event_btnBuildPropertyChange
 
     private void btnInstallKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnInstallKeyPressed
-        btnInstallMouseClicked(null);
+        this.btnInstallMouseClicked(null);
     }//GEN-LAST:event_btnInstallKeyPressed
 
     private void btnInstallMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnInstallMouseClicked
         if (evt.getComponent().isEnabled()) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-            setCursor(cursor);
-            disableComponentCascade(pnlBuildInstall);
-            cmdManager.setBtnInvoker(btnInstall);
-            cmdManager.cmakeInstall(txtBuildFolder.getText(), getRunFolder(), confLoader.getCMakeBuildType(), txpConsole);
+            this.setCursor(cursor);
+            this.disableComponentCascade(this.pnlBuildInstall);
+            cmdManager.setBtnInvoker(this.btnInstall);
+            cmdManager.cmakeInstall(this.txtBuildFolder.getText(), this.getRunFolder(), confLoader.getCMakeBuildType(), this.txpConsole);
         }
     }//GEN-LAST:event_btnInstallMouseClicked
 
@@ -2938,32 +2944,32 @@ public class MainWindow extends WorkExecutor {
         if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
             if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
                 //btnDBCheckMouseClicked(null);
-                if (cmdManager.getCURR_OS() == cmdManager.UNIX || (cmdManager.copyFolder(txtBuildFolder.getText() + File.separator + "bin" + File.separator + "Debug", getRunFolder(), txpConsole))) {
-                    console.updateGUIConsole(txpConsole, "Done", ConsoleManager.TEXT_BLUE);
-                    lblNextStep.setVisible(true);
+                if (cmdManager.getCURR_OS() == cmdManager.UNIX || (cmdManager.copyFolder(this.txtBuildFolder.getText() + File.separator + "bin" + File.separator + "Debug", this.getRunFolder(), this.txpConsole))) {
+                    console.updateGUIConsole(this.txpConsole, "Done", ConsoleManager.TEXT_BLUE);
+                    this.lblNextStep.setVisible(true);
                 } else {
-                    console.updateGUIConsole(txpConsole, "ERROR: check console output and redo process.", ConsoleManager.TEXT_RED);
+                    console.updateGUIConsole(this.txpConsole, "ERROR: check console output and redo process.", ConsoleManager.TEXT_RED);
                 }
             } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
-                console.updateGUIConsole(txpConsole, "ERROR: check console output and redo process.", ConsoleManager.TEXT_RED);
+                console.updateGUIConsole(this.txpConsole, "ERROR: check console output and redo process.", ConsoleManager.TEXT_RED);
             }
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-            setCursor(cursor);
-            enableComponentCascade(pnlBuildInstall);
+            this.setCursor(cursor);
+            this.enableComponentCascade(this.pnlBuildInstall);
         }
     }//GEN-LAST:event_btnInstallPropertyChange
 
     private void btnSetupLuaScriptsKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnSetupLuaScriptsKeyPressed
-        btnSetupLuaScriptsMouseClicked(null);
+        this.btnSetupLuaScriptsMouseClicked(null);
     }//GEN-LAST:event_btnSetupLuaScriptsKeyPressed
 
     private void btnSetupLuaScriptsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnSetupLuaScriptsMouseClicked
         if (evt.getComponent().isEnabled()) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-            setCursor(cursor);
-            String runFolder = getRunFolder();
-            if (cmdManager.checkFolder(elunaFolder) && mysqlOk && !runFolder.isEmpty() && cmdManager.checkFolder(runFolder)) {
-                disableComponentCascade(pnlBuildInstall);
+            this.setCursor(cursor);
+            String runFolder = this.getRunFolder();
+            if (cmdManager.checkFolder(this.elunaFolder) && mysqlOk && !runFolder.isEmpty() && cmdManager.checkFolder(runFolder)) {
+                this.disableComponentCascade(this.pnlBuildInstall);
 
                 SwingWorker<Object, Object> mySqlWorker;
                 mySqlWorker = new SwingWorker<Object, Object>() {
@@ -2972,15 +2978,14 @@ public class MainWindow extends WorkExecutor {
                     protected Object doInBackground() throws Exception {
                         String setupPath = elunaFolder + File.separator + "sql";
                         //cmdManager.setBtnInvoker(btnSetupLuaScripts);
-                        return mysqlUpdateDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(),
-                                databaseFolder, null, null, setupPath, txtWorldDBName.getText(), null, cmdManager, console, txpConsole, prbDBCurrWork);
+                        return mysqlUpdateDB(txtDBConfServer.getText(), txtDBConfPort.getText(), txtDBConfAdmin.getText(), txtDBConfAdminPwd.getText(), databaseFolder, null, null, setupPath, txtWorldDBName.getText(), null, cmdManager, txpConsole, prbDBCurrWork);
                     }
 
                     @Override
                     public void done() {
                         try {
                             //prbDBOverall.setValue(prbDBOverall.getValue() + 1);
-                            if (true == (boolean) get()) {
+                            if (true == (boolean) this.get()) {
                                 btnSetupLuaScripts.setText("DONE");
                                 //btnInvoker.setActionCommand("DONE");
                             } else {
@@ -3002,55 +3007,55 @@ public class MainWindow extends WorkExecutor {
         if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
             if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
                 //btnDBCheckMouseClicked(null);
-                String luaSrc = (txtFolderLUA.getText().isEmpty() ? elunaFolder : txtFolderLUA.getText().replace("\"", "")) + File.separator + "lua_scripts";
-                String luaDst = getRunFolder() + File.separator + "lua_scripts";
-                console.updateGUIConsole(txpConsole, "\nInstalling binaries into destination folder...", ConsoleManager.TEXT_BLUE);
-                boolean cpRet = cmdManager.copyFolder(luaSrc, luaDst, txpConsole);
+                String luaSrc = (this.txtFolderLUA.getText().isEmpty() ? this.elunaFolder : this.txtFolderLUA.getText().replace("\"", "")) + File.separator + "lua_scripts";
+                String luaDst = this.getRunFolder() + File.separator + "lua_scripts";
+                console.updateGUIConsole(this.txpConsole, "\nInstalling binaries into destination folder...", ConsoleManager.TEXT_BLUE);
+                boolean cpRet = cmdManager.copyFolder(luaSrc, luaDst, this.txpConsole);
                 if (cpRet) {
-                    console.updateGUIConsole(txpConsole, "Done", ConsoleManager.TEXT_BLUE);
+                    console.updateGUIConsole(this.txpConsole, "Done", ConsoleManager.TEXT_BLUE);
                 } else {
-                    console.updateGUIConsole(txpConsole, "ERROR: check console output and redo process.", ConsoleManager.TEXT_RED);
+                    console.updateGUIConsole(this.txpConsole, "ERROR: check console output and redo process.", ConsoleManager.TEXT_RED);
                 }
             } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
-                console.updateGUIConsole(txpConsole, "ERROR: Check console output and redo process.", ConsoleManager.TEXT_RED);
+                console.updateGUIConsole(this.txpConsole, "ERROR: Check console output and redo process.", ConsoleManager.TEXT_RED);
             }
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-            setCursor(cursor);
-            enableComponentCascade(pnlBuildInstall);
+            this.setCursor(cursor);
+            this.enableComponentCascade(this.pnlBuildInstall);
         }
     }//GEN-LAST:event_btnSetupLuaScriptsPropertyChange
 
     private void btnSetupMissingDepsKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnSetupMissingDepsKeyPressed
-        btnSetupMissingDepsMouseClicked(null);
+        this.btnSetupMissingDepsMouseClicked(null);
     }//GEN-LAST:event_btnSetupMissingDepsKeyPressed
 
     private void btnSetupMissingDepsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnSetupMissingDepsMouseClicked
         if (evt.getComponent().isEnabled()
-                && (chkSetupCMake.isSelected() || chkSetupGit.isSelected() || chkSetupMySQL.isSelected() || chkSetupOpenSSL.isSelected())) {
+                && (this.chkSetupCMake.isSelected() || this.chkSetupGit.isSelected() || this.chkSetupMySQL.isSelected() || this.chkSetupOpenSSL.isSelected())) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-            setCursor(cursor);
-            btnSetupMissingDeps.setEnabled(false);
-            btnWorkList = new LinkedList<>();
-            prbSetupProgress.setValue(0);
-            prbSetupProgress.setMaximum(0);
+            this.setCursor(cursor);
+            this.btnSetupMissingDeps.setEnabled(false);
+            this.btnWorkList = new LinkedList<>();
+            this.prbSetupProgress.setValue(0);
+            this.prbSetupProgress.setMaximum(0);
             if (cmdManager.checkRootConsole(null)) {
-                if (chkSetupGit.isEnabled()) {
-                    btnWorkList.add(depsSetup(1));
+                if (this.chkSetupGit.isEnabled()) {
+                    this.btnWorkList.add(this.depsSetup(1));
                 }
-                if (chkSetupMySQL.isEnabled()) {
-                    btnWorkList.add(depsSetup(2));
+                if (this.chkSetupMySQL.isEnabled()) {
+                    this.btnWorkList.add(this.depsSetup(2));
                 }
-                if (chkSetupCMake.isEnabled()) {
-                    btnWorkList.add(depsSetup(3));
+                if (this.chkSetupCMake.isEnabled()) {
+                    this.btnWorkList.add(this.depsSetup(3));
                 }
-                if (chkSetupOpenSSL.isEnabled()) {
-                    btnWorkList.add(depsSetup(4));
+                if (this.chkSetupOpenSSL.isEnabled()) {
+                    this.btnWorkList.add(this.depsSetup(4));
                 }
-                if (!btnWorkList.isEmpty()) {
-                    btnWorkList.removeFirst().setText("Run");
+                if (!this.btnWorkList.isEmpty()) {
+                    this.btnWorkList.removeFirst().setText("Run");
                 }
             } else {
-                console.updateGUIConsole(txpConsole, "\nERROR: Cannot install missing dependecies because MaNGOS UI was not launched from ROOT console. Try it again with ROOT privileges.", WIDTH);
+                console.updateGUIConsole(this.txpConsole, "\nERROR: Cannot install missing dependecies because MaNGOS UI was not launched from ROOT console. Try it again with ROOT privileges.", WIDTH);
             }
         }
     }//GEN-LAST:event_btnSetupMissingDepsMouseClicked
@@ -3059,47 +3064,47 @@ public class MainWindow extends WorkExecutor {
         if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
             if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
                 //btnDBCheckMouseClicked(null);
-                console.updateGUIConsole(txpConsole, "Done", ConsoleManager.TEXT_BLUE);
+                console.updateGUIConsole(this.txpConsole, "Done", ConsoleManager.TEXT_BLUE);
             } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
                 //console.updateGUIConsole(txpGitConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
             }
-            btnSetupMissingDeps.setEnabled(true);
+            this.btnSetupMissingDeps.setEnabled(true);
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-            setCursor(cursor);
+            this.setCursor(cursor);
         }
     }//GEN-LAST:event_btnSetupMissingDepsPropertyChange
 
     private void lblDownloadGitMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblDownloadGitMouseClicked
-        openURL(confLoader.getURLGit());
+        this.openURL(confLoader.getURLGit());
     }//GEN-LAST:event_lblDownloadGitMouseClicked
 
     private void lblDownloadMySQLMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblDownloadMySQLMouseClicked
-        openURL(confLoader.getURLMySQL());
+        this.openURL(confLoader.getURLMySQL());
     }//GEN-LAST:event_lblDownloadMySQLMouseClicked
 
     private void lblDownloadCMakeMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblDownloadCMakeMouseClicked
-        openURL(confLoader.getURLCMake());
+        this.openURL(confLoader.getURLCMake());
     }//GEN-LAST:event_lblDownloadCMakeMouseClicked
 
     private void lblDownloadOpenSSLMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblDownloadOpenSSLMouseClicked
-        openURL(confLoader.getURLOpenSSL());
+        this.openURL(confLoader.getURLOpenSSL());
     }//GEN-LAST:event_lblDownloadOpenSSLMouseClicked
 
     private void btnMapExtractorKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnMapExtractorKeyPressed
-        btnMapExtractorMouseClicked(null);
+        this.btnMapExtractorMouseClicked(null);
     }//GEN-LAST:event_btnMapExtractorKeyPressed
 
     private void btnMapExtractorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnMapExtractorMouseClicked
         Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-        setCursor(cursor);
-        disableComponentCascade(pnlMapExtraction);
-        btnWorkList = new LinkedList<>();
-        chkMapExtracted.setSelected(false);
-        chkVMapExtracted.setSelected(false);
-        chkVMapAssmbled.setSelected(false);
-        chkMMapGenerated.setSelected(false);
-        chkMapCleaning.setSelected(false);
-        prbMapExtraction.setValue(0);
+        this.setCursor(cursor);
+        this.disableComponentCascade(this.pnlMapExtraction);
+        this.btnWorkList = new LinkedList<>();
+        this.chkMapExtracted.setSelected(false);
+        this.chkVMapExtracted.setSelected(false);
+        this.chkVMapAssmbled.setSelected(false);
+        this.chkMMapGenerated.setSelected(false);
+        this.chkMapCleaning.setSelected(false);
+        this.prbMapExtraction.setValue(0);
 
         final JButton btnClean = new JButton("Clean");
         PropertyChangeListener btnCleanPropertyChange = new PropertyChangeListener() {
@@ -3186,7 +3191,7 @@ public class MainWindow extends WorkExecutor {
         btnMapExtract.addPropertyChangeListener(btnMapExtractorPropertyChange);
 
         cmdManager.setBtnInvoker(btnMapExtract);
-        cmdManager.mapExtraction(txtMapTools.getText(), txtMapClient.getText(), txtMapServer.getText(), 1, txpConsole, null);
+        cmdManager.mapExtraction(this.txtMapTools.getText(), this.txtMapClient.getText(), this.txtMapServer.getText(), 1, this.txpConsole, null);
 
     }//GEN-LAST:event_btnMapExtractorMouseClicked
 
@@ -3194,14 +3199,14 @@ public class MainWindow extends WorkExecutor {
         if ("Text".equalsIgnoreCase(evt.getPropertyName())) {
             if ("DONE".equalsIgnoreCase((String) evt.getNewValue())) {
                 //btnDBCheckMouseClicked(null);
-                console.updateGUIConsole(txpConsole, "Done", ConsoleManager.TEXT_BLUE);
+                console.updateGUIConsole(this.txpConsole, "Done", ConsoleManager.TEXT_BLUE);
             } else if ("ERROR".equalsIgnoreCase((String) evt.getNewValue())) {
                 //console.updateGUIConsole(txpGitConsole, "ERROR: Check console output and redo process with W (wipe) option.", ConsoleManager.TEXT_RED);
             }
-            enableComponentCascade(pnlMapExtraction);
-            btnInstall.setEnabled(true);
+            this.enableComponentCascade(this.pnlMapExtraction);
+            this.btnInstall.setEnabled(true);
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-            setCursor(cursor);
+            this.setCursor(cursor);
         }
     }//GEN-LAST:event_btnMapExtractorPropertyChange
 
@@ -3212,57 +3217,57 @@ public class MainWindow extends WorkExecutor {
     private void lblDownloadMySQLMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblDownloadMySQLMouseEntered
         if (evt.getComponent().isEnabled()) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-            setCursor(cursor);
+            this.setCursor(cursor);
         }
     }//GEN-LAST:event_lblDownloadMySQLMouseEntered
 
     private void lblDownloadMySQLMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblDownloadMySQLMouseExited
         Cursor cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-        setCursor(cursor);
+        this.setCursor(cursor);
     }//GEN-LAST:event_lblDownloadMySQLMouseExited
 
     private void lblDownloadGitMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblDownloadGitMouseEntered
         if (evt.getComponent().isEnabled()) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-            setCursor(cursor);
+            this.setCursor(cursor);
         }
     }//GEN-LAST:event_lblDownloadGitMouseEntered
 
     private void lblDownloadGitMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblDownloadGitMouseExited
         Cursor cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-        setCursor(cursor);
+        this.setCursor(cursor);
     }//GEN-LAST:event_lblDownloadGitMouseExited
 
     private void lblDownloadCMakeMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblDownloadCMakeMouseExited
         Cursor cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-        setCursor(cursor);
+        this.setCursor(cursor);
     }//GEN-LAST:event_lblDownloadCMakeMouseExited
 
     private void lblDownloadCMakeMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblDownloadCMakeMouseEntered
         if (evt.getComponent().isEnabled()) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-            setCursor(cursor);
+            this.setCursor(cursor);
         }
     }//GEN-LAST:event_lblDownloadCMakeMouseEntered
 
     private void lblDownloadOpenSSLMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblDownloadOpenSSLMouseEntered
         if (evt.getComponent().isEnabled()) {
             Cursor cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-            setCursor(cursor);
+            this.setCursor(cursor);
         }
     }//GEN-LAST:event_lblDownloadOpenSSLMouseEntered
 
     private void lblDownloadOpenSSLMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblDownloadOpenSSLMouseExited
         Cursor cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-        setCursor(cursor);
+        this.setCursor(cursor);
     }//GEN-LAST:event_lblDownloadOpenSSLMouseExited
 
     private void btnCheckDepsKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnCheckDepsKeyPressed
-        btnCheckDepsMouseClicked(null);
+        this.btnCheckDepsMouseClicked(null);
     }//GEN-LAST:event_btnCheckDepsKeyPressed
 
     private void btnCheckDepsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCheckDepsMouseClicked
-        doAllChecks();
+        this.doAllChecks();
     }//GEN-LAST:event_btnCheckDepsMouseClicked
 
     private void prbSetupProgressStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_prbSetupProgressStateChanged

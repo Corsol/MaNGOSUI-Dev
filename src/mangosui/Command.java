@@ -68,25 +68,26 @@ public class Command {
      * * JTextPane in GUI environment<br/>
      * * Console<br/>
      * * String<br/>
-     * If guiConsole is null the process use current thread to run commands, and user must wait
-     * commands execution to use the interface (gui or console). Else if
-     * guiConsole was passed as argument the commands execution will be run in a
-     * separated thread, so GUI will not freeze until execution is done and
-     * output wiil be pasted into JTextPane specified. To manage subthread ends
-     * use a JButton or JProgressBar and setup the PropertyChange event. The
-     * separated thread will change "Text" (for Jbutton) and/or "Value" (for
+     * If guiConsole is null the process use current thread to run commands, and
+     * user must wait commands execution to use the interface (gui or console).
+     * Else if guiConsole was passed as argument the commands execution will be
+     * run in a separated thread, so GUI will not freeze until execution is done
+     * and output wiil be pasted into JTextPane specified. To manage subthread
+     * ends use a JButton or JProgressBar and setup the PropertyChange event.
+     * The separated thread will change "Text" (for Jbutton) and/or "Value" (for
      * JProgressBar) when work is done.
      *
-     * @param commands The commands list to be executed
+     * @param commands The String[] commands list to be executed
      * @param guiConsole The JTextPane swing component into wich append
      * execution output
      * @param rawConsole The String variable into wich excution output will be
      * saved
-     * @param toBuffer The boolean value to save output into String
+     * @param toBuffer The boolean value to save output into String variable and
+     * avoid console output
      * @param prbCurrWork The JProgressBar used on separated thread execution
      * @return True if local execution exit value is 0, false if local execution
-     * exit value is not equals to 0, false if execution will be in separated
-     * thread.
+     * exit value is not equals to 0, false if execution will be executed in
+     * separated thread.
      * @throws IOException
      * @throws InterruptedException
      * @throws java.util.concurrent.ExecutionException
@@ -105,7 +106,7 @@ public class Command {
                 for (String cmd : commands) {
                     msg += " " + cmd;
                 }
-                System.console().printf("%s", msg + "\n");
+                System.console().printf("%s\n", msg);
             }
             if (!toBuffer) {
                 builder.redirectError(ProcessBuilder.Redirect.INHERIT);
@@ -209,7 +210,7 @@ public class Command {
                 if (console != null) {
                     ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_BLACK);
                 } else {
-                    System.console().printf("%s", msg + "\n");
+                    System.console().printf("%s\n", msg);
                 }
 
             }

@@ -1,6 +1,6 @@
 === TO DO ===
 
 - Use a waiting form while process is working on GUI
-- Test with MaNGOS One, Two, Three
-- Tests with different Linux distro
+- Test with MaNGOS Two, Three
+- Test with different Linux distro
 - Fix GUI layout

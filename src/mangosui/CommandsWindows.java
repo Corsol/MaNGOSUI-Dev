@@ -1,7 +1,19 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2015 Boni Simone <simo.boni@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package mangosui;
 
@@ -10,59 +22,100 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JProgressBar;
 
 /**
  *
- * @author Simone
+ * @author Boni Simone <simo.boni@gmail.com>
  */
 public class CommandsWindows extends Command {
 
     private String gitPath = "";
     private String cmakePath = "";
+    private static final Logger LOG = Logger.getLogger(CommandsWindows.class.getName());
 
     /**
-     *
+     * Default constructor
      */
     public CommandsWindows() {
     }
 
     /**
+     * Execute the commands list and return the exit status code as boolean
+     * value. Output of commands can be redirected to user in many different
+     * ways:<br/>
+     * * JTextPane in GUI environment<br/>
+     * * Console<br/>
+     * * String<br/>
+     * If guiConsole is null the process use current thread to run commands, and
+     * user must wait commands execution to use the interface (gui or console).
+     * Else if guiConsole was passed as argument the commands execution will be
+     * run in a separated thread, so GUI will not freeze until execution is done
+     * and output wiil be pasted into JTextPane specified. To manage subthread
+     * ends use a JButton or JProgressBar and setup the PropertyChange event.
+     * The separated thread will change "Text" (for Jbutton) and/or "Value" (for
+     * JProgressBar) when work is done.
      *
-     * @param command
-     * @param guiConsole
-     * @param rawConsole
-     * @param toBuffer
-     * @param prbCurrWork
-     * @return
+     * @param command The String commands list to be executed
+     * @param guiConsole The JTextPane swing component into wich append
+     * execution output
+     * @param rawConsole The String variable into wich excution output will be
+     * saved
+     * @param toBuffer The boolean value to save output into String variable and
+     * avoid console output
+     * @param prbCurrWork The JProgressBar used on separated thread execution
+     * @return True if local execution exit value is 0, false if local execution
+     * exit value is not equals to 0, false if execution will be executed in
+     * separated thread.
      * @throws IOException
      * @throws InterruptedException
      * @throws java.util.concurrent.ExecutionException
      */
     public boolean executeCmd(String command, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer, final JProgressBar prbCurrWork) throws IOException, InterruptedException, ExecutionException {
-//        command += " > NUL 2>&1";
         if (super.getDebugLevel() > 1) {
             System.console().printf("\nDEBUG - command:" + command + "\n\n");
             if (guiConsole != null) {
             }
         }
-        return execute(new String[]{"cmd.exe", "/c", command}, guiConsole, rawConsole, toBuffer, prbCurrWork);
+        return this.execute(new String[]{"cmd.exe", "/c", command}, guiConsole, rawConsole, toBuffer, prbCurrWork);
     }
 
     /**
+     * Execute the commands list and return the exit status code as boolean
+     * value. Output of commands can be redirected to user in many different
+     * ways:<br/>
+     * * JTextPane in GUI environment<br/>
+     * * Console<br/>
+     * * String<br/>
+     * If guiConsole is null the process use current thread to run commands, and
+     * user must wait commands execution to use the interface (gui or console).
+     * Else if guiConsole was passed as argument the commands execution will be
+     * run in a separated thread, so GUI will not freeze until execution is done
+     * and output wiil be pasted into JTextPane specified. To manage subthread
+     * ends use a JButton or JProgressBar and setup the PropertyChange event.
+     * The separated thread will change "Text" (for Jbutton) and/or "Value" (for
+     * JProgressBar) when work is done.
      *
-     * @param commands
-     * @param guiConsole
-     * @param rawConsole
-     * @param toBuffer
-     * @param prbCurrWork
-     * @return
+     * @param commands The {@literal ArrayList<String>} commands list to be
+     * executed
+     * @param guiConsole The JTextPane swing component into wich append
+     * execution output
+     * @param rawConsole The String variable into wich excution output will be
+     * saved
+     * @param toBuffer The boolean value to save output into String variable and
+     * avoid console output
+     * @param prbCurrWork The JProgressBar used on separated thread execution
+     * @return True if local execution exit value is 0, false if local execution
+     * exit value is not equals to 0, false if execution will be executed in
+     * separated thread.
      * @throws IOException
      * @throws InterruptedException
      * @throws java.util.concurrent.ExecutionException
      */
     public boolean executeCmd(ArrayList<String> commands, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer, final JProgressBar prbCurrWork) throws IOException, InterruptedException, ExecutionException {
-        ArrayList<String> command = new ArrayList<String>();
+        ArrayList<String> command = new ArrayList<>();
         command.add("cmd.exe");
         command.add("/c");
         command.addAll(commands);
@@ -75,17 +128,38 @@ public class CommandsWindows extends Command {
             if (guiConsole != null) {
             }
         }
-        return execute(command.toArray(new String[command.size()]), guiConsole, rawConsole, toBuffer, prbCurrWork);
+        return this.execute(command.toArray(new String[command.size()]), guiConsole, rawConsole, toBuffer, prbCurrWork);
     }
 
     /**
+     * Execute the commands and return the exit status code as boolean
+     * value. Output of commands can be redirected to user in many different
+     * ways:<br/>
+     * * JTextPane in GUI environment<br/>
+     * * Console<br/>
+     * * String<br/>
+     * If guiConsole is null the process use current thread to run commands, and
+     * user must wait commands execution to use the interface (gui or console).
+     * Else if guiConsole was passed as argument the commands execution will be
+     * run in a separated thread, so GUI will not freeze until execution is done
+     * and output wiil be pasted into JTextPane specified. To manage subthread
+     * ends use a JButton or JProgressBar and setup the PropertyChange event.
+     * The separated thread will change "Text" (for Jbutton) and/or "Value" (for
+     * JProgressBar) when work is done.
      *
-     * @param command
-     * @param guiConsole
-     * @param rawConsole
-     * @param toBuffer
-     * @param prbCurrWork
-     * @return
+     * @param command The String commands list to be
+     * executed
+     * @param guiConsole The JTextPane swing component into wich append
+     * execution output
+     * @param rawConsole The String variable into wich excution output will be
+     * saved
+     * @param toBuffer The boolean value to save output into String variable and
+     * avoid console output
+     * @param prbCurrWork The JProgressBar object to be used for long and
+     * multi-step process
+     * @return True if local execution exit value is 0, false if local execution
+     * exit value is not equals to 0, false if execution will be executed in
+     * separated thread.
      * @throws IOException
      * @throws InterruptedException
      * @throws java.util.concurrent.ExecutionException
@@ -96,20 +170,22 @@ public class CommandsWindows extends Command {
             if (guiConsole != null) {
             }
         }
-        return execute(new String[]{"powershell.exe", command}, guiConsole, rawConsole, toBuffer, prbCurrWork);
+        return this.execute(new String[]{"powershell.exe", command}, guiConsole, rawConsole, toBuffer, prbCurrWork);
     }
 
     /**
+     * Check system folders to find MySQL include directory for CMake
+     * installation.
      *
-     * @param pathToMySQL
+     * @param pathToMySQL The String path to MySQL include folder
      * @param console The JTextPane object to be used for output in swing GUI
-     * @return
+     * @return True if MySQL include folder were found in specified path, false
+     * otherwise
      */
-    //@Override
     public String checkMySQLInclude(String pathToMySQL, Object console) {
         try {
             if (pathToMySQL == null || pathToMySQL.isEmpty()) {
-                ArrayList<String> mysqlSearches = new ArrayList<String>();
+                ArrayList<String> mysqlSearches = new ArrayList<>();
                 mysqlSearches.add(System.getenv("ProgramFiles") + File.separator + "MySQL" + File.separator + "MySQL Server 5.1" + File.separator + "include");
                 mysqlSearches.add(System.getenv("ProgramFiles") + File.separator + "MySQL" + File.separator + "MySQL Server 5.2" + File.separator + "include");
                 mysqlSearches.add(System.getenv("ProgramFiles") + File.separator + "MySQL" + File.separator + "MySQL Server 5.3" + File.separator + "include");
@@ -143,16 +219,18 @@ public class CommandsWindows extends Command {
     }
 
     /**
+     * Check system folders to find MySQL library directory for CMake
+     * installation.
      *
-     * @param pathToMySQL
+     * @param pathToMySQL The String path to MySQL lirary folder
      * @param console The JTextPane object to be used for output in swing GUI
-     * @return
+     * @return True if MySQL library were found in specified path, false
+     * otherwise
      */
-    //@Override
     public String checkMySQLLib(String pathToMySQL, Object console) {
         try {
             if (pathToMySQL == null || pathToMySQL.isEmpty()) {
-                ArrayList<String> mysqlSearches = new ArrayList<String>();
+                ArrayList<String> mysqlSearches = new ArrayList<>();
                 mysqlSearches.add(System.getenv("ProgramFiles") + File.separator + "MySQL" + File.separator + "MySQL Server 5.1" + File.separator + "lib");
                 mysqlSearches.add(System.getenv("ProgramFiles") + File.separator + "MySQL" + File.separator + "MySQL Server 5.2" + File.separator + "lib");
                 mysqlSearches.add(System.getenv("ProgramFiles") + File.separator + "MySQL" + File.separator + "MySQL Server 5.3" + File.separator + "lib");
@@ -185,20 +263,21 @@ public class CommandsWindows extends Command {
         }
     }
 
-    // "reg query " + '"'+ location + "\" /v \"" + key + "\"")
     /**
+     * Check system folders to find openssl include directory for CMake
+     * installation.
      *
-     * @param pathToOpenSSL
+     * @param pathToOpenSSL The String path to openssl lirary folder
      * @param console The JTextPane object to be used for output in swing GUI
-     * @return
+     * @return True if openssl library were found in specified path, false
+     * otherwise
      */
-    //@Override
     public String checkOpenSSLInclude(String pathToOpenSSL, Object console) {
         try {
             String includePath = "include" + File.separator + "openssl";
             if (pathToOpenSSL == null || pathToOpenSSL.isEmpty()) {
                 StringBuilder sb;
-                ArrayList<String> openSSLSearches = new ArrayList<String>();
+                ArrayList<String> openSSLSearches = new ArrayList<>();
                 openSSLSearches.add("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\OpenSSL (64-bit)_is1");
                 openSSLSearches.add("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\OpenSSL (32-bit)_is1");
                 openSSLSearches.add("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\OpenSSL (32-bit)_is1");
@@ -206,7 +285,7 @@ public class CommandsWindows extends Command {
                     String cmdRegVal = "reg query " + '"' + registry + "\" /v \"InstallLocation\"";
                     sb = new StringBuilder();
                     try {
-                        executeCmd(cmdRegVal, console, sb, true, null);
+                        this.executeCmd(cmdRegVal, console, sb, true, null);
                     } catch (IOException | InterruptedException ex) {
                     }
                     if (!sb.toString().isEmpty() && sb.indexOf("REG_SZ") > 0) {
@@ -216,7 +295,7 @@ public class CommandsWindows extends Command {
                         }
                     }
                 }
-                openSSLSearches = new ArrayList<String>();
+                openSSLSearches = new ArrayList<>();
                 openSSLSearches.add("C:" + File.separator + "OpenSSL-Win32" + File.separator + includePath);
                 openSSLSearches.add("C:" + File.separator + "OpenSSL-Win64" + File.separator + includePath);
                 for (String path : openSSLSearches) {
@@ -232,24 +311,25 @@ public class CommandsWindows extends Command {
                 }
             }
             return "";
-        } catch (Exception ex) {
+        } catch (ExecutionException ex) {
             return "";
         }
     }
 
     /**
+     * Check system folders to find openssl library for CMake installation.
      *
-     * @param pathToOpenSSL
+     * @param pathToOpenSSL The String path to openssl lirary folder
      * @param console The JTextPane object to be used for output in swing GUI
-     * @return
+     * @return True if openssl library were found in specified path, false
+     * otherwise
      */
-    //@Override
     public String checkOpenSSLLib(String pathToOpenSSL, Object console) {
         try {
             String includePath = "lib";
             if (pathToOpenSSL == null || pathToOpenSSL.isEmpty()) {
                 StringBuilder sb;
-                ArrayList<String> openSSLSearches = new ArrayList<String>();
+                ArrayList<String> openSSLSearches = new ArrayList<>();
                 openSSLSearches.add("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\OpenSSL (64-bit)_is1");
                 openSSLSearches.add("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\OpenSSL (32-bit)_is1");
                 openSSLSearches.add("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\OpenSSL (32-bit)_is1");
@@ -257,7 +337,7 @@ public class CommandsWindows extends Command {
                     String cmdRegVal = "reg query " + '"' + registry + "\" /v \"InstallLocation\"";
                     sb = new StringBuilder();
                     try {
-                        executeCmd(cmdRegVal, console, sb, true, null);
+                        this.executeCmd(cmdRegVal, console, sb, true, null);
                     } catch (IOException | InterruptedException ex) {
                     }
                     if (!sb.toString().isEmpty() && sb.indexOf("REG_SZ") > 0) {
@@ -267,7 +347,7 @@ public class CommandsWindows extends Command {
                         }
                     }
                 }
-                openSSLSearches = new ArrayList<String>();
+                openSSLSearches = new ArrayList<>();
                 openSSLSearches.add("C:" + File.separator + "OpenSSL-Win32" + File.separator + includePath);
                 openSSLSearches.add("C:" + File.separator + "OpenSSL-Win64" + File.separator + includePath);
                 for (String path : openSSLSearches) {
@@ -283,51 +363,53 @@ public class CommandsWindows extends Command {
                 }
             }
             return "";
-        } catch (Exception ex) {
+        } catch (ExecutionException ex) {
             return "";
         }
 
     }
 
     /**
+     * Check if Power Shell scripts execution are anabled in current Power Shell
+     * sessions
      *
-     * @return
+     * @return True if Power Shell scripts execution is enabled, false otherwise
      */
     public boolean checkPSScript() {
         try {
             StringBuilder sb = new StringBuilder();
-            executePS("Get-ExecutionPolicy", null, sb, true, null);
+            this.executePS("Get-ExecutionPolicy", null, sb, true, null);
             return !(!sb.toString().contains("Unrestricted") && !sb.toString().contains("Bypass"));
         } catch (InterruptedException | ExecutionException | IOException ex) {
-            ex.printStackTrace();
+            LOG.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return false;
         }
     }
 
     /**
+     * Create the build folder and set CMake environment ready to compile
      *
-     * @param serverFolder
-     * @param buildFolder
-     * @param options
+     * @param serverFolder The String path to installation folder
+     * @param buildFolder The String path to cmake build folder
+     * @param options The HashMap<String, String> object with cmake option and
+     * value to use
      * @param console The JTextPane object to be used for output in swing GUI
-     * @return
+     * @return True if cmake configuration suceeded, false if Object console is
+     * not null, false otherwise
      * @throws IOException
      * @throws InterruptedException
      * @throws java.util.concurrent.ExecutionException
      */
-    //@Override
     public boolean cmakeConfig(String serverFolder, String buildFolder, HashMap<String, String> options, Object console) throws IOException, InterruptedException, ExecutionException {
         StringBuilder sb = new StringBuilder();
         File file = new File(buildFolder);
         if (!file.exists()) {
             file.mkdirs();
         }
-        //ArrayList<String> command = new ArrayList<>();
-
-        String command = "cd " + buildFolder + " & \"" + cmakePath + "cmake.exe\" -Wno-dev";
+        String command = "cd " + buildFolder + " & \"" + this.cmakePath + "cmake.exe\" -Wno-dev";
         for (String optKey : options.keySet()) {
             if (!options.get(optKey).isEmpty()) {
-                command += " -D" + optKey.substring(optKey.indexOf(".") + 1) + "=" + options.get(optKey);
+                command += " -D" + optKey.substring(optKey.indexOf('.') + 1) + "=" + options.get(optKey);
             }
         }
         if (buildFolder.indexOf(File.separator) > 0) {
@@ -339,22 +421,24 @@ public class CommandsWindows extends Command {
             serverFolder = ".." + File.separator + serverFolder;
         }
         command += " " + serverFolder;
-        //command.add(cmd);
-        return executeCmd(command, console, sb, false, null);
+        return this.executeCmd(command, console, sb, false, null);
     }
 
     /**
+     * Compile the configured cmake project from buildFolder.<br />
+     * NOTE: In GUI mode, the compiled binary need to be copied into
+     * installation folder separately
      *
-     * @param buildFolder
-     * @param runFolder
-     * @param buildType
+     * @param buildFolder The String path to cmake build folder
+     * @param runFolder The String path to binari installation folder
+     * @param buildType The String typology of build (Debug/Release)
      * @param console The JTextPane object to be used for output in swing GUI
-     * @return
+     * @return True if cmake compile suceeded, false if Object console is not
+     * null, false otherwise
      * @throws IOException
      * @throws InterruptedException
      * @throws java.util.concurrent.ExecutionException
      */
-    //@Override
     public boolean cmakeInstall(String buildFolder, String runFolder, String buildType, Object console) throws IOException, InterruptedException, ExecutionException {
         StringBuilder sb = new StringBuilder();
         runFolder = runFolder.replace("\"", "");
@@ -362,106 +446,119 @@ public class CommandsWindows extends Command {
         if (!folder.exists()) {
             folder.mkdirs();
         }
-        //ArrayList<String> command = new ArrayList<>();
+        String command = "cd " + buildFolder + " & \"" + this.cmakePath + "cmake.exe\" --build .";
 
-        String command = "cd " + buildFolder + " & \"" + cmakePath + "cmake.exe\" --build .";
-
-        //command.add(cmd);
-        boolean ret = executeCmd(command, console, sb, false, null);
+        boolean ret = this.executeCmd(command, console, sb, false, null);
         String txtCopy = "\nCoping built file to install destination (" + folder.getPath() + ")...";
-        if (console != null) {
-            //ConsoleManager.getInstance().updateGUIConsole(console, txtCopy, ConsoleManager.TEXT_BLUE);
-        }
-        System.console().printf("%s", txtCopy);
+        System.console().printf("%s\n", txtCopy);
         if (ret) {
             super.copyFolder(new File(buildFolder + File.separator + "bin" + File.separator + buildType), folder, console);
         }
         return ret;
     }
 
-    //@Override
-    boolean isRepoUpToDate(String pathToRepo) throws InterruptedException, IOException, ExecutionException {
+    /**
+     * Check if git repository in path specified is Up-To-Date or an update is
+     * available
+     *
+     * @param pathToRepo The String path value fore git repository to check
+     * @return True if repository is Up-To-Date, false otherwise
+     * @throws InterruptedException
+     * @throws IOException
+     * @throws ExecutionException
+     */
+    public boolean isRepoUpToDate(String pathToRepo) throws InterruptedException, IOException, ExecutionException {
         StringBuilder sb = new StringBuilder();
         String command = "git status";
         String pre = "cd " + pathToRepo;
-        /*= "cd " + pathToRepo + "\n"
-         + "& \"" + gitPath + File.separator + "shell.ps1\"\n"
-         + "git status";
-         executePS(command, null, sb, true, null);*/
         String gitStatus;
-        //ArrayList<String> cmdCommand = new ArrayList<>();
-        if (gitPath.isEmpty()) {
+        if (this.gitPath.isEmpty()) {
             command = pre + " & " + command;
-            /*cmdCommand.add(pre);
-             cmdCommand.add(command);*/
-            return executeCmd(command, null, sb, true, null);
+            gitStatus = this.executeCmd(command, null, sb, true, null) ? sb.toString() : "";
         } else {
-            String psCommand = pre + " & \"" + gitPath + File.separator + "shell.ps1\" \n " + command;
-            String cmdCommand = pre + " & \"" + gitPath + File.separator + "\"" + command;
-            gitStatus = executeCmd(cmdCommand, null, sb, true, null) ? sb.toString() : (executePS(psCommand, null, sb, true, null) ? sb.toString() : "");
+            if (this.gitPath.contains("GitHub")) {
+                command = "& \"" + this.gitPath + File.separator + "shell.ps1\" \n " + command;
+                gitStatus = this.executePS(command, null, sb, true, null) ? sb.toString() : "";
+            } else {
+                command = " \"" + this.gitPath + File.separator + "\"" + command;
+                gitStatus = this.executeCmd(command, null, sb, true, null) ? sb.toString() : "";
+            }
         }
         return gitStatus.contains("Your branch is up-to-date");
     }
 
-    //@Override
-    boolean gitOperation(String gitCommand, Object console, boolean toBuffer) throws InterruptedException, IOException, ExecutionException { //String url, String folder, String branch, String proxyServer, String proxyPort, String winPath){
+    /**
+     * Execute git command in current system shell.<br />
+     * NOTE: This execution is compatible with both GitExtension and GitHub
+     * softwares. To add more software compatibility add here the specific
+     * execution
+     *
+     * @param gitCommand The String value for git command to be executed
+     * @param console The JTextPane object to be used for output in swing GUI
+     * @param toBuffer The boolean value to save output into String variable and
+     * avoid console output
+     * @return True if git command suceeded, false if Object console is not
+     * null, false otherwise
+     * @throws InterruptedException
+     * @throws IOException
+     * @throws ExecutionException
+     */
+    public boolean gitOperation(String gitCommand, Object console, boolean toBuffer) throws InterruptedException, IOException, ExecutionException {
         StringBuilder sb = new StringBuilder();
         if (console != null) {
             ConsoleManager.getInstance().updateGUIConsole(console, gitCommand, ConsoleManager.TEXT_ORANGE);
         } else if (!toBuffer) {
-            System.console().printf("%s", gitCommand);
+            System.console().printf("%s\n", gitCommand);
         }
         String command;
-        if (gitPath.isEmpty()) {
+        if (this.gitPath.isEmpty()) {
+            // Git command is present into shell environment
             command = gitCommand;
-            return executeCmd(command, console, sb, toBuffer, null);
+            return this.executeCmd(command, console, sb, toBuffer, null);
         } else {
-            String psCommand = "& \"" + gitPath + File.separator + "shell.ps1\" \n " + gitCommand;
-            String cmdCommand = " \"" + gitPath + File.separator + "\"" + gitCommand;
-            return executeCmd(cmdCommand, console, sb, toBuffer, null) || executePS(psCommand, console, sb, toBuffer, null);
+            // Git command is NOT present into shell environment so full path to git.exe is needed and it also need to be executed into a specific shell (cmd or PowerShell)
+            if (this.gitPath.contains("GitHub")) {
+                // Comatibiltity with GitHub software that need PowerShell script execution
+                command = "& \"" + this.gitPath + File.separator + "shell.ps1\" \n " + gitCommand;
+                return this.executePS(command, console, sb, toBuffer, null);
+            } else {
+                // Compatibility with GitExtension software that need cmd script execution
+                command = " \"" + this.gitPath + File.separator + "\"" + gitCommand;
+                return (this.executeCmd(command, console, sb, toBuffer, null));
+            }
         }
-
     }
 
     /**
-     *
-     * @return
+     * @return The String value of current git.exe binary path
      */
     public String getGitPath() {
-        return gitPath;
+        return this.gitPath;
     }
 
     /**
+     * Set the path to git.exe binary path
      *
-     * @param gitPath
+     * @param gitPath The String value for git.exe binary path
      */
     public void setGitPath(String gitPath) {
         this.gitPath = gitPath;
     }
 
     /**
-     *
-     * @return
+     * @return The String value of current cmake.exe binary path
      */
     public String getCmakePath() {
-        return cmakePath;
+        return this.cmakePath;
     }
 
     /**
+     * Set the path to cmake.exe binary path
      *
-     * @param cmakePath
+     * @param cmakePath The String value for cmake.exe binary path
      */
     public void setCmakePath(String cmakePath) {
         this.cmakePath = cmakePath;
     }
 
 }
-
-/* Default structure
- try {
-            
- } catch (Exception ex) {
- throw ex;
- }
- return false;
- */

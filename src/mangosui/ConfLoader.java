@@ -1,7 +1,19 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2015 Boni Simone <simo.boni@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package mangosui;
 
@@ -11,7 +23,7 @@ import java.util.HashMap;
 
 /**
  *
- * @author Simone
+ * @author Boni Simone <simo.boni@gmail.com>
  */
 public class ConfLoader {
 
@@ -76,450 +88,100 @@ public class ConfLoader {
 
     private PropertiesEx prop;
 
+
     /**
-     *
+     * Default constructor that load configuration from "config.properties"
+     * file and set "confLoaded" variable with load status.
      */
     public ConfLoader() {
         try {
-            prop = new PropertiesEx();
-            prop.load(new FileInputStream("config.properties"));
+            this.prop = new PropertiesEx();
+            this.prop.load(new FileInputStream("config.properties"));
 
-            MaNGOSVersions = prop.getPropertyArray("MaNGOS");
-            GitURLServer = prop.getProperty("GitURLServer.0", "");
-            GitBranchServer = prop.getProperty("GitBranchServer.0", "");
-            GitFolderServer = prop.getProperty("GitFolderServer", "");
-            GitURLDatabase = prop.getProperty("GitURLDatabase.0", "");
-            GitBranchDatabase = prop.getProperty("GitBranchDatabase.0", "");
-            GitFolderDatabase = prop.getProperty("GitFolderDatabase", "");
-            GitURLEluna = prop.getProperty("GitURLEluna.0", "");
-            GitBranchEluna = prop.getProperty("GitBranchEluna.0", "");
-            GitFolderEluna = prop.getProperty("GitFolderEluna", "");
+            this.MaNGOSVersions = this.prop.getPropertyArray("MaNGOS");
+            this.GitURLServer = this.prop.getProperty("GitURLServer.0", "");
+            this.GitBranchServer = this.prop.getProperty("GitBranchServer.0", "");
+            this.GitFolderServer = this.prop.getProperty("GitFolderServer", "");
+            this.GitURLDatabase = this.prop.getProperty("GitURLDatabase.0", "");
+            this.GitBranchDatabase = this.prop.getProperty("GitBranchDatabase.0", "");
+            this.GitFolderDatabase = this.prop.getProperty("GitFolderDatabase", "");
+            this.GitURLEluna = this.prop.getProperty("GitURLEluna.0", "");
+            this.GitBranchEluna = this.prop.getProperty("GitBranchEluna.0", "");
+            this.GitFolderEluna = this.prop.getProperty("GitFolderEluna", "");
 
-            ProxyServer = prop.getProperty("ProxyServer", "");
-            ProxyPort = prop.getProperty("ProxyPort", "");
+            this.ProxyServer = this.prop.getProperty("ProxyServer", "");
+            this.ProxyPort = this.prop.getProperty("ProxyPort", "");
 
-            DatabaseServer = prop.getProperty("DatabaseServer", "");
-            DatabasePort = prop.getProperty("DatabasePort", "");
-            DatabaseAdmin = prop.getProperty("DatabaseAdmin", "");
-            DatabaseAdminPass = prop.getProperty("DatabaseAdminPass", "");
-            DatabaseUser = prop.getProperty("DatabaseUser", "");
-            DatabaseUserPass = prop.getProperty("DatabaseUserPass", "");
+            this.DatabaseServer = this.prop.getProperty("DatabaseServer", "");
+            this.DatabasePort = this.prop.getProperty("DatabasePort", "");
+            this.DatabaseAdmin = this.prop.getProperty("DatabaseAdmin", "");
+            this.DatabaseAdminPass = this.prop.getProperty("DatabaseAdminPass", "");
+            this.DatabaseUser = this.prop.getProperty("DatabaseUser", "");
+            this.DatabaseUserPass = this.prop.getProperty("DatabaseUserPass", "");
 
-            WorldDBName = prop.getProperty("WorldDBName", "");
-            CharDBName = prop.getProperty("CharDBName", "");
-            RealmDBName = prop.getProperty("RealmDBName", "");
+            this.WorldDBName = this.prop.getProperty("WorldDBName", "");
+            this.CharDBName = this.prop.getProperty("CharDBName", "");
+            this.RealmDBName = this.prop.getProperty("RealmDBName", "");
 
-            WorldFolder = prop.getProperty("WorldFolder", "");
-            CharFolder = prop.getProperty("CharFolder", "");
-            RealmFolder = prop.getProperty("RealmFolder", "");
-            WorldFullDB = prop.getProperty("WorldFullDB", "");
-            DatabaseSetupFolder = prop.getProperty("DatabaseSetupFolder", "");
-            DatabaseUpdateFolder = prop.getProperty("DatabaseUpdateFolder", "");
-            WorldUpdRel = prop.getPropertyArray("WorldUpdRel");
-            CharUpdRel = prop.getPropertyArray("CharUpdRel");
-            RealmUpdRel = prop.getPropertyArray("RealmUpdRel");
-            WorldLoadDBName = prop.getProperty("WorldLoadDBName", "");
-            CharLoadDBName = prop.getProperty("CharLoadDBName", "");
-            RealmLoadDBName = prop.getProperty("RealmLoadDBName", "");
+            this.WorldFolder = this.prop.getProperty("WorldFolder", "");
+            this.CharFolder = this.prop.getProperty("CharFolder", "");
+            this.RealmFolder = this.prop.getProperty("RealmFolder", "");
+            this.WorldFullDB = this.prop.getProperty("WorldFullDB", "");
+            this.DatabaseSetupFolder = this.prop.getProperty("DatabaseSetupFolder", "");
+            this.DatabaseUpdateFolder = this.prop.getProperty("DatabaseUpdateFolder", "");
+            this.WorldUpdRel = this.prop.getPropertyArray("WorldUpdRel");
+            this.CharUpdRel = this.prop.getPropertyArray("CharUpdRel");
+            this.RealmUpdRel = this.prop.getPropertyArray("RealmUpdRel");
+            this.WorldLoadDBName = this.prop.getProperty("WorldLoadDBName", "");
+            this.CharLoadDBName = this.prop.getProperty("CharLoadDBName", "");
+            this.RealmLoadDBName = this.prop.getProperty("RealmLoadDBName", "");
 
-            cmakeOptions = prop.getPropertyArray("cmake");
-            CMakeBuildFolder = prop.getProperty("CMakeBuildFolder", "");
-            CMakeRunFolder = prop.getProperty("cmake.CMAKE_INSTALL_PREFIX", "");
-            CMakeBuildType = prop.getProperty("cmake.CMAKE_BUILD_TYPE", "");
-            OPENSSL_LIBRARIES = prop.getProperty("cmake.OPENSSL_LIBRARIES", "");
-            OPENSSL_INCLUDE_DIR = prop.getProperty("cmake.OPENSSL_INCLUDE_DIR", "");
+            this.cmakeOptions = this.prop.getPropertyArray("cmake");
+            this.CMakeBuildFolder = this.prop.getProperty("CMakeBuildFolder", "");
+            this.CMakeRunFolder = this.prop.getProperty("cmake.CMAKE_INSTALL_PREFIX", "");
+            this.CMakeBuildType = this.prop.getProperty("cmake.CMAKE_BUILD_TYPE", "");
+            this.OPENSSL_LIBRARIES = this.prop.getProperty("cmake.OPENSSL_LIBRARIES", "");
+            this.OPENSSL_INCLUDE_DIR = this.prop.getProperty("cmake.OPENSSL_INCLUDE_DIR", "");
 
-            debugLevel = prop.getProperty("debugLevel", "");
-            PathToMySQL = prop.getProperty("PathToMySQL", "");
-            WinGitHubPath = prop.getProperty("WinGitHubPath", "");
-            WinGitExtPath = prop.getProperty("WinGitExtPath", "");
-            Win32PathCMake = prop.getProperty("Win32PathCMake", "");
-            Win64PathCMake = prop.getProperty("Win64PathCMake", "");
-            URLGit = prop.getProperty("URLGit", "");
-            URLMySQL = prop.getProperty("URLMySQL", "");
-            URLCMake = prop.getProperty("URLCMake", "");
-            URLOpenSSL = prop.getProperty("URLOpenSSL", "");
+            this.debugLevel = this.prop.getProperty("debugLevel", "");
+            this.PathToMySQL = this.prop.getProperty("PathToMySQL", "");
+            this.WinGitHubPath = this.prop.getProperty("WinGitHubPath", "");
+            this.WinGitExtPath = this.prop.getProperty("WinGitExtPath", "");
+            this.Win32PathCMake = this.prop.getProperty("Win32PathCMake", "");
+            this.Win64PathCMake = this.prop.getProperty("Win64PathCMake", "");
+            this.URLGit = this.prop.getProperty("URLGit", "");
+            this.URLMySQL = this.prop.getProperty("URLMySQL", "");
+            this.URLCMake = this.prop.getProperty("URLCMake", "");
+            this.URLOpenSSL = this.prop.getProperty("URLOpenSSL", "");
 
-            confLoaded = true;
+            this.confLoaded = true;
         } catch (IOException ex) {
-            confLoaded = false;
+            this.confLoaded = false;
         }
     }
-
+    
     /**
      *
-     * @param version
+     * @return
      */
-    public void getGitURLServer(String version) {
-        GitURLServer = prop.getProperty("GitURLServer." + version);
-    }
-
-    /**
-     *
-     * @param version
-     */
-    public void getGitBranchServer(String version) {
-        GitBranchServer = prop.getProperty("GitBranchServer." + version);
-    }
-
-    /**
-     *
-     * @param version
-     */
-    public void getGitURLDatabase(String version) {
-        GitURLDatabase = prop.getProperty("GitURLDatabase." + version);
-    }
-
-    /**
-     *
-     * @param version
-     */
-    public void getGitBranchDatabase(String version) {
-        GitBranchDatabase = prop.getProperty("GitBranchDatabase." + version);
-    }
-
-    /**
-     *
-     * @param version
-     */
-    public void getGitURLEluna(String version) {
-        GitURLEluna = prop.getProperty("GitURLEluna." + version);
-    }
-
-    /**
-     *
-     * @param version
-     */
-    public void getGitBranchEluna(String version) {
-        GitBranchEluna = prop.getProperty("GitBranchEluna." + version);
-    }
-
-    /**
-     * @return the GitURLServer
-     */
-    public String getGitURLServer() {
-        return GitURLServer;
-    }
-
-    /**
-     * @param GitURLServer the GitURLServer to set
-     */
-    public void setGitURLServer(String GitURLServer) {
-        this.GitURLServer = GitURLServer;
-    }
-
-    /**
-     * @return the GitBranchServer
-     */
-    public String getGitBranchServer() {
-        return GitBranchServer;
-    }
-
-    /**
-     * @param GitBranchServer the GitBranchServer to set
-     */
-    public void setGitBranchServer(String GitBranchServer) {
-        this.GitBranchServer = GitBranchServer;
-    }
-
-    /**
-     * @return the GitFolderServer
-     */
-    public String getGitFolderServer() {
-        return GitFolderServer;
-    }
-
-    /**
-     *
-     * @param FolderServer
-     */
-    public void setGitFolderServer(String FolderServer) {
-        this.GitFolderServer = FolderServer;
-    }
-
-    /**
-     * @return the GitURLDatabase
-     */
-    public String getGitURLDatabase() {
-        return GitURLDatabase;
-    }
-
-    /**
-     * @param GitURLDatabase the GitURLDatabase to set
-     */
-    public void setGitURLDatabase(String GitURLDatabase) {
-        this.GitURLDatabase = GitURLDatabase;
-    }
-
-    /**
-     * @return the GitBranchDatabase
-     */
-    public String getGitBranchDatabase() {
-        return GitBranchDatabase;
-    }
-
-    /**
-     * @param GitBranchDatabase the GitBranchDatabase to set
-     */
-    public void setGitBranchDatabase(String GitBranchDatabase) {
-        this.GitBranchDatabase = GitBranchDatabase;
-    }
-
-    /**
-     * @return the GitFolderDatabase
-     */
-    public String getGitFolderDatabase() {
-        return GitFolderDatabase;
-    }
-
-    /**
-     * @param FolderDatabase the FolderDatabase to set
-     */
-    public void setGitFolderDatabase(String FolderDatabase) {
-        this.GitFolderDatabase = FolderDatabase;
-    }
-
-    /**
-     * @return the PathToMySQL
-     */
-    public String getPathToMySQL() {
-        return PathToMySQL;
-    }
-
-    /**
-     * @param WinPathMySQL the WinPathMySQL to set
-     */
-    public void setPathToMySQL(String WinPathMySQL) {
-        this.PathToMySQL = WinPathMySQL;
-    }
-
-    /**
-     * @return the WinGitHubPath
-     */
-    public String getWinGitHubPath() {
-        return WinGitHubPath;
-    }
-
-    /**
-     * @param WinPathGit
-     */
-    public void setWinGitHubPath(String WinPathGit) {
-        this.WinGitHubPath = WinPathGit;
+    public String getCMakeBuildFolder() {
+        return this.CMakeBuildFolder;
     }
 
     /**
      *
      * @return
      */
-    public String getWinGitExtPath() {
-        return WinGitExtPath;
-    }
-
-    /**
-     *
-     * @param WinGitExtPath
-     */
-    public void setWinGitExtPath(String WinGitExtPath) {
-        this.WinGitExtPath = WinGitExtPath;
-    }
-
-    /**
-     * @return the confLoaded
-     */
-    public boolean isConfLoaded() {
-        return confLoaded;
+    public String getCMakeBuildType() {
+        return this.CMakeBuildType;
     }
 
     /**
      *
      * @return
      */
-    public String getGitURLEluna() {
-        return GitURLEluna;
-    }
-
-    /**
-     *
-     * @param GitURLEluna
-     */
-    public void setGitURLEluna(String GitURLEluna) {
-        this.GitURLEluna = GitURLEluna;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getGitBranchEluna() {
-        return GitBranchEluna;
-    }
-
-    /**
-     *
-     * @param GitBranchEluna
-     */
-    public void setGitBranchEluna(String GitBranchEluna) {
-        this.GitBranchEluna = GitBranchEluna;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getGitFolderEluna() {
-        return GitFolderEluna;
-    }
-
-    /**
-     *
-     * @param GitFolderEluna
-     */
-    public void setGitFolderEluna(String GitFolderEluna) {
-        this.GitFolderEluna = GitFolderEluna;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getProxyServer() {
-        return ProxyServer;
-    }
-
-    /**
-     *
-     * @param ProxyServer
-     */
-    public void setProxyServer(String ProxyServer) {
-        this.ProxyServer = ProxyServer;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getProxyPort() {
-        return ProxyPort;
-    }
-
-    /**
-     *
-     * @param ProxyPort
-     */
-    public void setProxyPort(String ProxyPort) {
-        this.ProxyPort = ProxyPort;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getDatabaseServer() {
-        return DatabaseServer;
-    }
-
-    /**
-     *
-     * @param DatabaseServer
-     */
-    public void setDatabaseServer(String DatabaseServer) {
-        this.DatabaseServer = DatabaseServer;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getDatabasePort() {
-        return DatabasePort;
-    }
-
-    /**
-     *
-     * @param DatabasePort
-     */
-    public void setDatabasePort(String DatabasePort) {
-        this.DatabasePort = DatabasePort;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getDatabaseAdmin() {
-        return DatabaseAdmin;
-    }
-
-    /**
-     *
-     * @param DatabaseAdmin
-     */
-    public void setDatabaseAdmin(String DatabaseAdmin) {
-        this.DatabaseAdmin = DatabaseAdmin;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getDatabaseAdminPass() {
-        return DatabaseAdminPass;
-    }
-
-    /**
-     *
-     * @param DatabaseAdminPass
-     */
-    public void setDatabaseAdminPass(String DatabaseAdminPass) {
-        this.DatabaseAdminPass = DatabaseAdminPass;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getDatabaseUser() {
-        return DatabaseUser;
-    }
-
-    /**
-     *
-     * @param DatabaseUser
-     */
-    public void setDatabaseUser(String DatabaseUser) {
-        this.DatabaseUser = DatabaseUser;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getDatabaseUserPass() {
-        return DatabaseUserPass;
-    }
-
-    /**
-     *
-     * @param DatabaseUserPass
-     */
-    public void setDatabaseUserPass(String DatabaseUserPass) {
-        this.DatabaseUserPass = DatabaseUserPass;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getWorldDBName() {
-        return WorldDBName;
-    }
-
-    /**
-     *
-     * @param WorldDBName
-     */
-    public void setWorldDBName(String WorldDBName) {
-        this.WorldDBName = WorldDBName;
+    public String getCMakeRunFolder() {
+        return this.CMakeRunFolder;
     }
 
     /**
@@ -527,7 +189,456 @@ public class ConfLoader {
      * @return
      */
     public String getCharDBName() {
-        return CharDBName;
+        return this.CharDBName;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getCharFolder() {
+        return this.CharFolder;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getCharLoadDBName() {
+        return this.CharLoadDBName;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public HashMap<String, String> getCharUpdRel() {
+        return this.CharUpdRel;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public HashMap<String, String> getCmakeOptions() {
+        return this.cmakeOptions;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getDatabaseAdmin() {
+        return this.DatabaseAdmin;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getDatabaseAdminPass() {
+        return this.DatabaseAdminPass;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getDatabasePort() {
+        return this.DatabasePort;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getDatabaseServer() {
+        return this.DatabaseServer;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getDatabaseSetupFolder() {
+        return this.DatabaseSetupFolder;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getDatabaseUpdateFolder() {
+        return this.DatabaseUpdateFolder;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getDatabaseUser() {
+        return this.DatabaseUser;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getDatabaseUserPass() {
+        return this.DatabaseUserPass;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public int getDebugLevel() {
+        try {
+            return Integer.parseInt(this.debugLevel);
+        } catch (NumberFormatException ex) {
+            return 0;
+        }
+    }
+
+    /**
+     *
+     * @param version
+     */
+    public void getGitBranchDatabase(String version) {
+        this.GitBranchDatabase = this.prop.getProperty("GitBranchDatabase." + version);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getGitBranchDatabase() {
+        return this.GitBranchDatabase;
+    }
+
+    /**
+     *
+     * @param version
+     */
+    public void getGitBranchEluna(String version) {
+        this.GitBranchEluna = this.prop.getProperty("GitBranchEluna." + version);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getGitBranchEluna() {
+        return this.GitBranchEluna;
+    }
+
+    /**
+     *
+     * @param version
+     */
+    public void getGitBranchServer(String version) {
+        this.GitBranchServer = this.prop.getProperty("GitBranchServer." + version);
+    }
+
+    /**
+     * @return the GitBranchServer
+     */
+    public String getGitBranchServer() {
+        return this.GitBranchServer;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getGitFolderDatabase() {
+        return this.GitFolderDatabase;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getGitFolderEluna() {
+        return this.GitFolderEluna;
+    }
+
+    /**
+     * @return the GitFolderServer
+     */
+    public String getGitFolderServer() {
+        return this.GitFolderServer;
+    }
+
+    /**
+     *
+     * @param version
+     */
+    public void getGitURLDatabase(String version) {
+        this.GitURLDatabase = this.prop.getProperty("GitURLDatabase." + version);
+    }
+
+    /**
+     * @return the GitURLDatabase
+     */
+    public String getGitURLDatabase() {
+        return this.GitURLDatabase;
+    }
+
+    /**
+     *
+     * @param version
+     */
+    public void getGitURLEluna(String version) {
+        this.GitURLEluna = this.prop.getProperty("GitURLEluna." + version);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getGitURLEluna() {
+        return this.GitURLEluna;
+    }
+
+    /**
+     *
+     * @param version
+     */
+    public void getGitURLServer(String version) {
+        this.GitURLServer = this.prop.getProperty("GitURLServer." + version);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getGitURLServer() {
+        return this.GitURLServer;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public HashMap<String, String> getMaNGOSVersions() {
+        return this.MaNGOSVersions;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getOPENSSL_INCLUDE_DIR() {
+        return this.OPENSSL_INCLUDE_DIR;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getOPENSSL_LIBRARIES() {
+        return this.OPENSSL_LIBRARIES;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getPathToMySQL() {
+        return this.PathToMySQL;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getProxyPort() {
+        return this.ProxyPort;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getProxyServer() {
+        return this.ProxyServer;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getRealmDBName() {
+        return this.RealmDBName;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getRealmFolder() {
+        return this.RealmFolder;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getRealmLoadDBName() {
+        return this.RealmLoadDBName;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public HashMap<String, String> getRealmUpdRel() {
+        return this.RealmUpdRel;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getURLCMake() {
+        return this.URLCMake;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getURLGit() {
+        return this.URLGit;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getURLMySQL() {
+        return this.URLMySQL;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getURLOpenSSL() {
+        return this.URLOpenSSL;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getUpdateFolder() {
+        return this.DatabaseUpdateFolder;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getWin32PathCMake() {
+        return this.Win32PathCMake;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getWin64PathCMake() {
+        return this.Win64PathCMake;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getWinGitExtPath() {
+        return this.WinGitExtPath;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getWinGitHubPath() {
+        return this.WinGitHubPath;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getWorldDBName() {
+        return this.WorldDBName;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getWorldFolder() {
+        return this.WorldFolder;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getWorldFullDB() {
+        return this.WorldFullDB;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getWorldLoadDBName() {
+        return this.WorldLoadDBName;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public HashMap<String, String> getWorldUpdRel() {
+        return this.WorldUpdRel;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public boolean isConfLoaded() {
+        return this.confLoaded;
+    }
+
+    /**
+     *
+     * @param CMakeBuildFolder
+     */
+    public void setCMakeBuildFolder(String CMakeBuildFolder) {
+        this.CMakeBuildFolder = CMakeBuildFolder;
+    }
+
+    /**
+     *
+     * @param CMakeBuildType
+     */
+    public void setCMakeBuildType(String CMakeBuildType) {
+        this.CMakeBuildType = CMakeBuildType;
+    }
+
+    /**
+     *
+     * @param CMakeRunFolder
+     */
+    public void setCMakeRunFolder(String CMakeRunFolder) {
+        this.CMakeRunFolder = CMakeRunFolder;
     }
 
     /**
@@ -540,202 +651,10 @@ public class ConfLoader {
 
     /**
      *
-     * @return
-     */
-    public String getRealmDBName() {
-        return RealmDBName;
-    }
-
-    /**
-     *
-     * @param RealmDBName
-     */
-    public void setRealmDBName(String RealmDBName) {
-        this.RealmDBName = RealmDBName;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getWorldFolder() {
-        return WorldFolder;
-    }
-
-    /**
-     *
-     * @param WorldFolder
-     */
-    public void setWorldFolder(String WorldFolder) {
-        this.WorldFolder = WorldFolder;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getCharFolder() {
-        return CharFolder;
-    }
-
-    /**
-     *
      * @param CharFolder
      */
     public void setCharFolder(String CharFolder) {
         this.CharFolder = CharFolder;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getRealmFolder() {
-        return RealmFolder;
-    }
-
-    /**
-     *
-     * @param RealmFolder
-     */
-    public void setRealmFolder(String RealmFolder) {
-        this.RealmFolder = RealmFolder;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getDatabaseSetupFolder() {
-        return DatabaseSetupFolder;
-    }
-
-    /**
-     *
-     * @param DatabaseSetupFolder
-     */
-    public void setDatabaseSetupFolder(String DatabaseSetupFolder) {
-        this.DatabaseSetupFolder = DatabaseSetupFolder;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getUpdateFolder() {
-        return DatabaseUpdateFolder;
-    }
-
-    /**
-     *
-     * @param UpdateFolder
-     */
-    public void setUpdateFolder(String UpdateFolder) {
-        this.DatabaseUpdateFolder = UpdateFolder;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public HashMap<String, String> getWorldUpdRel() {
-        return WorldUpdRel;
-    }
-
-    /**
-     *
-     * @param WorldUpdRel
-     */
-    public void setWorldUpdRel(HashMap<String, String> WorldUpdRel) {
-        this.WorldUpdRel = WorldUpdRel;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public HashMap<String, String> getCharUpdRel() {
-        return CharUpdRel;
-    }
-
-    /**
-     *
-     * @param CharUpdRel
-     */
-    public void setCharUpdRel(HashMap<String, String> CharUpdRel) {
-        this.CharUpdRel = CharUpdRel;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public HashMap<String, String> getRealmUpdRel() {
-        return RealmUpdRel;
-    }
-
-    /**
-     *
-     * @param RealmUpdRel
-     */
-    public void setRealmUpdRel(HashMap<String, String> RealmUpdRel) {
-        this.RealmUpdRel = RealmUpdRel;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getWorldFullDB() {
-        return WorldFullDB;
-    }
-
-    /**
-     *
-     * @param WorldFullDB
-     */
-    public void setWorldFullDB(String WorldFullDB) {
-        this.WorldFullDB = WorldFullDB;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getDatabaseUpdateFolder() {
-        return DatabaseUpdateFolder;
-    }
-
-    /**
-     *
-     * @param DatabaseUpdateFolder
-     */
-    public void setDatabaseUpdateFolder(String DatabaseUpdateFolder) {
-        this.DatabaseUpdateFolder = DatabaseUpdateFolder;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getWorldLoadDBName() {
-        return WorldLoadDBName;
-    }
-
-    /**
-     *
-     * @param WorldLoadDBName
-     */
-    public void setWorldLoadDBName(String WorldLoadDBName) {
-        this.WorldLoadDBName = WorldLoadDBName;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getCharLoadDBName() {
-        return CharLoadDBName;
     }
 
     /**
@@ -748,30 +667,82 @@ public class ConfLoader {
 
     /**
      *
-     * @return
+     * @param CharUpdRel
      */
-    public String getRealmLoadDBName() {
-        return RealmLoadDBName;
+    public void setCharUpdRel(HashMap<String, String> CharUpdRel) {
+        this.CharUpdRel = CharUpdRel;
     }
 
     /**
      *
-     * @param RealmLoadDBName
+     * @param cmakeOptions
      */
-    public void setRealmLoadDBName(String RealmLoadDBName) {
-        this.RealmLoadDBName = RealmLoadDBName;
+    public void setCmakeOptions(HashMap<String, String> cmakeOptions) {
+        this.cmakeOptions = cmakeOptions;
     }
 
     /**
      *
-     * @return
+     * @param DatabaseAdmin
      */
-    public int getDebugLevel() {
-        try {
-            return Integer.parseInt(debugLevel);
-        } catch (NumberFormatException ex) {
-            return 0;
-        }
+    public void setDatabaseAdmin(String DatabaseAdmin) {
+        this.DatabaseAdmin = DatabaseAdmin;
+    }
+
+    /**
+     *
+     * @param DatabaseAdminPass
+     */
+    public void setDatabaseAdminPass(String DatabaseAdminPass) {
+        this.DatabaseAdminPass = DatabaseAdminPass;
+    }
+
+    /**
+     *
+     * @param DatabasePort
+     */
+    public void setDatabasePort(String DatabasePort) {
+        this.DatabasePort = DatabasePort;
+    }
+
+    /**
+     *
+     * @param DatabaseServer
+     */
+    public void setDatabaseServer(String DatabaseServer) {
+        this.DatabaseServer = DatabaseServer;
+    }
+
+    /**
+     *
+     * @param DatabaseSetupFolder
+     */
+    public void setDatabaseSetupFolder(String DatabaseSetupFolder) {
+        this.DatabaseSetupFolder = DatabaseSetupFolder;
+    }
+
+    /**
+     *
+     * @param DatabaseUpdateFolder
+     */
+    public void setDatabaseUpdateFolder(String DatabaseUpdateFolder) {
+        this.DatabaseUpdateFolder = DatabaseUpdateFolder;
+    }
+
+    /**
+     *
+     * @param DatabaseUser
+     */
+    public void setDatabaseUser(String DatabaseUser) {
+        this.DatabaseUser = DatabaseUser;
+    }
+
+    /**
+     *
+     * @param DatabaseUserPass
+     */
+    public void setDatabaseUserPass(String DatabaseUserPass) {
+        this.DatabaseUserPass = DatabaseUserPass;
     }
 
     /**
@@ -789,137 +760,74 @@ public class ConfLoader {
 
     /**
      *
-     * @return
+     * @param GitBranchDatabase
      */
-    public String getWin32PathCMake() {
-        return Win32PathCMake;
+    public void setGitBranchDatabase(String GitBranchDatabase) {
+        this.GitBranchDatabase = GitBranchDatabase;
     }
 
     /**
      *
-     * @param Win32PathCMake
+     * @param GitBranchEluna
      */
-    public void setWin32PathCMake(String Win32PathCMake) {
-        this.Win32PathCMake = Win32PathCMake;
+    public void setGitBranchEluna(String GitBranchEluna) {
+        this.GitBranchEluna = GitBranchEluna;
     }
 
     /**
      *
-     * @return
+     * @param GitBranchServer
      */
-    public String getWin64PathCMake() {
-        return Win64PathCMake;
+    public void setGitBranchServer(String GitBranchServer) {
+        this.GitBranchServer = GitBranchServer;
     }
 
     /**
      *
-     * @param Win64PathCMake
+     * @param FolderDatabase
      */
-    public void setWin64PathCMake(String Win64PathCMake) {
-        this.Win64PathCMake = Win64PathCMake;
+    public void setGitFolderDatabase(String FolderDatabase) {
+        this.GitFolderDatabase = FolderDatabase;
     }
 
     /**
      *
-     * @return
+     * @param GitFolderEluna
      */
-    public HashMap<String, String> getCmakeOptions() {
-        return cmakeOptions;
+    public void setGitFolderEluna(String GitFolderEluna) {
+        this.GitFolderEluna = GitFolderEluna;
     }
 
     /**
      *
-     * @param cmakeOptions
+     * @param FolderServer
      */
-    public void setCmakeOptions(HashMap<String, String> cmakeOptions) {
-        this.cmakeOptions = cmakeOptions;
+    public void setGitFolderServer(String FolderServer) {
+        this.GitFolderServer = FolderServer;
     }
 
     /**
      *
-     * @return
+     * @param GitURLDatabase
      */
-    public String getCMakeBuildFolder() {
-        return CMakeBuildFolder;
+    public void setGitURLDatabase(String GitURLDatabase) {
+        this.GitURLDatabase = GitURLDatabase;
     }
 
     /**
      *
-     * @param CMakeBuildFolder
+     * @param GitURLEluna
      */
-    public void setCMakeBuildFolder(String CMakeBuildFolder) {
-        this.CMakeBuildFolder = CMakeBuildFolder;
+    public void setGitURLEluna(String GitURLEluna) {
+        this.GitURLEluna = GitURLEluna;
     }
 
     /**
      *
-     * @return
+     * @param GitURLServer
      */
-    public String getCMakeRunFolder() {
-        return CMakeRunFolder;
-    }
-
-    /**
-     *
-     * @param CMakeRunFolder
-     */
-    public void setCMakeRunFolder(String CMakeRunFolder) {
-        this.CMakeRunFolder = CMakeRunFolder;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getCMakeBuildType() {
-        return CMakeBuildType;
-    }
-
-    /**
-     *
-     * @param CMakeBuildType
-     */
-    public void setCMakeBuildType(String CMakeBuildType) {
-        this.CMakeBuildType = CMakeBuildType;
-    }
-
-    /**
-     * @return the OPENSSL_LIBRARIES
-     */
-    public String getOPENSSL_LIBRARIES() {
-        return OPENSSL_LIBRARIES;
-    }
-
-    /**
-     * @param OPENSSL_LIBRARIES the OPENSSL_LIBRARIES to set
-     */
-    public void setOPENSSL_LIBRARIES(String OPENSSL_LIBRARIES) {
-        //prop.setProperty("cmake.OPENSSL_LIBRARIES", OPENSSL_LIBRARIES);
-        this.cmakeOptions.put("cmake.OPENSSL_LIBRARIES", OPENSSL_LIBRARIES);
-        this.OPENSSL_LIBRARIES = OPENSSL_LIBRARIES;
-    }
-
-    /**
-     * @return the OPENSSL_INCLUDE_DIR
-     */
-    public String getOPENSSL_INCLUDE_DIR() {
-        return OPENSSL_INCLUDE_DIR;
-    }
-
-    /**
-     * @param OPENSSL_INCLUDE_DIR the OPENSSL_INCLUDE_DIR to set
-     */
-    public void setOPENSSL_INCLUDE_DIR(String OPENSSL_INCLUDE_DIR) {
-        this.cmakeOptions.put("cmake.OPENSSL_INCLUDE_DIR", OPENSSL_INCLUDE_DIR);
-        this.OPENSSL_INCLUDE_DIR = OPENSSL_INCLUDE_DIR;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public HashMap<String, String> getMaNGOSVersions() {
-        return MaNGOSVersions;
+    public void setGitURLServer(String GitURLServer) {
+        this.GitURLServer = GitURLServer;
     }
 
     /**
@@ -932,42 +840,76 @@ public class ConfLoader {
 
     /**
      *
-     * @return
+     * @param OPENSSL_INCLUDE_DIR
      */
-    public String getURLGit() {
-        return URLGit;
+    public void setOPENSSL_INCLUDE_DIR(String OPENSSL_INCLUDE_DIR) {
+        this.cmakeOptions.put("cmake.OPENSSL_INCLUDE_DIR", OPENSSL_INCLUDE_DIR);
+        this.OPENSSL_INCLUDE_DIR = OPENSSL_INCLUDE_DIR;
+    }
+
+    /**
+     * @param OPENSSL_LIBRARIES the OPENSSL_LIBRARIES to set
+     */
+    public void setOPENSSL_LIBRARIES(String OPENSSL_LIBRARIES) {
+        //prop.setProperty("cmake.OPENSSL_LIBRARIES", OPENSSL_LIBRARIES);
+        this.cmakeOptions.put("cmake.OPENSSL_LIBRARIES", OPENSSL_LIBRARIES);
+        this.OPENSSL_LIBRARIES = OPENSSL_LIBRARIES;
     }
 
     /**
      *
-     * @param URLGit
+     * @param WinPathMySQL
      */
-    public void setURLGit(String URLGit) {
-        this.URLGit = URLGit;
+    public void setPathToMySQL(String WinPathMySQL) {
+        this.PathToMySQL = WinPathMySQL;
     }
 
     /**
      *
-     * @return
+     * @param ProxyPort
      */
-    public String getURLMySQL() {
-        return URLMySQL;
+    public void setProxyPort(String ProxyPort) {
+        this.ProxyPort = ProxyPort;
     }
 
     /**
      *
-     * @param URLMySQL
+     * @param ProxyServer
      */
-    public void setURLMySQL(String URLMySQL) {
-        this.URLMySQL = URLMySQL;
+    public void setProxyServer(String ProxyServer) {
+        this.ProxyServer = ProxyServer;
     }
 
     /**
      *
-     * @return
+     * @param RealmDBName
      */
-    public String getURLCMake() {
-        return URLCMake;
+    public void setRealmDBName(String RealmDBName) {
+        this.RealmDBName = RealmDBName;
+    }
+
+    /**
+     *
+     * @param RealmFolder
+     */
+    public void setRealmFolder(String RealmFolder) {
+        this.RealmFolder = RealmFolder;
+    }
+
+    /**
+     *
+     * @param RealmLoadDBName
+     */
+    public void setRealmLoadDBName(String RealmLoadDBName) {
+        this.RealmLoadDBName = RealmLoadDBName;
+    }
+
+    /**
+     *
+     * @param RealmUpdRel
+     */
+    public void setRealmUpdRel(HashMap<String, String> RealmUpdRel) {
+        this.RealmUpdRel = RealmUpdRel;
     }
 
     /**
@@ -980,10 +922,18 @@ public class ConfLoader {
 
     /**
      *
-     * @return
+     * @param URLGit
      */
-    public String getURLOpenSSL() {
-        return URLOpenSSL;
+    public void setURLGit(String URLGit) {
+        this.URLGit = URLGit;
+    }
+
+    /**
+     *
+     * @param URLMySQL
+     */
+    public void setURLMySQL(String URLMySQL) {
+        this.URLMySQL = URLMySQL;
     }
 
     /**
@@ -992,6 +942,86 @@ public class ConfLoader {
      */
     public void setURLOpenSSL(String URLOpenSSL) {
         this.URLOpenSSL = URLOpenSSL;
+    }
+
+    /**
+     *
+     * @param UpdateFolder
+     */
+    public void setUpdateFolder(String UpdateFolder) {
+        this.DatabaseUpdateFolder = UpdateFolder;
+    }
+
+    /**
+     *
+     * @param Win32PathCMake
+     */
+    public void setWin32PathCMake(String Win32PathCMake) {
+        this.Win32PathCMake = Win32PathCMake;
+    }
+
+    /**
+     *
+     * @param Win64PathCMake
+     */
+    public void setWin64PathCMake(String Win64PathCMake) {
+        this.Win64PathCMake = Win64PathCMake;
+    }
+
+    /**
+     *
+     * @param WinGitExtPath
+     */
+    public void setWinGitExtPath(String WinGitExtPath) {
+        this.WinGitExtPath = WinGitExtPath;
+    }
+
+    /**
+     *
+     * @param WinPathGit
+     */
+    public void setWinGitHubPath(String WinPathGit) {
+        this.WinGitHubPath = WinPathGit;
+    }
+
+    /**
+     *
+     * @param WorldDBName
+     */
+    public void setWorldDBName(String WorldDBName) {
+        this.WorldDBName = WorldDBName;
+    }
+
+    /**
+     *
+     * @param WorldFolder
+     */
+    public void setWorldFolder(String WorldFolder) {
+        this.WorldFolder = WorldFolder;
+    }
+
+    /**
+     *
+     * @param WorldFullDB
+     */
+    public void setWorldFullDB(String WorldFullDB) {
+        this.WorldFullDB = WorldFullDB;
+    }
+
+    /**
+     *
+     * @param WorldLoadDBName
+     */
+    public void setWorldLoadDBName(String WorldLoadDBName) {
+        this.WorldLoadDBName = WorldLoadDBName;
+    }
+
+    /**
+     *
+     * @param WorldUpdRel
+     */
+    public void setWorldUpdRel(HashMap<String, String> WorldUpdRel) {
+        this.WorldUpdRel = WorldUpdRel;
     }
 
 }

@@ -1,22 +1,34 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2015 Boni Simone <simo.boni@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package mangosui;
 
 import java.awt.List;
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JProgressBar;
 
 /**
  *
- * @author Simone
+ * @author Boni Simone <simo.boni@gmail.com>
  */
 public class ProcessExec extends javax.swing.SwingWorker {
 
@@ -26,14 +38,19 @@ public class ProcessExec extends javax.swing.SwingWorker {
     private final Object guiConsole;
     private final JButton btnInvoker;
     private final JProgressBar prbCurrWork;
+    private static final Logger LOG = Logger.getLogger(ProcessExec.class.getName());
 
     /**
+     * Default constructor that set all object needed for background execution
+     * and return
      *
-     * @param commands
-     * @param guiConsole
-     * @param debugLevel
-     * @param btnInvoker
-     * @param prbCurrWork
+     * @param commands The String value for commands to execute
+     * @param guiConsole The JTextPane object to be used for output in swing GUI
+     * @param debugLevel The int value for output debug level
+     * @param btnInvoker The JButon object for status return when background
+     * execution end
+     * @param prbCurrWork The JProgressBar object to be used for long and
+     * multi-step process
      */
     public ProcessExec(String[] commands, Object guiConsole, int debugLevel, JButton btnInvoker, JProgressBar prbCurrWork) {
         this.commands = commands;
@@ -43,113 +60,80 @@ public class ProcessExec extends javax.swing.SwingWorker {
         this.debugLevel = debugLevel;
     }
 
-    //implements a method in the swingworker
+    /**
+     * Execute the process in background with swingworker and let the GUI do not
+     * freeze
+     *
+     * @return The Object with process exit value
+     * @throws Exception
+     */
     @Override
     public Object doInBackground() throws Exception {
         boolean done = false;
         int exitValue = 0;
-        ProcessBuilder builder = new ProcessBuilder(commands);
+        ProcessBuilder builder = new ProcessBuilder(this.commands);
         builder.redirectErrorStream(true);
         String msg = "";
-        if (debugLevel > 0) {
+        if (this.debugLevel > 0) {
             msg = "EXECUTING:";
-            for (String cmd : commands) {
+            for (String cmd : this.commands) {
                 msg += " " + cmd;
             }
-            System.console().printf("%s", msg);
+            System.console().printf("%s\n", msg);
         }
-        //builder.inheritIO();
         Process proc = builder.start();
         while (!done) {
             try {
-                //publish("Executing");
                 BufferedReader is = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 
-                while ((line = is.readLine()) != null) {
-                    if (prbCurrWork != null) {
-                        ConsoleManager.getInstance().updateGUIConsole(guiConsole, msg, ConsoleManager.TEXT_ORANGE);
+                while ((this.line = is.readLine()) != null) {
+                    if (this.prbCurrWork != null) {
+                        // Write to GUI console the command executed
+                        ConsoleManager.getInstance().updateGUIConsole(this.guiConsole, msg, ConsoleManager.TEXT_ORANGE);
                     }
-                    ConsoleManager.getInstance().updateGUIConsole(guiConsole, line, ConsoleManager.TEXT_BLACK);
-                    //publish((line + "\n"));
+                    // Write to GUI console the output of process
+                    ConsoleManager.getInstance().updateGUIConsole(this.guiConsole, this.line, ConsoleManager.TEXT_BLACK);
                 }
-                //if (guiConsole != null) {
-                //ConsoleManager.getInstance().updateGUIConsole(guiConsole, proc.getInputStream(), ConsoleManager.TEXT_BLACK);
-                //    writeToGUIConsole(proc.getInputStream(), guiConsole, proc);
-                //}
                 exitValue = proc.exitValue();
                 done = true;
             } catch (IllegalThreadStateException e) {
                 // This exception will be thrown only if the process is still running 
                 // because exitValue() will not be a valid method call yet...
-                //logger.info("Process is still running...")
             }
         }
         return exitValue;
-        //publish();
-        //proc.waitFor();
-        //System.console().printf("%s", command + "\n " + sb.toString() + proc.exitValue());
-        //return Boolean.valueOf(exitValue <= 0);
-
-        /*
-         //Read Process Stream Output and write to LOG file
-         BufferedReader is = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-         while ((line = is.readLine()) != null) {
-         ConsoleManager.getInstance().updateGUIConsole(guiConsole, line, ConsoleManager.TEXT_BLACK);
-         publish((line + "\n"));
-         }
-         System.out.flush();*/
-        //return null;
     }
 
-    //This will happen on the UI Thread.
     /**
      *
      * @param lines
      */
     protected void process(List lines) {
+        //This will happen on the UI Thread.
         for (String o : lines.getItems()) {
-            ConsoleManager.getInstance().updateGUIConsole(guiConsole, o, ConsoleManager.TEXT_BLACK);
-
-            //String currText = guiConsole.getText();
-            //jtp.setText(currText + "\n" + o);
+            ConsoleManager.getInstance().updateGUIConsole(this.guiConsole, o, ConsoleManager.TEXT_BLACK);
         }
     }
 
+    /**
+     * When the background process end set the return status to GUI via JButton
+     * Text parameter or JProgressBar value that will raise and event catchabe.
+     */
     @Override
     public void done() {
         try {
-            //get();
-            if (btnInvoker != null) {
-                if ((int) get() == 0) {
-                    btnInvoker.setText("DONE");
-                    //btnInvoker.setActionCommand("DONE");
+            if (this.btnInvoker != null) {
+                if ((int) this.get() == 0) {
+                    this.btnInvoker.setText("DONE");
                 } else {
-                    //btnInvoker.setActionCommand("ERROR");
-                    btnInvoker.setText("ERROR");
+                    this.btnInvoker.setText("ERROR");
                 }
-                btnInvoker.setEnabled(true);
-            } else if (prbCurrWork != null) {
-                prbCurrWork.setValue(prbCurrWork.getValue() + 1);
+                this.btnInvoker.setEnabled(true);
+            } else if (this.prbCurrWork != null) {
+                this.prbCurrWork.setValue(this.prbCurrWork.getValue() + 1);
             }
-            //You will get here if everything was OK.  So show a popup or something to signal done.
         } catch (InterruptedException | ExecutionException ex) {
-            //this is where your IO Exception will surface, should you have one.
-        }
-    }
-
-    static void writeToGUIConsole(InputStream in, Object console, Process proc) throws IOException, InterruptedException {
-        try {
-            InputStreamReader isr = new InputStreamReader(in);
-            BufferedReader br = new BufferedReader(isr);
-            String line;
-            while ((line = br.readLine()) != null) {
-                ConsoleManager.getInstance().updateGUIConsole(console, line, ConsoleManager.TEXT_BLACK);
-                //proc.wait(500);
-                //System.console().printf("%s", line);
-            }
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
+            LOG.log(Level.SEVERE, null, ex);
         }
     }
 }
