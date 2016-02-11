@@ -58,8 +58,8 @@ public class PropertiesEx extends Properties {
         while (in.hasNext()) {
             out.write(in.nextLine().replace("\\", "\\\\").getBytes());
             out.write("\n".getBytes());
-        }//while
-
+        }
+        in.close();
         InputStream is = new ByteArrayInputStream(out.toByteArray());
         super.load(is);
     }
@@ -73,9 +73,10 @@ public class PropertiesEx extends Properties {
         while ((readLine = bfr.readLine()) != null) {
             out.write(readLine.replace("\\", "\\\\").getBytes());
             out.write("\n".getBytes());
-        }//while
-
+        }
+        bfr.close();
         InputStream is = new ByteArrayInputStream(out.toByteArray());
+        out.close();
         super.load(is);
     }
 
