@@ -30,7 +30,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JProgressBar;
-import static mangosui.Command.writeToGUIConsole;
 
 /**
  *
