@@ -105,7 +105,7 @@ public class Command {
                 for (String cmd : commands) {
                     msg += " " + cmd;
                 }
-                System.console().printf("%s\n", msg);
+                System.out.printf("%s\n", msg);
             }
             if (!toBuffer) {
                 builder.redirectError(ProcessBuilder.Redirect.INHERIT);
@@ -209,7 +209,7 @@ public class Command {
                 if (console != null) {
                     ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_BLACK);
                 } else {
-                    System.console().printf("%s\n", msg);
+                    System.out.printf("%s\n", msg);
                 }
 
             }

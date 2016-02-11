@@ -451,7 +451,7 @@ public class WorkExecutor extends javax.swing.JFrame {
         if (txpConsole != null) {
             ConsoleManager.getInstance().updateGUIConsole(txpConsole, outMsg, consoleColor);
         } else {
-            System.console().printf("%s\n", outMsg);
+            System.out.printf("%s\n", outMsg);
         }
 
     }

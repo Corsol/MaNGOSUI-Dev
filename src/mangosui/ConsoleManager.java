@@ -157,7 +157,7 @@ public class ConsoleManager {
                 ((JTextComponent) console).setText(currText + "\n" + text);
             }
         } catch (Exception ex) {
-            System.console().printf("%s\n", "Unable to write to GUI console: " + ex.getLocalizedMessage());
+            System.out.printf("%s\n", "Unable to write to GUI console: " + ex.getLocalizedMessage());
             LOG.log(Level.SEVERE, null, ex);
         }
         ((JTextComponent) console).setCaretPosition(((JTextComponent) console).getDocument().getLength());

@@ -618,7 +618,7 @@ public class CommandManager {
             if (!destDir.exists()) {
                 boolean ret = destDir.mkdirs();
                 if (!ret) {
-                    System.console().printf("Unable to create portable directory: " + basePath + "\n");
+                    System.out.printf("Unable to create portable directory: " + basePath + "\n");
                     return false;
                 }
             }
@@ -641,7 +641,7 @@ public class CommandManager {
             ret_val = true;
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
-            System.console().printf("%s\n", ex.getLocalizedMessage());
+            System.out.printf("%s\n", ex.getLocalizedMessage());
             return false;
         }
         return ret_val;
@@ -753,7 +753,7 @@ public class CommandManager {
             if (console != null) {
                 ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
             } else {
-                System.console().printf("%s\n", msg);
+                System.out.printf("%s\n", msg);
             }
         }
         return ret_val;
@@ -809,7 +809,7 @@ public class CommandManager {
             if (console != null) {
                 ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
             } else {
-                System.console().printf("%s\n", msg);
+                System.out.printf("%s\n", msg);
             }
         }
         return ret_val;
@@ -1088,7 +1088,7 @@ public class CommandManager {
             return file.exists() && file.isDirectory();
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
-            System.console().printf("%s\n", ex.getLocalizedMessage());
+            System.out.printf("%s\n", ex.getLocalizedMessage());
             return false;
         }
     }
@@ -1110,7 +1110,7 @@ public class CommandManager {
             return file.delete();
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
-            System.console().printf("%s\n", ex.getLocalizedMessage());
+            System.out.printf("%s\n", ex.getLocalizedMessage());
             return false;
         }
     }
@@ -1360,7 +1360,7 @@ public class CommandManager {
                         if (console != null) {
                             ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
                         } else {
-                            System.console().printf("%s\n", msg);
+                            System.out.printf("%s\n", msg);
                         }
                         this.btnInvoker.setText("ERROR");
                     }
@@ -1372,7 +1372,7 @@ public class CommandManager {
                             if (console != null) {
                                 ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_ORANGE);
                             } else {
-                                System.console().printf("%s\n", msg);
+                                System.out.printf("%s\n", msg);
                             }
                             this.deleteFolder(serverFolder + File.separator + "Buildings");
                         }
@@ -1393,7 +1393,7 @@ public class CommandManager {
                         if (console != null) {
                             ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
                         } else {
-                            System.console().printf("%s\n", msg);
+                            System.out.printf("%s\n", msg);
                         }
                         this.btnInvoker.setText("ERROR");
                     }
@@ -1421,7 +1421,7 @@ public class CommandManager {
                         if (console != null) {
                             ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
                         } else {
-                            System.console().printf("%s\n", msg);
+                            System.out.printf("%s\n", msg);
                         }
                         this.btnInvoker.setText("ERROR");
                     }
@@ -1445,7 +1445,7 @@ public class CommandManager {
                         if (console != null) {
                             ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
                         } else {
-                            System.console().printf("%s\n", msg);
+                            System.out.printf("%s\n", msg);
                         }
                         this.btnInvoker.setText("ERROR");
                     }
@@ -1475,7 +1475,7 @@ public class CommandManager {
             if (console != null) {
                 ConsoleManager.getInstance().updateGUIConsole(console, msg, ConsoleManager.TEXT_RED);
             } else {
-                System.console().printf("%s\n", msg);
+                System.out.printf("%s\n", msg);
             }
             this.btnInvoker.setText("ERROR");
             ret_val = false;
@@ -1516,7 +1516,7 @@ public class CommandManager {
             }
         } catch (IOException | ExecutionException | InterruptedException ex) {
             LOG.log(Level.SEVERE, null, ex);
-            System.console().printf("%s\n", ex.getLocalizedMessage());
+            System.out.printf("%s\n", ex.getLocalizedMessage());
             return false;
         }
         return ret_val;
@@ -1556,7 +1556,7 @@ public class CommandManager {
             }
         } catch (IOException | ExecutionException | InterruptedException ex) {
             LOG.log(Level.SEVERE, null, ex);
-            System.console().printf("%s\n", ex.getLocalizedMessage());
+            System.out.printf("%s\n", ex.getLocalizedMessage());
             return false;
         }
         return ret_val;

@@ -46,15 +46,15 @@ public class MaNGOSUI extends WorkExecutor {
 
         if (args.length > 0 && args[0].equalsIgnoreCase("-c")) {
             // Starting Console mode
-            System.console().printf("MaNGOS Universal Installer: console mode.\nCredit to: Antz (for MySQL and OpenSSL checks) and Faded (for unix dependecy setup)\n\n");
+            System.out.printf("MaNGOS Universal Installer: console mode.\nCredit to: Antz (for MySQL and OpenSSL checks) and Faded (for unix dependecy setup)\n\n");
 
-            System.console().printf("Loading configuration file... ");
+            System.out.printf("Loading configuration file... ");
             ConfLoader confLoader = new ConfLoader();
             if (confLoader.isConfLoaded()) {
-                System.console().printf(" Done!\n\n");
+                System.out.printf(" Done!\n\n");
             } else {
                 // Configuration file not loaded. Execution will be terminated.
-                System.console().printf(" FAILED! Check conf.property file.\n\n");
+                System.out.printf(" FAILED! Check conf.property file.\n\n");
                 return;
             }
 
@@ -70,7 +70,7 @@ public class MaNGOSUI extends WorkExecutor {
                 String elunaFolder;
                 elunaFolder = setGitFolder(confLoader.getGitFolderEluna(), confLoader.getGitURLEluna());
 
-                System.console().printf("INFO: Your OS is: " + cmdManager.getOsName() + " version " + cmdManager.getOsVersion() + " with java architecture: " + cmdManager.getOsArch() + "\n\n");
+                System.out.printf("INFO: Your OS is: " + cmdManager.getOsName() + " version " + cmdManager.getOsVersion() + " with java architecture: " + cmdManager.getOsArch() + "\n\n");
 
                 /**
                  * ** Dependencies checks ***
@@ -78,47 +78,47 @@ public class MaNGOSUI extends WorkExecutor {
                 gitOk = checkGit(confLoader.getWinGitHubPath(), confLoader.getWinGitExtPath(), cmdManager, null);
                 if (!gitOk) {
                     if (cmdManager.checkRootConsole(null)) {
-                        System.console().printf("WARNING: Git not installed.");
+                        System.out.printf("WARNING: Git not installed.");
                         if (cmdManager.getCURR_OS() == cmdManager.WINDOWS) {
-                            System.console().printf(" Visit \"" + confLoader.getURLGit() + "\" to download and install it.\n");
+                            System.out.printf(" Visit \"" + confLoader.getURLGit() + "\" to download and install it.\n");
                         } else if (cmdManager.getCURR_OS() == cmdManager.UNIX) {
-                            System.console().printf(" Do you want to install it now? [y/n, default:n]\n");
+                            System.out.printf(" Do you want to install it now? [y/n, default:n]\n");
                             input = System.console().readLine();
                             if ("y".equalsIgnoreCase(input)) {
                                 cmdManager.setupGit(null, null);
                             }
                         }
                     } else {
-                        System.console().printf("");
-                        System.console().printf("To install Git run MaNGOS UI in root console.\n");
+                        System.out.printf("");
+                        System.out.printf("To install Git run MaNGOS UI in root console.\n");
                     }
                 }
                 mysqlOk = checkMySQL(databaseFolder, confLoader.getPathToMySQL(), cmdManager, null);
                 if (!mysqlOk) {
                     if (cmdManager.checkRootConsole(null)) {
-                        System.console().printf("WARNING: MySQL not installed.");
+                        System.out.printf("WARNING: MySQL not installed.");
                         if (cmdManager.getCURR_OS() == cmdManager.WINDOWS) {
-                            System.console().printf(" Visit \"" + confLoader.getURLMySQL() + "\" to download and install it.\n");
+                            System.out.printf(" Visit \"" + confLoader.getURLMySQL() + "\" to download and install it.\n");
                         } else if (cmdManager.getCURR_OS() == cmdManager.UNIX) {
-                            System.console().printf(" Do you want to install it now? [y/n, default:n]\n");
+                            System.out.printf(" Do you want to install it now? [y/n, default:n]\n");
                             input = System.console().readLine();
                             if ("y".equalsIgnoreCase(input)) {
                                 cmdManager.setupMySQL(null, null);
                             }
                         }
                     } else {
-                        System.console().printf("\n");
-                        System.console().printf("To install MySQL run MaNGOS UI in root console.\n");
+                        System.out.printf("\n");
+                        System.out.printf("To install MySQL run MaNGOS UI in root console.\n");
                     }
                 }
                 cmakeOk = checkCMake(confLoader.getWin32PathCMake(), confLoader.getWin64PathCMake(), cmdManager, null);
                 if (!cmakeOk) {
                     if (cmdManager.checkRootConsole(null)) {
-                        System.console().printf("WARNING: CMake not installed.");
+                        System.out.printf("WARNING: CMake not installed.");
                         if (cmdManager.getCURR_OS() == cmdManager.WINDOWS) {
-                            System.console().printf(" Visit \"" + confLoader.getURLCMake() + "\" to download and install it.\n");
+                            System.out.printf(" Visit \"" + confLoader.getURLCMake() + "\" to download and install it.\n");
                         } else if (cmdManager.getCURR_OS() == cmdManager.UNIX) {
-                            System.console().printf(" Do you want to install it now? [y/n, default:n]\n");
+                            System.out.printf(" Do you want to install it now? [y/n, default:n]\n");
                             input = System.console().readLine();
                             if ("y".equalsIgnoreCase(input)) {
                                 cmdManager.setupCMake(null, null);
@@ -126,19 +126,19 @@ public class MaNGOSUI extends WorkExecutor {
                             }
                         }
                     } else {
-                        System.console().printf("To install CMake run MaNGOS UI in root console.\n");
+                        System.out.printf("To install CMake run MaNGOS UI in root console.\n");
                     }
                 }
                 if (cmakeOk) {
                     if (cmdManager.getCURR_OS() == cmdManager.WINDOWS && cmdManager.checkMySQLLib("", null).isEmpty() || cmdManager.checkMySQLInclude("", null).isEmpty()) {
-                        System.console().printf("ERROR: MySQL library for CMAKE was not found on system. Do you want to use portable version?\n");
-                        System.console().printf("WARNING: Portable MySQL library is for 5.6 version. Use this for other MySQL version can be insecure.\n");
-                        System.console().printf("Do you want to install MySQL portable library? [y/n, default:n] ");
+                        System.out.printf("ERROR: MySQL library for CMAKE was not found on system. Do you want to use portable version?\n");
+                        System.out.printf("WARNING: Portable MySQL library is for 5.6 version. Use this for other MySQL version can be insecure.\n");
+                        System.out.printf("Do you want to install MySQL portable library? [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
                             cmakeOk = cmdManager.installMySQLPortable(null);
                             if (!cmakeOk) {
-                                System.console().printf("ERROR: MySQL library for CMAKE not installed. Try again running as Administrator!\n");
+                                System.out.printf("ERROR: MySQL library for CMAKE not installed. Try again running as Administrator!\n");
                             }
                         } else {
                             cmakeOk = false;
@@ -158,13 +158,13 @@ public class MaNGOSUI extends WorkExecutor {
                 boolean optGitElunaUpdate = false;
 
                 // Version selection to use correct parameters
-                System.console().printf("\nSelect wich version of MaNGOS install:\n");
-                System.console().printf("0 - MaNGOS Zero\n");
-                System.console().printf("1 - MaNGOS One\n");
-                System.console().printf("2 - MaNGOS Two\n");
-                System.console().printf("3 - MaNGOS Three\n");
-                System.console().printf("4 - MaNGOS Four\n");
-                System.console().printf("Version ? [0-4, default:0] ");
+                System.out.printf("\nSelect wich version of MaNGOS install:\n");
+                System.out.printf("0 - MaNGOS Zero\n");
+                System.out.printf("1 - MaNGOS One\n");
+                System.out.printf("2 - MaNGOS Two\n");
+                System.out.printf("3 - MaNGOS Three\n");
+                System.out.printf("4 - MaNGOS Four\n");
+                System.out.printf("Version ? [0-4, default:0] ");
                 input = System.console().readLine();
                 if (input.isEmpty()) {
                     input = "0";
@@ -179,13 +179,13 @@ public class MaNGOSUI extends WorkExecutor {
                 /**
                  * **** Git download *****
                  */
-                System.console().printf("\nDo you want to download source from Git repositories? [y/n, default:n] ");
+                System.out.printf("\nDo you want to download source from Git repositories? [y/n, default:n] ");
                 input = System.console().readLine();
                 if ("y".equalsIgnoreCase(input) && gitOk) {
-                    System.console().printf("\nProxy configuration:\n");
-                    System.console().printf("Server name: " + confLoader.getProxyServer() + "\n");
-                    System.console().printf("Server port: " + confLoader.getProxyPort() + "\n");
-                    System.console().printf("\nDo you want to use a proxy server with this parameter? [y/n, default:n] ");
+                    System.out.printf("\nProxy configuration:\n");
+                    System.out.printf("Server name: " + confLoader.getProxyServer() + "\n");
+                    System.out.printf("Server port: " + confLoader.getProxyPort() + "\n");
+                    System.out.printf("\nDo you want to use a proxy server with this parameter? [y/n, default:n] ");
                     input = System.console().readLine();
                     if (!"y".equalsIgnoreCase(input)) {
                         confLoader.setProxyPort("");
@@ -195,27 +195,27 @@ public class MaNGOSUI extends WorkExecutor {
                         if (cmdManager.setGitProxy(confLoader.getProxyServer(), confLoader.getProxyPort(), null)) {
                             confLoader.setProxyPort("");
                             confLoader.setProxyServer("");
-                            System.console().printf("Global proxy settings applyed\n");
+                            System.out.printf("Global proxy settings applyed\n");
                         } else {
-                            System.console().printf("WARNING: Failed to apply global settings! Proxy settings will be used on local git operation.\n");
+                            System.out.printf("WARNING: Failed to apply global settings! Proxy settings will be used on local git operation.\n");
                         }
                     }
                     // Show server git param
-                    System.console().printf("\n\n*** Server download parameters:\n");
-                    System.console().printf("URL                          : " + confLoader.getGitURLServer() + "\n");
-                    System.console().printf("(Optional) DESTINATION FOLDER: " + confLoader.getGitFolderServer() + "\n");
-                    System.console().printf("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchServer() + "\n");
-                    System.console().printf("\nDo you want to change theese parameters? [y/n, default:n] ");
+                    System.out.printf("\n\n*** Server download parameters:\n");
+                    System.out.printf("URL                          : " + confLoader.getGitURLServer() + "\n");
+                    System.out.printf("(Optional) DESTINATION FOLDER: " + confLoader.getGitFolderServer() + "\n");
+                    System.out.printf("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchServer() + "\n");
+                    System.out.printf("\nDo you want to change theese parameters? [y/n, default:n] ");
                     input = System.console().readLine();
                     if ("y".equalsIgnoreCase(input)) {
-                        System.console().printf("\nTo remove a param insert a blank space.\n");
+                        System.out.printf("\nTo remove a param insert a blank space.\n");
                         confLoader.setGitURLServer(readNewParam("URL", confLoader.getGitURLServer()));
                         confLoader.setGitFolderServer(readNewParam("DESTINATION FOLDER", confLoader.getGitFolderServer()));
                         confLoader.setGitBranchServer(readNewParam("REPOSITORY BRANCH", confLoader.getGitBranchServer()));
-                        System.console().printf("\n\n*** NEW Server download parameters:\n");
-                        System.console().printf("URL                          : " + confLoader.getGitURLServer() + "\n");
-                        System.console().printf("(Optional) DESTINATION FOLDER: " + confLoader.getGitFolderServer() + "\n");
-                        System.console().printf("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchServer() + "\n");
+                        System.out.printf("\n\n*** NEW Server download parameters:\n");
+                        System.out.printf("URL                          : " + confLoader.getGitURLServer() + "\n");
+                        System.out.printf("(Optional) DESTINATION FOLDER: " + confLoader.getGitFolderServer() + "\n");
+                        System.out.printf("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchServer() + "\n");
                     }
                     // Check server folder
                     if (cmdManager.checkFolder(serverFolder)) {
@@ -228,37 +228,37 @@ public class MaNGOSUI extends WorkExecutor {
                         optGitSrvInstall = true;
                     }
                     // Ask what to do (first clone, wipe and clone, checkout and update) for server
-                    System.console().printf("\n*** Server download option avaiable:\n");
+                    System.out.printf("\n*** Server download option avaiable:\n");
                     if (optGitSrvInstall) {
-                        System.console().printf("N - New download.\n");
+                        System.out.printf("N - New download.\n");
                     }
                     if (optGitSrvWipe) {
-                        System.console().printf("W - Wipe current and download again.\n");
+                        System.out.printf("W - Wipe current and download again.\n");
                     }
                     if (optGitSrvUpdate) {
-                        System.console().printf("U - Update local server.\n");
+                        System.out.printf("U - Update local server.\n");
                     }
-                    System.console().printf("Empty for no action.\n");
-                    System.console().printf("\nInsert action: ");
+                    System.out.printf("Empty for no action.\n");
+                    System.out.printf("\nInsert action: ");
                     input = System.console().readLine();
                     gitDownload(input, confLoader.getGitURLServer(), serverFolder, confLoader.getGitBranchServer(), confLoader.getProxyServer(), confLoader.getProxyPort(), cmdManager, null);
 
                     // Show database git param
-                    System.console().printf("\n\n*** Database download parameters:\n");
-                    System.console().printf("URL                          : " + confLoader.getGitURLDatabase() + "\n");
-                    System.console().printf("(Optional) DESTINATION FOLDER: " + confLoader.getGitFolderDatabase() + "\n");
-                    System.console().printf("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchDatabase() + "\n");
-                    System.console().printf("\nDo you want to change theese parameters? [y/n, default:n] ");
+                    System.out.printf("\n\n*** Database download parameters:\n");
+                    System.out.printf("URL                          : " + confLoader.getGitURLDatabase() + "\n");
+                    System.out.printf("(Optional) DESTINATION FOLDER: " + confLoader.getGitFolderDatabase() + "\n");
+                    System.out.printf("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchDatabase() + "\n");
+                    System.out.printf("\nDo you want to change theese parameters? [y/n, default:n] ");
                     input = System.console().readLine();
                     if ("y".equalsIgnoreCase(input)) {
-                        System.console().printf("\nTo remove a param insert a blank space.\n");
+                        System.out.printf("\nTo remove a param insert a blank space.\n");
                         confLoader.setGitURLDatabase(readNewParam("URL", confLoader.getGitURLDatabase()));
                         confLoader.setGitFolderDatabase(readNewParam("DESTINATION FOLDER", confLoader.getGitFolderDatabase()));
                         confLoader.setGitBranchDatabase(readNewParam("REPOSITORY BRANCH", confLoader.getGitBranchDatabase()));
-                        System.console().printf("\n\n*** NEW Database download parameters:\n");
-                        System.console().printf("URL                          : " + confLoader.getGitURLDatabase() + "\n");
-                        System.console().printf("(Optional) DESTINATION FOLDER: " + confLoader.getGitFolderDatabase() + "\n");
-                        System.console().printf("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchDatabase() + "\n");
+                        System.out.printf("\n\n*** NEW Database download parameters:\n");
+                        System.out.printf("URL                          : " + confLoader.getGitURLDatabase() + "\n");
+                        System.out.printf("(Optional) DESTINATION FOLDER: " + confLoader.getGitFolderDatabase() + "\n");
+                        System.out.printf("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchDatabase() + "\n");
                     }
                     // Check database folder
                     databaseFolder = setGitFolder(confLoader.getGitFolderDatabase(), confLoader.getGitURLDatabase() + "\n");
@@ -272,38 +272,38 @@ public class MaNGOSUI extends WorkExecutor {
                         optGitDBInstall = true;
                     }
                     // Ask what to do (first clone, wipe and clone, checkout and update) for database
-                    System.console().printf("\n*** Database download option avaiable:\n");
+                    System.out.printf("\n*** Database download option avaiable:\n");
                     if (optGitDBInstall) {
-                        System.console().printf("N - New download.\n");
+                        System.out.printf("N - New download.\n");
                     }
                     if (optGitDBWipe) {
-                        System.console().printf("W - Wipe current and download again.\n");
+                        System.out.printf("W - Wipe current and download again.\n");
                     }
                     if (optGitDBUpdate) {
-                        System.console().printf("U - Update local database.\n");
+                        System.out.printf("U - Update local database.\n");
                     }
-                    System.console().printf("Empty for no action.\n");
-                    System.console().printf("\nInsert action: ");
+                    System.out.printf("Empty for no action.\n");
+                    System.out.printf("\nInsert action: ");
                     input = System.console().readLine();
                     gitDownload(input, confLoader.getGitURLDatabase(), databaseFolder, confLoader.getGitBranchDatabase(), confLoader.getProxyServer(), confLoader.getProxyPort(), cmdManager, null);
 
                     // Show LUA Script git param if lua git url is present in property file
                     if (!confLoader.getGitURLEluna().isEmpty()) {
-                        System.console().printf("\n\n*** LUA Script download parameters:\n");
-                        System.console().printf("URL                          : " + confLoader.getGitURLEluna() + "\n");
-                        System.console().printf("(Optional) DESTINATION FOLDER: " + confLoader.getGitFolderEluna() + "\n");
-                        System.console().printf("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchEluna() + "\n");
-                        System.console().printf("\nDo you want to change theese parameters? [y/n, default:n] ");
+                        System.out.printf("\n\n*** LUA Script download parameters:\n");
+                        System.out.printf("URL                          : " + confLoader.getGitURLEluna() + "\n");
+                        System.out.printf("(Optional) DESTINATION FOLDER: " + confLoader.getGitFolderEluna() + "\n");
+                        System.out.printf("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchEluna() + "\n");
+                        System.out.printf("\nDo you want to change theese parameters? [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
-                            System.console().printf("\nTo remove a param insert a blank space.\n");
+                            System.out.printf("\nTo remove a param insert a blank space.\n");
                             confLoader.setGitURLEluna(readNewParam("URL", confLoader.getGitURLEluna()));
                             confLoader.setGitFolderEluna(readNewParam("DESTINATION FOLDER", confLoader.getGitFolderEluna()));
                             confLoader.setGitBranchEluna(readNewParam("REPOSITORY BRANCH", confLoader.getGitBranchEluna()));
-                            System.console().printf("\n\n*** NEW LUA Script download parameters:\n");
-                            System.console().printf("URL                          : " + confLoader.getGitURLEluna() + "\n");
-                            System.console().printf("(Optional) DESTINATION FOLDER: " + confLoader.getGitFolderEluna() + "\n");
-                            System.console().printf("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchEluna() + "\n");
+                            System.out.printf("\n\n*** NEW LUA Script download parameters:\n");
+                            System.out.printf("URL                          : " + confLoader.getGitURLEluna() + "\n");
+                            System.out.printf("(Optional) DESTINATION FOLDER: " + confLoader.getGitFolderEluna() + "\n");
+                            System.out.printf("(Optional) REPOSITORY BRANCH : " + confLoader.getGitBranchEluna() + "\n");
                         }
                         // Check LUA folder
                         if (cmdManager.checkFolder(elunaFolder)) {
@@ -316,76 +316,76 @@ public class MaNGOSUI extends WorkExecutor {
                             optGitElunaInstall = true;
                         }
                         // Ask what to do (first clone, wipe and clone, checkout and update) for LUA
-                        System.console().printf("\n*** LUA Script download option avaiable:\n");
+                        System.out.printf("\n*** LUA Script download option avaiable:\n");
                         if (optGitElunaInstall) {
-                            System.console().printf("N - New download.\n");
+                            System.out.printf("N - New download.\n");
                         }
                         if (optGitElunaWipe) {
-                            System.console().printf("W - Wipe current and download again.\n");
+                            System.out.printf("W - Wipe current and download again.\n");
                         }
                         if (optGitElunaUpdate) {
-                            System.console().printf("U - Update local LUA Script.\n");
+                            System.out.printf("U - Update local LUA Script.\n");
                         }
-                        System.console().printf("Empty for no action.\n");
-                        System.console().printf("\nInsert action: ");
+                        System.out.printf("Empty for no action.\n");
+                        System.out.printf("\nInsert action: ");
                         input = System.console().readLine();
                         gitDownload(input, confLoader.getGitURLEluna(), elunaFolder, confLoader.getGitBranchEluna(), confLoader.getProxyServer(), confLoader.getProxyPort(), cmdManager, null);
                     }
                 } else {
-                    System.console().printf("\n*** Download operation skipped. Git command not ready.\n");
+                    System.out.printf("\n*** Download operation skipped. Git command not ready.\n");
                 }
 
                 /**
                  * **** Database install *****
                  */
-                System.console().printf("\nDo you want to install databases? [y/n, default:n] ");
+                System.out.printf("\nDo you want to install databases? [y/n, default:n] ");
                 input = System.console().readLine();
                 if ("y".equalsIgnoreCase(input) && mysqlOk) {
                     // Show and get database configuration param
-                    System.console().printf("\n\n*** Database server installation parameters:\n");
-                    System.console().printf("SERVER     : " + confLoader.getDatabaseServer() + "\n");
-                    System.console().printf("PORT       : " + confLoader.getDatabasePort() + "\n");
-                    System.console().printf("ADMIN USER : " + confLoader.getDatabaseAdmin() + "\n");
-                    System.console().printf("ADMIN PASS : " + confLoader.getDatabaseAdminPass() + "\n");
-                    System.console().printf("DB USER    : " + confLoader.getDatabaseUser() + "\n");
-                    System.console().printf("DB PASS    : " + confLoader.getDatabaseUserPass() + "\n");
-                    System.console().printf("\nDo you want to change theese parameters? [y/n, default:n] ");
+                    System.out.printf("\n\n*** Database server installation parameters:\n");
+                    System.out.printf("SERVER     : " + confLoader.getDatabaseServer() + "\n");
+                    System.out.printf("PORT       : " + confLoader.getDatabasePort() + "\n");
+                    System.out.printf("ADMIN USER : " + confLoader.getDatabaseAdmin() + "\n");
+                    System.out.printf("ADMIN PASS : " + confLoader.getDatabaseAdminPass() + "\n");
+                    System.out.printf("DB USER    : " + confLoader.getDatabaseUser() + "\n");
+                    System.out.printf("DB PASS    : " + confLoader.getDatabaseUserPass() + "\n");
+                    System.out.printf("\nDo you want to change theese parameters? [y/n, default:n] ");
                     input = System.console().readLine();
                     if ("y".equalsIgnoreCase(input)) {
-                        System.console().printf("\nTo remove a param insert a blank space.\n");
+                        System.out.printf("\nTo remove a param insert a blank space.\n");
                         confLoader.setDatabaseServer(readNewParam("SERVER", confLoader.getDatabaseServer()));
                         confLoader.setDatabasePort(readNewParam("PORT", confLoader.getDatabasePort()));
                         confLoader.setDatabaseAdmin(readNewParam("ADMIN USER", confLoader.getDatabaseAdmin()));
                         confLoader.setDatabaseAdminPass(readNewParam("ADMIN PASS", confLoader.getDatabaseAdminPass()));
                         confLoader.setDatabaseUser(readNewParam("DB USER", confLoader.getDatabaseUser()));
                         confLoader.setDatabaseUserPass(readNewParam("DB PASS", confLoader.getDatabaseUserPass()));
-                        System.console().printf("\n\n*** NEW Database server installation parameters:\n");
-                        System.console().printf("SERVER     : " + confLoader.getDatabaseServer() + "\n");
-                        System.console().printf("PORT       : " + confLoader.getDatabasePort() + "\n");
-                        System.console().printf("ADMIN USER : " + confLoader.getDatabaseAdmin() + "\n");
-                        System.console().printf("ADMIN PASS : " + confLoader.getDatabaseAdminPass() + "\n");
-                        System.console().printf("DB USER    : " + confLoader.getDatabaseUser() + "\n");
-                        System.console().printf("DB PASS    : " + confLoader.getDatabaseUserPass() + "\n");
+                        System.out.printf("\n\n*** NEW Database server installation parameters:\n");
+                        System.out.printf("SERVER     : " + confLoader.getDatabaseServer() + "\n");
+                        System.out.printf("PORT       : " + confLoader.getDatabasePort() + "\n");
+                        System.out.printf("ADMIN USER : " + confLoader.getDatabaseAdmin() + "\n");
+                        System.out.printf("ADMIN PASS : " + confLoader.getDatabaseAdminPass() + "\n");
+                        System.out.printf("DB USER    : " + confLoader.getDatabaseUser() + "\n");
+                        System.out.printf("DB PASS    : " + confLoader.getDatabaseUserPass() + "\n");
                     }
                     // Show and get setup and update file and directory to be used for each database
-                    System.console().printf("\n\n*** Database install configuration:\n");
-                    System.console().printf("WORLD DB       : " + confLoader.getWorldDBName() + "\n");
+                    System.out.printf("\n\n*** Database install configuration:\n");
+                    System.out.printf("WORLD DB       : " + confLoader.getWorldDBName() + "\n");
                     for (String upd : confLoader.getWorldUpdRel().values()) {
-                        System.console().printf(" - UPD RELEASE : " + upd + "\n");
+                        System.out.printf(" - UPD RELEASE : " + upd + "\n");
                     }
-                    System.console().printf("CHAR DB        : " + confLoader.getCharDBName() + "\n");
+                    System.out.printf("CHAR DB        : " + confLoader.getCharDBName() + "\n");
                     for (String upd : confLoader.getCharUpdRel().values()) {
-                        System.console().printf(" - UPD RELEASE : " + upd + "\n");
+                        System.out.printf(" - UPD RELEASE : " + upd + "\n");
                     }
-                    System.console().printf("REALM DB       : " + confLoader.getRealmDBName() + "\n");
+                    System.out.printf("REALM DB       : " + confLoader.getRealmDBName() + "\n");
                     for (String upd : confLoader.getRealmUpdRel().values()) {
-                        System.console().printf(" - UPD RELEASE : " + upd + "\n");
+                        System.out.printf(" - UPD RELEASE : " + upd + "\n");
                     }
-                    System.console().printf("\nDo you want to change theese parameters? [y/n, default:n] ");
+                    System.out.printf("\nDo you want to change theese parameters? [y/n, default:n] ");
                     input = System.console().readLine();
                     if ("y".equalsIgnoreCase(input)) {
                         HashMap<String, String> newUpdRel = new HashMap<>();
-                        System.console().printf("\nTo remove a param insert a blank space.\n");
+                        System.out.printf("\nTo remove a param insert a blank space.\n");
                         confLoader.setWorldDBName(readNewParam("WORLD DB", confLoader.getWorldDBName()));
                         for (String updKey : confLoader.getWorldUpdRel().keySet()) {
                             newUpdRel.put(updKey, readNewParam(" - UPD RELEASE", confLoader.getWorldUpdRel().get(updKey)));
@@ -403,33 +403,33 @@ public class MaNGOSUI extends WorkExecutor {
                             newUpdRel.put(updKey, readNewParam(" - UPD RELEASE", confLoader.getRealmUpdRel().get(updKey)));
                         }
                         confLoader.setRealmUpdRel(newUpdRel);
-                        System.console().printf("\n\n*** NEW Database install configuration:\n");
-                        System.console().printf("WORLD DB    : " + confLoader.getWorldDBName() + "\n");
-                        System.console().printf("CHAR DB     : " + confLoader.getCharDBName() + "\n");
-                        System.console().printf("REALM DB    : " + confLoader.getRealmDBName() + "\n");
-                        System.console().printf("WORLD DB       : " + confLoader.getWorldDBName() + "\n");
+                        System.out.printf("\n\n*** NEW Database install configuration:\n");
+                        System.out.printf("WORLD DB    : " + confLoader.getWorldDBName() + "\n");
+                        System.out.printf("CHAR DB     : " + confLoader.getCharDBName() + "\n");
+                        System.out.printf("REALM DB    : " + confLoader.getRealmDBName() + "\n");
+                        System.out.printf("WORLD DB       : " + confLoader.getWorldDBName() + "\n");
                         for (String upd : confLoader.getWorldUpdRel().values()) {
-                            System.console().printf(" - UPD RELEASE : " + upd + "\n");
+                            System.out.printf(" - UPD RELEASE : " + upd + "\n");
                         }
-                        System.console().printf("CHAR DB        : " + confLoader.getCharDBName() + "\n");
+                        System.out.printf("CHAR DB        : " + confLoader.getCharDBName() + "\n");
                         for (String upd : confLoader.getCharUpdRel().values()) {
-                            System.console().printf(" - UPD RELEASE : " + upd + "\n");
+                            System.out.printf(" - UPD RELEASE : " + upd + "\n");
                         }
-                        System.console().printf("REALM DB       : " + confLoader.getRealmDBName() + "\n");
+                        System.out.printf("REALM DB       : " + confLoader.getRealmDBName() + "\n");
                         for (String upd : confLoader.getRealmUpdRel().values()) {
-                            System.console().printf(" - UPD RELEASE : " + upd + "\n");
+                            System.out.printf(" - UPD RELEASE : " + upd + "\n");
                         }
                     }
 
                     if (!optGitDBInstall && !optGitDBUpdate) {
                         // Check what can be done with databases
                         optGitDBWipe = false;
-                        System.console().printf("\n\n*** Database installation option avaiable:\n");
-                        System.console().printf("N - New install.\n");
-                        System.console().printf("W - Wipe current and install again.\n");
-                        System.console().printf("U - Update database.\n");
-                        System.console().printf("Empty for no action.\n");
-                        System.console().printf("\nInsert action: ");
+                        System.out.printf("\n\n*** Database installation option avaiable:\n");
+                        System.out.printf("N - New install.\n");
+                        System.out.printf("W - Wipe current and install again.\n");
+                        System.out.printf("U - Update database.\n");
+                        System.out.printf("Empty for no action.\n");
+                        System.out.printf("\nInsert action: ");
                         input = System.console().readLine();
                         if (input.equalsIgnoreCase("N")) {
                             optGitDBInstall = true;
@@ -442,7 +442,7 @@ public class MaNGOSUI extends WorkExecutor {
                     if (optGitDBInstall || optGitDBWipe) {
                         if (!optGitDBWipe) {
                             // First database configuration if it's a fresh installation
-                            System.console().printf("\nIs your first DB installation: [y/n, default:n] ");
+                            System.out.printf("\nIs your first DB installation: [y/n, default:n] ");
                             input = System.console().readLine();
                             if ("y".equalsIgnoreCase(input)) {
                                 mysqlCreateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
@@ -450,7 +450,7 @@ public class MaNGOSUI extends WorkExecutor {
                                         confLoader.getRealmDBName(), cmdManager, null);
                             }
                         }
-                        System.console().printf("\nDo you want to wipe (if already installed) and install Realm database? [y/n, default:n] ");
+                        System.out.printf("\nDo you want to wipe (if already installed) and install Realm database? [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
                             // Wipe and install Realm database
@@ -465,7 +465,7 @@ public class MaNGOSUI extends WorkExecutor {
                                     confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
                         }
 
-                        System.console().printf("\nDo you want to wipe (if already installed) and install Character database? [y/n, default:n] ");
+                        System.out.printf("\nDo you want to wipe (if already installed) and install Character database? [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
                             // Wipe and install Character database
@@ -480,7 +480,7 @@ public class MaNGOSUI extends WorkExecutor {
                                     confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
                         }
 
-                        System.console().printf("\nDo you want to wipe (if already installed) and install World database? [y/n, default:n] ");
+                        System.out.printf("\nDo you want to wipe (if already installed) and install World database? [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
                             // Wipe and install Mangos database
@@ -501,7 +501,7 @@ public class MaNGOSUI extends WorkExecutor {
                                     confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
                         }
                     } else if (optGitDBUpdate) {
-                        System.console().printf("\nDo you want to update Realm database? [y/n, default:n] ");
+                        System.out.printf("\nDo you want to update Realm database? [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
                             // Update only Realm database
@@ -512,7 +512,7 @@ public class MaNGOSUI extends WorkExecutor {
                                     confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
                         }
 
-                        System.console().printf("\nDo you want update Character database? [y/n, default:n] ");
+                        System.out.printf("\nDo you want update Character database? [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
                             // Update only Character database
@@ -523,7 +523,7 @@ public class MaNGOSUI extends WorkExecutor {
                                     confLoader.getDatabaseUpdateFolder(), cmdManager, null, null);
                         }
 
-                        System.console().printf("\nDo you want to update World database? [y/n, default:n] ");
+                        System.out.printf("\nDo you want to update World database? [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
                             // Update only Mangos database
@@ -535,116 +535,116 @@ public class MaNGOSUI extends WorkExecutor {
                         }
                     }
                 } else {
-                    System.console().printf("\n*** Database operation skipped. MySQL command not ready.\n");
+                    System.out.printf("\n*** Database operation skipped. MySQL command not ready.\n");
                 }
 
                 /**
                  * **** Server compile and install *****
                  */
-                System.console().printf("\nDo you want to build and install serve sources? [y/n, default:n] ");
+                System.out.printf("\nDo you want to build and install serve sources? [y/n, default:n] ");
                 input = System.console().readLine();
                 if ("y".equalsIgnoreCase(input) && cmakeOk) {
                     // Show and get compile and build options
-                    System.console().printf("\n\n*** Buil and install folders configuration:\n");
-                    System.console().printf("BUILD FOLDER  : " + confLoader.getCMakeBuildFolder().replace("\"", "") + "\n");
-                    System.console().printf("INSTALL FOLDER: " + confLoader.getCMakeRunFolder().replace("\"", "") + "\n");
-                    System.console().printf("\nDo you want to change theese parameters? [y/n, default:n] ");
+                    System.out.printf("\n\n*** Buil and install folders configuration:\n");
+                    System.out.printf("BUILD FOLDER  : " + confLoader.getCMakeBuildFolder().replace("\"", "") + "\n");
+                    System.out.printf("INSTALL FOLDER: " + confLoader.getCMakeRunFolder().replace("\"", "") + "\n");
+                    System.out.printf("\nDo you want to change theese parameters? [y/n, default:n] ");
                     input = System.console().readLine();
                     if ("y".equalsIgnoreCase(input)) {
-                        System.console().printf("\nTo remove a param insert a blank space.\n");
+                        System.out.printf("\nTo remove a param insert a blank space.\n");
                         confLoader.setCMakeBuildFolder(readNewParam("BUILD FOLDER", confLoader.getCMakeBuildFolder().replace("\"", "")));
                         confLoader.setCMakeRunFolder(readNewParam("INSTALL FOLDER", confLoader.getCMakeRunFolder().replace("\"", "")));
-                        System.console().printf("\n\n*** NEW buil and install folders configuration:\n");
-                        System.console().printf("LUA SCRIPT FOLDER: " + confLoader.getCMakeBuildFolder().replace("\"", "") + "\n");
-                        System.console().printf("SERVER RUN FOLDER    : " + confLoader.getCMakeRunFolder().replace("\"", "") + "\n");
+                        System.out.printf("\n\n*** NEW buil and install folders configuration:\n");
+                        System.out.printf("LUA SCRIPT FOLDER: " + confLoader.getCMakeBuildFolder().replace("\"", "") + "\n");
+                        System.out.printf("SERVER RUN FOLDER    : " + confLoader.getCMakeRunFolder().replace("\"", "") + "\n");
                     }
-                    System.console().printf("\n*** Other build options (empty values means default value):\n");
+                    System.out.printf("\n*** Other build options (empty values means default value):\n");
                     ArrayList<String> cmakeOptions = new ArrayList<>();
                     Collections.sort(cmakeOptions);
                     for (String optKey : confLoader.getCmakeOptions().keySet()) {
-                        System.console().printf(optKey.substring(optKey.indexOf('.') + 1) + ": " + confLoader.getCmakeOptions().get(optKey) + "\n");
+                        System.out.printf(optKey.substring(optKey.indexOf('.') + 1) + ": " + confLoader.getCmakeOptions().get(optKey) + "\n");
                     }
-                    System.console().printf("\nTo modify this options edit \"cmake.\" into \"config.property\" file.\n");
-                    System.console().printf("\nPress any key to continue...\n");
+                    System.out.printf("\nTo modify this options edit \"cmake.\" into \"config.property\" file.\n");
+                    System.out.printf("\nPress any key to continue...\n");
                     System.console().readLine();
-                    System.console().printf("\nDo you want to build source code (into folder '" + confLoader.getCMakeBuildFolder().replace("\"", "") + "')?\n"
+                    System.out.printf("\nDo you want to build source code (into folder '" + confLoader.getCMakeBuildFolder().replace("\"", "") + "')?\n"
                             + "WARNING: this operation may overwrite already built project! [y/n, default:n] ");
                     input = System.console().readLine();
                     if ("y".equalsIgnoreCase(input)) {
                         // Do cmake configuration
-                        System.console().printf("Configuring CMake option for compile.\n");
+                        System.out.printf("Configuring CMake option for compile.\n");
                         serverFolder = setGitFolder(confLoader.getGitFolderServer(), confLoader.getGitURLServer());
                         cmdManager.cmakeConfig(serverFolder, confLoader.getCMakeBuildFolder(), confLoader.getCmakeOptions(), null);
                     }
-                    System.console().printf("\nDo you want to compile and install built source (into folder '" + confLoader.getCMakeRunFolder().replace("\"", "") + "')? [y/n, default:n] ");
+                    System.out.printf("\nDo you want to compile and install built source (into folder '" + confLoader.getCMakeRunFolder().replace("\"", "") + "')? [y/n, default:n] ");
                     input = System.console().readLine();
                     if ("y".equalsIgnoreCase(input)) {
                         // Do cmake build and install
                         if (cmdManager.cmakeInstall(confLoader.getCMakeBuildFolder(), confLoader.getCMakeRunFolder(), confLoader.getCMakeBuildType(), null)) {
-                            System.console().printf("\n\nMaNGOS server is now installed. To complete the installation you need:\n");
-                            System.console().printf("1. Add a new row inside \"realmlist\" table with new MaNGOS installed information.\n");
-                            System.console().printf("2. Extract game data from a WoW client (use next tab to do this).\n");
-                            System.console().printf("3. Configure \".conf\" file.\n");
-                            System.console().printf("4. Run \"realmd\" and \"mangosd\" deamons from intall folder.\n");
-                            System.console().printf("\n\nEnjoy!\n");
-                            System.console().printf("\nPress any key to continue...\n");
+                            System.out.printf("\n\nMaNGOS server is now installed. To complete the installation you need:\n");
+                            System.out.printf("1. Add a new row inside \"realmlist\" table with new MaNGOS installed information.\n");
+                            System.out.printf("2. Extract game data from a WoW client (use next tab to do this).\n");
+                            System.out.printf("3. Configure \".conf\" file.\n");
+                            System.out.printf("4. Run \"realmd\" and \"mangosd\" deamons from intall folder.\n");
+                            System.out.printf("\n\nEnjoy!\n");
+                            System.out.printf("\nPress any key to continue...\n");
                             System.console().readLine();
                         }
                     }
                 } else {
-                    System.console().printf("\n*** Compiling operation skipped. CMAKE command not ready.\n");
+                    System.out.printf("\n*** Compiling operation skipped. CMAKE command not ready.\n");
                 }
 
                 /**
                  * **** LUA Scripts install *****
                  */
                 if (!confLoader.getGitURLEluna().isEmpty()) {
-                    System.console().printf("\nDo you want to install LUA Script scripts? [y/n, default:n] ");
+                    System.out.printf("\nDo you want to install LUA Script scripts? [y/n, default:n] ");
                     input = System.console().readLine();
                     if ("y".equalsIgnoreCase(input) && mysqlOk) {
                         // Show and get LUA installation param
-                        System.console().printf("\n\n*** LUA Script database installation parameters:\n");
-                        System.console().printf("SERVER     : " + confLoader.getDatabaseServer() + "\n");
-                        System.console().printf("PORT       : " + confLoader.getDatabasePort() + "\n");
-                        System.console().printf("ADMIN USER : " + confLoader.getDatabaseAdmin() + "\n");
-                        System.console().printf("ADMIN PASS : " + confLoader.getDatabaseAdminPass() + "\n");
-                        System.console().printf("DB USER    : " + confLoader.getDatabaseUser() + "\n");
-                        System.console().printf("DB PASS    : " + confLoader.getDatabaseUserPass() + "\n");
-                        System.console().printf("\nDo you want to change theese parameters? [y/n, default:n] ");
+                        System.out.printf("\n\n*** LUA Script database installation parameters:\n");
+                        System.out.printf("SERVER     : " + confLoader.getDatabaseServer() + "\n");
+                        System.out.printf("PORT       : " + confLoader.getDatabasePort() + "\n");
+                        System.out.printf("ADMIN USER : " + confLoader.getDatabaseAdmin() + "\n");
+                        System.out.printf("ADMIN PASS : " + confLoader.getDatabaseAdminPass() + "\n");
+                        System.out.printf("DB USER    : " + confLoader.getDatabaseUser() + "\n");
+                        System.out.printf("DB PASS    : " + confLoader.getDatabaseUserPass() + "\n");
+                        System.out.printf("\nDo you want to change theese parameters? [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
-                            System.console().printf("\nTo remove a param insert a blank space.\n");
+                            System.out.printf("\nTo remove a param insert a blank space.\n");
                             confLoader.setDatabaseServer(readNewParam("SERVER", confLoader.getDatabaseServer()));
                             confLoader.setDatabasePort(readNewParam("PORT", confLoader.getDatabasePort()));
                             confLoader.setDatabaseAdmin(readNewParam("ADMIN USER", confLoader.getDatabaseAdmin()));
                             confLoader.setDatabaseAdminPass(readNewParam("ADMIN PASS", confLoader.getDatabaseAdminPass()));
                             confLoader.setDatabaseUser(readNewParam("DB USER", confLoader.getDatabaseUser()));
                             confLoader.setDatabaseUserPass(readNewParam("DB PASS", confLoader.getDatabaseUserPass()));
-                            System.console().printf("\n\n*** NEW Database server installation parameters:\n");
-                            System.console().printf("SERVER     : " + confLoader.getDatabaseServer() + "\n");
-                            System.console().printf("PORT       : " + confLoader.getDatabasePort() + "\n");
-                            System.console().printf("ADMIN USER : " + confLoader.getDatabaseAdmin() + "\n");
-                            System.console().printf("ADMIN PASS : " + confLoader.getDatabaseAdminPass() + "\n");
-                            System.console().printf("DB USER    : " + confLoader.getDatabaseUser() + "\n");
-                            System.console().printf("DB PASS    : " + confLoader.getDatabaseUserPass() + "\n");
+                            System.out.printf("\n\n*** NEW Database server installation parameters:\n");
+                            System.out.printf("SERVER     : " + confLoader.getDatabaseServer() + "\n");
+                            System.out.printf("PORT       : " + confLoader.getDatabasePort() + "\n");
+                            System.out.printf("ADMIN USER : " + confLoader.getDatabaseAdmin() + "\n");
+                            System.out.printf("ADMIN PASS : " + confLoader.getDatabaseAdminPass() + "\n");
+                            System.out.printf("DB USER    : " + confLoader.getDatabaseUser() + "\n");
+                            System.out.printf("DB PASS    : " + confLoader.getDatabaseUserPass() + "\n");
                         }
-                        System.console().printf("\n\n*** LUA Script install configuration:\n");
-                        System.console().printf("LUA SCRIPT FOLDER: " + confLoader.getGitFolderEluna().replace("\"", "") + "\n");
-                        System.console().printf("SERVER RUN FOLDER: " + confLoader.getCMakeRunFolder().replace("\"", "") + "\n");
-                        System.console().printf("\nDo you want to change theese parameters? [y/n, default:n] ");
+                        System.out.printf("\n\n*** LUA Script install configuration:\n");
+                        System.out.printf("LUA SCRIPT FOLDER: " + confLoader.getGitFolderEluna().replace("\"", "") + "\n");
+                        System.out.printf("SERVER RUN FOLDER: " + confLoader.getCMakeRunFolder().replace("\"", "") + "\n");
+                        System.out.printf("\nDo you want to change theese parameters? [y/n, default:n] ");
                         input = System.console().readLine();
                         if ("y".equalsIgnoreCase(input)) {
-                            System.console().printf("\nTo remove a param insert a blank space.\n");
+                            System.out.printf("\nTo remove a param insert a blank space.\n");
                             confLoader.setGitFolderEluna(readNewParam("LUA SCRIPT FOLDER", confLoader.getGitFolderEluna().replace("\"", "")));
                             confLoader.setCMakeRunFolder(readNewParam("SERVER RUN FOLDER", confLoader.getCMakeRunFolder().replace("\"", "")));
-                            System.console().printf("\n\n*** NEW LUA Script install configuration:\n");
-                            System.console().printf("LUA SCRIPT FOLDER: " + confLoader.getGitFolderEluna().replace("\"", "") + "\n");
-                            System.console().printf("SERVER RUN FOLDER    : " + confLoader.getCMakeRunFolder().replace("\"", "") + "\n");
+                            System.out.printf("\n\n*** NEW LUA Script install configuration:\n");
+                            System.out.printf("LUA SCRIPT FOLDER: " + confLoader.getGitFolderEluna().replace("\"", "") + "\n");
+                            System.out.printf("SERVER RUN FOLDER    : " + confLoader.getCMakeRunFolder().replace("\"", "") + "\n");
                         }
 
                         // Installing LUA database script
                         String setupPath = elunaFolder + File.separator + "sql";
-                        System.console().printf("Update database for LUA Script from: " + setupPath);
+                        System.out.printf("Update database for LUA Script from: " + setupPath);
                         mysqlUpdateDB(confLoader.getDatabaseServer(), confLoader.getDatabasePort(), confLoader.getDatabaseAdmin(), confLoader.getDatabaseAdminPass(),
                                 databaseFolder, null, null, setupPath, confLoader.getWorldLoadDBName(),
                                 null, cmdManager, null, null);
@@ -653,26 +653,26 @@ public class MaNGOSUI extends WorkExecutor {
                         String luaSrc = (confLoader.getGitFolderEluna().isEmpty() ? elunaFolder : confLoader.getGitFolderEluna().replace("\"", ""))
                                 + File.separator + "lua_scripts";
                         String luaDst = confLoader.getCMakeRunFolder() + File.separator + "lua_scripts";
-                        System.console().printf("Update LUA script from: " + setupPath);
+                        System.out.printf("Update LUA script from: " + setupPath);
                         boolean cpRet = cmdManager.copyFolder(luaSrc, luaDst, null);
                         if (cpRet) {
-                            System.console().printf("Done\n");
+                            System.out.printf("Done\n");
                         } else {
-                            System.console().printf("ERROR: check console log.\n");
+                            System.out.printf("ERROR: check console log.\n");
                         }
 
                     } else {
-                        System.console().printf("\n*** LUA Script operation skipped. MySQL command not ready.\n");
+                        System.out.printf("\n*** LUA Script operation skipped. MySQL command not ready.\n");
                     }
                 }
 
                 /**
                  * **** Map, VMap, MMAp extractions *****
                  */
-                System.console().printf("\nDo you want to extract game data (Map, VMAp, MMAp) from WoW client? [y/n, default:n] ");
+                System.out.printf("\nDo you want to extract game data (Map, VMAp, MMAp) from WoW client? [y/n, default:n] ");
                 input = System.console().readLine();
                 if ("y".equalsIgnoreCase(input)) {
-                    System.console().printf("\n\n*** Path configuration:\n");
+                    System.out.printf("\n\n*** Path configuration:\n");
                     String unixRun = "";
                     if (cmdManager.getCURR_OS() == cmdManager.UNIX) {
                         unixRun = "bin" + File.separator;
@@ -680,11 +680,11 @@ public class MaNGOSUI extends WorkExecutor {
                     String toolPath = confLoader.getCMakeRunFolder() + File.separator + unixRun + "tools";
                     String dataPath = confLoader.getCMakeRunFolder() + File.separator + "data";;
                     String clientPath;
-                    System.console().printf("\nInsert path to tools folder: [example: " + toolPath + "]");
+                    System.out.printf("\nInsert path to tools folder: [example: " + toolPath + "]");
                     toolPath = System.console().readLine();
-                    System.console().printf("\nInsert path to data folder: [exmaple: " + dataPath + "]");
+                    System.out.printf("\nInsert path to data folder: [exmaple: " + dataPath + "]");
                     dataPath = System.console().readLine();
-                    System.console().printf("\nInsert path to WoW client folder:");
+                    System.out.printf("\nInsert path to WoW client folder:");
                     clientPath = System.console().readLine();
                     boolean retOps = true;
                     for (int i = 1; i <= 4; i++) {
@@ -692,14 +692,14 @@ public class MaNGOSUI extends WorkExecutor {
                     }
                     retOps &= cmdManager.deleteFolder(dataPath + File.separator + "Buildings");
                     if (retOps) {
-                        System.console().printf("Done\n");
+                        System.out.printf("Done\n");
                     } else {
-                        System.console().printf("ERROR: check console log.\n");
+                        System.out.printf("ERROR: check console log.\n");
                     }
                 }
             } else {
                 // Current operating system is NOT reconized from available operating systems. Console mode will exit
-                System.console().printf("CRITICAL: Operatig system not supported.\n");
+                System.out.printf("CRITICAL: Operatig system not supported.\n");
             }
 
         } else {
@@ -719,7 +719,7 @@ public class MaNGOSUI extends WorkExecutor {
      * not null
      */
     private static String readNewParam(String paramName, String paramValue) {
-        System.console().printf("Insert new value for '" + paramName + "' parameter [default: " + paramValue + "]:");
+        System.out.printf("Insert new value for '" + paramName + "' parameter [default: " + paramValue + "]:");
         String input = System.console().readLine();
         return (!input.isEmpty()) ? input.trim() : paramValue;
     }
