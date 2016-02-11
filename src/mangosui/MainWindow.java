@@ -40,8 +40,6 @@ import javax.swing.JOptionPane;
 import javax.swing.ListModel;
 import javax.swing.SwingWorker;
 import javax.swing.text.DefaultCaret;
-import static mangosui.WorkExecutor.mysqlLoadDB;
-import static mangosui.WorkExecutor.mysqlUpdateDB;
 
 /**
  *
