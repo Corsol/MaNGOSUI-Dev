@@ -75,7 +75,7 @@ public class CommandsWindows extends Command {
      */
     public boolean executeCmd(String command, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer, final JProgressBar prbCurrWork) throws IOException, InterruptedException, ExecutionException {
         if (super.getDebugLevel() > 1) {
-            System.console().printf("\nDEBUG - command:" + command + "\n\n");
+            System.out.printf("\nDEBUG - command:" + command + "\n\n");
             if (guiConsole != null) {
             }
         }
@@ -120,11 +120,11 @@ public class CommandsWindows extends Command {
         command.add("/c");
         command.addAll(commands);
         if (super.getDebugLevel() > 1) {
-            System.console().printf("\nDEBUG - command:");
+            System.out.printf("\nDEBUG - command:");
             for (String cmd : commands) {
-                System.console().printf("%s", "\n" + cmd);
+                System.out.printf("%s", "\n" + cmd);
             }
-            System.console().printf("");
+            System.out.printf("");
             if (guiConsole != null) {
             }
         }
@@ -166,7 +166,7 @@ public class CommandsWindows extends Command {
      */
     public boolean executePS(String command, Object guiConsole, final StringBuilder rawConsole, boolean toBuffer, final JProgressBar prbCurrWork) throws IOException, InterruptedException, ExecutionException {
         if (super.getDebugLevel() > 1) {
-            System.console().printf("\nDEBUG - command:" + command + "\n\n");
+            System.out.printf("\nDEBUG - command:" + command + "\n\n");
             if (guiConsole != null) {
             }
         }
@@ -450,7 +450,7 @@ public class CommandsWindows extends Command {
 
         boolean ret = this.executeCmd(command, console, sb, false, null);
         String txtCopy = "\nCoping built file to install destination (" + folder.getPath() + ")...";
-        System.console().printf("%s\n", txtCopy);
+        System.out.printf("%s\n", txtCopy);
         if (ret) {
             super.copyFolder(new File(buildFolder + File.separator + "bin" + File.separator + buildType), folder, console);
         }
@@ -508,7 +508,7 @@ public class CommandsWindows extends Command {
         if (console != null) {
             ConsoleManager.getInstance().updateGUIConsole(console, gitCommand, ConsoleManager.TEXT_ORANGE);
         } else if (!toBuffer) {
-            System.console().printf("%s\n", gitCommand);
+            System.out.printf("%s\n", gitCommand);
         }
         String command;
         if (this.gitPath.isEmpty()) {

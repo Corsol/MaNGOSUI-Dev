@@ -79,7 +79,7 @@ public class ProcessExec extends javax.swing.SwingWorker {
             for (String cmd : this.commands) {
                 msg += " " + cmd;
             }
-            System.console().printf("%s\n", msg);
+            System.out.printf("%s\n", msg);
         }
         Process proc = builder.start();
         while (!done) {
