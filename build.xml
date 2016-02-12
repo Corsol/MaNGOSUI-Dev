@@ -29,16 +29,16 @@
     <jar jarfile="${dist}/lib/MyProject-${DSTAMP}.jar" basedir="${build}"/>
   </target>
 
-  <target name="clean"
+  <target name="clean" depends="dist"
         description="clean up">
     <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}"/>
-    <delete dir="${dist}"/>
   </target>
-  <target name="-post-compile">
+
+  <target name="test" depends="clean">
     <copy file="config.properties" todir="${dist}"/>
     <copy file="mysql_portable.zip" todir="${dist}"/>
-		<copy file="runMaNGOSUI.bat" todir="${dist}"/>
-		<copy file="runMaNGOSUI.sh" todir="${dist}"/>
+    <copy file="runMaNGOSUI.bat" todir="${dist}"/>
+    <copy file="runMaNGOSUI.sh" todir="${dist}"/>
   </target>
 </project>
